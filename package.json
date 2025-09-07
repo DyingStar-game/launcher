@@ -2,8 +2,16 @@
   "name": "dying-star",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "electron/main.js",
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "electron": "electron .",
+    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron-pack": "electron-builder",
+    "preelectron-pack": "npm run build && npm run export",
+    "export": "next export",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,5 +24,20 @@
   "bugs": {
     "url": "https://github.com/DyingStar-game/launcher/issues"
   },
-  "homepage": "https://github.com/DyingStar-game/launcher#readme"
+  "homepage": "https://github.com/DyingStar-game/launcher#readme",
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.0.0",
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.12",
+    "typescript": "^5.0.0",
+    "wait-on": "^8.0.4"
+  }
 }
