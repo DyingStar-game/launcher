@@ -1,0 +1,23 @@
+{
+  "watch": ["electron/"],
+  "ext": "js,ts,json",
+  "ignore": ["node_modules/", "dist/", "out/", ".next/", "*.log"],
+  "exec": "electron .",
+  "env": {
+    "NODE_ENV": "development",
+    "ELECTRON_DISABLE_SECURITY_WARNINGS": "true"
+  },
+  "delay": 1500,
+  "verbose": false,
+  "quiet": false,
+  "restartable": "rs",
+  "stdout": true,
+  "stderr": true,
+  "colours": true,
+  "events": {
+    "start": "echo \"⚡ Starting Electron...\"",
+    "restart": "echo \"🔄 Restarting Electron due to changes...\"",
+    "crash": "echo \"💥 Electron crashed - Check logs above\"",
+    "exit": "echo \"👋 Electron stopped\""
+  }
+}
