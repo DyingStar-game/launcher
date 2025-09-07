@@ -5,18 +5,8 @@
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "electron": "cross-env NODE_ENV=development electron .",
     "electron-dev": "concurrently --names \"🌐 Next.js,⚡ Electron\" --prefix-colors \"cyan.bold,magenta.bold\" --kill-others --restart-tries 3 \"npm run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development nodemon\"",
-    "electron-dev-minimal": "concurrently --names \"🌐 Next.js,⚡ Electron\" --prefix-colors \"cyan.bold,magenta.bold\" --kill-others --restart-tries 3 \"npm run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development nodemon --quiet\"",
-    "electron-dev-verbose": "concurrently --names \"🌐 Next.js,⚡ Electron\" --prefix-colors \"cyan.bold,magenta.bold\" --kill-others --restart-tries 3 \"npm run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development nodemon --verbose\"",
-    "electron-pack": "electron-builder",
-    "preelectron-pack": "npm run build",
-    "export": "next export",
-    "clean": "rimraf dist out .next",
-    "setup": "npm install && cp .env.example .env.local",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "rimraf dist out .next"
   },
   "repository": {
     "type": "git",
@@ -36,28 +26,11 @@
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/react": "^18.0.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.0.0",
     "electron": "^38.0.0",
-    "electron-builder": "^26.0.12",
     "nodemon": "^3.0.0",
     "rimraf": "^5.0.0",
-    "typescript": "^5.0.0",
     "wait-on": "^8.0.4"
-  },
-  "nodemon": {
-    "watch": ["electron/"],
-    "ext": "js,ts,json",
-    "ignore": ["node_modules/", "dist/", "out/", ".next/", "*.log"],
-    "exec": "electron .",
-    "env": {
-      "NODE_ENV": "development"
-    },
-    "delay": 1500,
-    "verbose": false,
-    "quiet": false,
-    "restartable": "rs"
   }
 }
