@@ -14,7 +14,7 @@
     "start": "echo \"🚀 Dying Star Launcher - Electron v38.0.0 starting...\"",
     "restart": "echo \"🔄 Code changed - Restarting Electron process...\"",
     "crash": "echo \"💥 Electron crashed! Check the logs above for errors.\"",
-    "exit": "echo \"👋 Electron stopped - Ready for next session\"",
+    "exit": "echo \"🛑 Electron stopped - Ready for next session\"",
     "config:update": "echo \"⚙️ Configuration updated - Applying changes...\""
   },
   "colours": true,

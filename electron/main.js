@@ -18,11 +18,26 @@ console.log(`⚙️  Mode: ${isDev ? 'Development' : 'Production'}`);
 console.log(`🔧 PID: ${process.pid}`);
 console.log('===============================================\n');
 
+// Fonction pour obtenir le chemin de l'icône selon la plateforme
+function getIconPath() {
+  const iconDir = join(__dirname, '../assets/icons');
+  
+  switch (process.platform) {
+    case 'win32':
+      return join(iconDir, 'icon.ico');
+    default:
+      return join(iconDir, 'icon.png');
+  }
+}
+
 function createWindow() {
   console.log('🔨 Creating main window...');
   
   // Supprimer complètement la barre de menu
   Menu.setApplicationMenu(null);
+  
+  const iconPath = getIconPath();
+  console.log(`🖼️  Using icon: ${iconPath}`);
   
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -37,7 +52,8 @@ function createWindow() {
     menuBarVisible: false,
     frame: true,
     show: false,
-    title: 'Dying Star Launcher'
+    title: 'Dying Star Launcher',
+    icon: iconPath
   });
 
   const url = isDev 
@@ -74,8 +90,15 @@ if (isDev) {
   process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 }
 
+// Définir l'icône de l'application (pour la barre des tâches)
 app.whenReady().then(() => {
   console.log('⚡ Electron app ready - Initializing...');
+  
+  // Définir l'icône de l'app pour toutes les fenêtres
+  if (process.platform !== 'darwin') {
+    app.setAppUserModelId('com.dyingstar.launcher');
+  }
+  
   createWindow();
 });
 
