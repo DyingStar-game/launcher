@@ -1,0 +1,24 @@
+{
+  "watch": ["electron/"],
+  "ext": "js,ts,json",
+  "ignore": ["node_modules/", "dist/", "out/", ".next/"],
+  "exec": "electron .",
+  "env": {
+    "NODE_ENV": "development",
+    "ELECTRON_DISABLE_SECURITY_WARNINGS": "true"
+  },
+  "delay": 1500,
+  "quiet": false,
+  "restartable": "rs",
+  "events": {
+    "start": "echo \"🚀 Dying Star Launcher - Electron v38.0.0 starting...\"",
+    "restart": "echo \"🔄 Code changed - Restarting Electron process...\"",
+    "crash": "echo \"💥 Electron crashed! Check the logs above for errors.\"",
+    "exit": "echo \"🛑 Electron stopped - Ready for next session\"",
+    "config:update": "echo \"⚙️ Configuration updated - Applying changes...\""
+  },
+  "colours": true,
+  "verbose": false,
+  "stdout": true,
+  "stderr": true
+}
