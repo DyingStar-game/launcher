@@ -1,0 +1,12 @@
+{
+  "files": [],
+  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }],
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "paths": {
+      "@renderer/*": ["./src/renderer/*"],
+      "@main/*":     ["./src/main/*"]
+    }
+  }
+}
