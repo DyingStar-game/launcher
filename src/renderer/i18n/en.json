@@ -1,0 +1,60 @@
+{ 
+    "navbar": {
+      "home": "Home",
+      "social": "Social",
+      "lore": "Lore"
+    },
+    "universe": {
+      "title": "Universe",
+      "account": {
+        "title": "Account",
+        "disconnected": "Not connected",
+        "connectedAs": "Logged in as {{username}}",
+        "login": "Login",
+        "create": "Create account",
+        "logout": "Logout",
+        "subscription": "Subscription",
+        "loading": "Connecting..."
+      },
+      "game": {
+        "title": "Game",
+        "play": "Play",
+        "notInstalled": "Game not installed",
+        "players": "{{count}} players online",
+        "status": {
+            "online": "Servers available",
+            "offline": "Servers offline",
+            "degraded": "Issues ongoing"
+        },
+        "viewStatus": "View status"
+      },
+      "files": {
+        "title": "Game files",
+        "version": "Version: {{version}}",
+        "releaseDate": "Release: {{date}}",
+        "notInstalled": "Game not installed",
+        "install": "Install",
+        "update": "Update",
+        "verify": "Verify files",
+        "clearCache": "Clear cache",
+        "changelog": "View changelog",
+        "installing": "Installing..."
+      },
+      "social": {
+        "title": "Social",
+        "noFriends": "No friends",
+        "seeAll": "See all",
+        "notifications": "{{count}} notifications"
+      },
+      "socialPage": {
+        "friends": "Friends",
+        "organizations": "Organizations",
+        "requests": "Requests",
+        "addFriend": "Add friend",
+        "createOrga": "Create organization",
+        "joinOrga": "Join organization",
+        "accept": "Accept",
+        "decline": "Decline"
+      }
+    }
+  }

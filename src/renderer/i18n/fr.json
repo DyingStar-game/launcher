@@ -1,0 +1,60 @@
+{
+    "navbar": {
+      "home": "Accueil",
+      "social": "Social",
+      "lore": "Lore"
+    },
+    "universe": {
+      "title": "Universe",
+      "account": {
+        "title": "Compte",
+        "disconnected": "Non connecté",
+        "connectedAs": "Connecté en tant que {{username}}",
+        "login": "Se connecter",
+        "create": "Créer un compte",
+        "logout": "Se déconnecter",
+        "subscription": "Abonnement",
+        "loading": "Connexion en cours..."
+      },
+      "game": {
+        "title": "Jeu",
+        "play": "Jouer",
+        "notInstalled": "Jeu non installé",
+        "players": "{{count}} joueurs en ligne",
+        "status": {
+            "online": "Serveurs disponibles",
+            "offline": "Serveurs indisponibles",
+            "degraded": "Problèmes en cours"
+        },
+        "viewStatus": "Voir le statut"
+      },
+      "files": {
+        "title": "Fichiers du jeu",
+        "version": "Version : {{version}}",
+        "releaseDate": "Release : {{date}}",
+        "notInstalled": "Jeu non installé",
+        "install": "Installer",
+        "update": "Mettre à jour",
+        "verify": "Vérifier les fichiers",
+        "clearCache": "Vider le cache",
+        "changelog": "Voir le changelog",
+        "installing": "Installation en cours..."
+      },
+      "social": {
+        "title": "Social",
+        "noFriends": "Aucun ami",
+        "seeAll": "Voir tout",
+        "notifications": "{{count}} notifications"
+      },
+      "socialPage": {
+        "friends": "Amis",
+        "organizations": "Organisations",
+        "requests": "Requêtes",
+        "addFriend": "Ajouter un ami",
+        "createOrga": "Créer une organisation",
+        "joinOrga": "Rejoindre",
+        "accept": "Accepter",
+        "decline": "Refuser"
+      }
+    }
+  }

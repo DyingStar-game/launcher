@@ -1,10 +1,13 @@
+import i18n from '@renderer/i18n'
 import { useEnvStore } from '@store/env'
 import { useNavigationStore } from '@store/navigation'
 import type { View } from '@store/navigation'
+import { useTranslation } from 'react-i18next'
 
 export default function Navbar(): React.JSX.Element {
   const { activeEnv, setEnv } = useEnvStore()
   const { currentView, navigate } = useNavigationStore()
+  const { t } = useTranslation()
 
   const handleEnvSwitch = (env: 'universe' | 'universe-testing'): void => {
     setEnv(env)
@@ -12,8 +15,8 @@ export default function Navbar(): React.JSX.Element {
   }
 
   const navLinks: { label: string; view: View }[] = [
-    { label: 'Social', view: 'social' },
-    { label: 'Lore',   view: 'lore'   }
+    { label: t("navbar.social"), view: 'social' },
+    { label: t("navbar.lore"), view: 'lore'   }
   ]
 
   return (
@@ -62,6 +65,20 @@ export default function Navbar(): React.JSX.Element {
       </div>
 
       {/* Droite : liens externes + don */}
+      <div className="flex items-center gap-4 text-sm text-[var(--color-ds-muted)]">
+      <button 
+          onClick={() => i18n.changeLanguage("en")}
+          className="hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
+        >
+          EN
+        </button>
+        <button 
+          onClick={() => i18n.changeLanguage("fr")}
+          className="hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
+        >
+          FR
+        </button>
+      </div>
       <div className="flex items-center gap-4 text-sm text-[var(--color-ds-muted)]">
         <button
           onClick={() => window.open('https://dyingstar.example.com', '_blank')}
