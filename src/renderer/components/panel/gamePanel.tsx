@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useGameStore } from '@store/game'
 import { useTranslation } from 'react-i18next'
 import ServerStatus from '@components/ui/serverStatus'
+import Button from '@components/ui/button'
 
 export default function GamePanel(): React.JSX.Element {
   const { installed, serverStatus, players, play, fetchServerStatus } = useGameStore()
@@ -12,12 +13,14 @@ export default function GamePanel(): React.JSX.Element {
   }, [])
 
   return (
-    <div className="bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-6 flex flex-col gap-4">
+    <div className="h-full bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-7 flex flex-col gap-5 shadow-[0_12px_32px_rgba(0,0,0,0.35)] hover:border-[var(--color-ds-accent)]/40 transition-colors">
 
-      {/* Title */}
-      <h2 className="text-xs font-semibold text-[var(--color-ds-muted)] uppercase tracking-widest">
-        {t('universe.game.title')}
-      </h2>
+      <div className="flex items-center gap-3">
+        <h2 className="text-[11px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.24em]">
+          {t('universe.game.title')}
+        </h2>
+        <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
+      </div>
 
       {/* Server status */}
       <div className="flex items-center gap-2">
@@ -42,23 +45,18 @@ export default function GamePanel(): React.JSX.Element {
       {/* Actions */}
       <div className="flex flex-col gap-2 mt-auto">
 
-        <button
+        <Button
           onClick={play}
           disabled={!installed || serverStatus !== 'online'}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-opacity ${
-            installed && serverStatus === 'online'
-              ? 'bg-[var(--color-ds-accent)] text-white hover:opacity-90 cursor-pointer'
-              : 'bg-gray-500 text-white opacity-50 cursor-not-allowed'
-          }`}
+          variant="primary"
+          className="w-full"
         >
           {t('universe.game.play')}
-        </button>
+        </Button>
 
-        <button
-          className="px-4 py-2 rounded-lg border border-[var(--color-ds-border)] text-[var(--color-ds-muted)] text-sm hover:text-[var(--color-ds-text)] hover:border-[var(--color-ds-accent)] transition-colors cursor-pointer"
-        >
+        <Button variant="secondary" className="w-full">
           {t('universe.game.viewStatus')}
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -2,7 +2,8 @@
     "navbar": {
       "home": "Home",
       "social": "Social",
-      "lore": "Lore"
+      "lore": "Lore",
+      "support": "Donate"
     },
     "universe": {
       "title": "Universe",

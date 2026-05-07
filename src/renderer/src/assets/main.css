@@ -4,19 +4,14 @@
 @theme {
   --color-ds-bg:      #0d0d14;
   --color-ds-surface: #16161f;
+  --color-ds-surface-hover: rgba(255,255,255,0.05);
   --color-ds-border:  #2a2a3a;
-  --color-ds-accent:  #6c63ff;
-  --color-ds-text:    #e8e8f0;
+  --color-ds-accent:  rgb(255, 186, 8,0.8);
+  --color-ds-text:    rgb(255, 186, 8);
   --color-ds-muted:   #6b6b80;
   --color-ds-success: #22c55e;
   --color-ds-warning: #f59e0b;
   --color-ds-danger:  #ef4444;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 html, body, #root {

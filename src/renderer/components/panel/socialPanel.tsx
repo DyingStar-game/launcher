@@ -3,6 +3,7 @@ import { useSocialStore } from '@store/social'
 import { useNavigationStore } from '@store/navigation'
 import { useTranslation } from 'react-i18next'
 import FriendItem from '@components/ui/friendItem'
+import Button from '@components/ui/button'
 
 export default function SocialPanel(): React.JSX.Element {
   const { friends, requests, fetchAll } = useSocialStore()
@@ -20,29 +21,22 @@ export default function SocialPanel(): React.JSX.Element {
   const visibleFriends = friends.slice(0, 5)
 
   return (
-    <div className="bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-4 flex flex-col h-full">
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-xs font-semibold text-[var(--color-ds-muted)] uppercase tracking-widest">
-          {t('universe.social.title')}
-        </h2>
-
-        {notifications > 0 && (
-          <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
-            {notifications}
-          </span>
-        )}
-      </div>
-
-      {/* Requests preview */}
+    <div className="relative bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-6 flex flex-col h-full shadow-[0_12px_32px_rgba(0,0,0,0.35)] hover:border-[var(--color-ds-accent)]/40 transition-colors">
       {notifications > 0 && (
-        <div className="mb-3 p-2 rounded-lg bg-[var(--color-ds-surface-hover)]">
-          <p className="text-xs text-[var(--color-ds-muted)]">
-            {t('universe.social.notifications', { count: notifications })}
-          </p>
+        <div className="absolute top-4 right-4">
+          <div className="min-w-6 h-6 px-2 inline-flex items-center justify-center rounded-full text-xs font-semibold bg-red-500 text-white shadow-[0_10px_25px_rgba(239,68,68,0.25)]">
+            {notifications}
+          </div>
         </div>
       )}
+
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-4">
+        <h2 className="text-[11px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.24em]">
+          {t('universe.social.title')}
+        </h2>
+        <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
+      </div>
 
       {/* Friend list */}
       <div className="flex flex-col gap-1 overflow-y-auto flex-1 pr-1">
@@ -59,12 +53,13 @@ export default function SocialPanel(): React.JSX.Element {
       </div>
 
       {/* Footer */}
-      <button
+      <Button
         onClick={() => navigate('social')}
-        className="mt-3 px-3 py-2 rounded-lg border border-[var(--color-ds-border)] text-[var(--color-ds-muted)] text-sm hover:text-[var(--color-ds-text)] hover:border-[var(--color-ds-accent)] transition-colors cursor-pointer"
+        variant="secondary"
+        className="mt-4 w-full justify-between"
       >
         {t('universe.social.seeAll')} →
-      </button>
+      </Button>
     </div>
   )
 }

@@ -19,9 +19,9 @@ export default function Shell(): React.JSX.Element {
   }
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden">
+    <div className="flex h-full  w-full flex-col overflow-hidden">
       <Navbar />
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 bg-[var(--color-ds-bg)] overflow-hidden p-4">
         {renderView()}
       </main>
     </div>

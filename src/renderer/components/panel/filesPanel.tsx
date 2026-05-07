@@ -1,5 +1,6 @@
 import { useFilesStore } from '@store/files'
 import { useTranslation } from 'react-i18next'
+import Button from '@components/ui/button'
 
 export default function FilesPanel(): React.JSX.Element {
   const {
@@ -18,12 +19,14 @@ export default function FilesPanel(): React.JSX.Element {
   const { t } = useTranslation()
 
   return (
-    <div className="bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-6 flex flex-col gap-4">
+    <div className="h-full bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-7 flex flex-col gap-5 shadow-[0_12px_32px_rgba(0,0,0,0.35)] hover:border-[var(--color-ds-accent)]/40 transition-colors">
 
-      {/* Title */}
-      <h2 className="text-xs font-semibold text-[var(--color-ds-muted)] uppercase tracking-widest">
-        {t('universe.files.title')}
-      </h2>
+      <div className="flex items-center gap-3">
+        <h2 className="text-[11px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.24em]">
+          {t('universe.files.title')}
+        </h2>
+        <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
+      </div>
 
       {/* Infos */}
       {!installed && (
@@ -62,46 +65,44 @@ export default function FilesPanel(): React.JSX.Element {
       <div className="flex flex-wrap gap-2 mt-auto">
 
         {!installed && (
-          <button
+          <Button
             onClick={install}
-            className="px-4 py-2 rounded-lg bg-[var(--color-ds-accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
+            variant="primary"
           >
             {t('universe.files.install')}
-          </button>
+          </Button>
         )}
 
         {installed && needsUpdate && (
-          <button
+          <Button
             onClick={update}
-            className="px-4 py-2 rounded-lg bg-[var(--color-ds-accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
+            variant="primary"
           >
             {t('universe.files.update')}
-          </button>
+          </Button>
         )}
 
         {installed && !needsUpdate && (
-          <button
+          <Button
             onClick={verify}
-            className="px-4 py-2 rounded-lg border border-[var(--color-ds-border)] text-[var(--color-ds-muted)] text-sm hover:text-[var(--color-ds-text)] hover:border-[var(--color-ds-accent)] transition-colors cursor-pointer"
+            variant="secondary"
           >
             {t('universe.files.verify')}
-          </button>
+          </Button>
         )}
 
         {installed && (
-          <button
-            className="px-4 py-2 rounded-lg border border-[var(--color-ds-border)] text-[var(--color-ds-muted)] text-sm hover:text-[var(--color-ds-text)] hover:border-[var(--color-ds-accent)] transition-colors cursor-pointer"
-          >
+          <Button variant="secondary">
             {t('universe.files.changelog')}
-          </button>
+          </Button>
         )}
 
-        <button
+        <Button
           onClick={clearCache}
-          className="px-4 py-2 rounded-lg border border-[var(--color-ds-border)] text-[var(--color-ds-muted)] text-sm hover:text-red-400 hover:border-red-400 transition-colors cursor-pointer"
+          variant="danger"
         >
           {t('universe.files.clearCache')}
-        </button>
+        </Button>
       </div>
     </div>
   )

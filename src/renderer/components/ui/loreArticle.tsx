@@ -30,27 +30,33 @@ export default function LoreArticle() {
 
   if (!current) {
     return (
-      <div className="flex items-center justify-center h-full text-[var(--color-ds-muted)]">
-        Sélectionne un article du lore
+      <div className="flex-1 min-w-0 p-6">
+        <div className="h-full rounded-xl border border-[var(--color-ds-border)] bg-[var(--color-ds-surface)] shadow-[0_12px_32px_rgba(0,0,0,0.35)] flex items-center justify-center text-[var(--color-ds-muted)]">
+          Sélectionne un article du lore
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-10 py-8">
-      <article className="lore-markdown">
+    <div className="flex-1 min-w-0 p-6">
+      <div className="h-full overflow-hidden rounded-xl border border-[var(--color-ds-border)] bg-[var(--color-ds-surface)] shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
+        <div className="h-full overflow-y-auto px-10 py-8">
+          <article className="lore-markdown">
 
-        {/* TITLE (optionnel override) */}
-        <h1 className="mb-6">{current.title}</h1>
+            {/* TITLE (optionnel override) */}
+            <h1 className="mb-6">{current.title}</h1>
 
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw, rehypeSanitize]}
-        >
-          {content}
-        </ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw, rehypeSanitize]}
+            >
+              {content}
+            </ReactMarkdown>
 
-      </article>
+          </article>
+        </div>
+      </div>
     </div>
   )
 }
