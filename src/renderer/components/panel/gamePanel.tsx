@@ -1,18 +1,26 @@
+// src/renderer/components/panel/gamePanel.tsx
+
 import { useEffect } from 'react'
 import { useGameStore } from '@store/game'
 import { useFilesStore } from '@store/files'
+import { useEnvStore } from '@store/env'
 import { useTranslation } from 'react-i18next'
 import ServerStatus from '@components/ui/serverStatus'
 import Button from '@components/ui/button'
 
 export default function GamePanel(): React.JSX.Element {
-  const { serverStatus, players, play, fetchServerStatus } = useGameStore()
-  const { installed } = useFilesStore()
+  const { activeEnv } = useEnvStore()
+  const { data: gameData, fetchServerStatus, play } = useGameStore()
+  const { data: filesData } = useFilesStore()
+
+  const { serverStatus, players } = gameData[activeEnv]
+  const { installed } = filesData[activeEnv]
+
   const { t } = useTranslation()
 
   useEffect(() => {
     fetchServerStatus()
-  }, [])
+  }, [activeEnv]) // Recharge le statut à chaque changement d'env
 
   const canPlay = installed && serverStatus === 'online'
 

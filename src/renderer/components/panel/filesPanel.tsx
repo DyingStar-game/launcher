@@ -1,27 +1,15 @@
 // src/renderer/components/panel/filesPanel.tsx
 
 import { useFilesStore } from '@store/files'
+import { useEnvStore } from '@store/env'
 import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/button'
 import InputField from '@components/ui/inputField'
 
 export default function FilesPanel(): React.JSX.Element {
-  const {
-    installed,
-    version,
-    releaseDate,
-    needsUpdate,
-    installing,
-    progress,
-    progressLabel,
-    installPath,
-    setInstallPath,
-    selectDirectory,
-    install,
-    update,
-    verify,
-    clearCache
-  } = useFilesStore()
+  const { activeEnv } = useEnvStore()
+  const { data, setInstallPath, selectDirectory, install, update, verify, clearCache } = useFilesStore()
+  const { installed, version, releaseDate, needsUpdate, installing, progress, progressLabel, installPath } = data[activeEnv]
 
   const { t } = useTranslation()
 
@@ -90,33 +78,20 @@ export default function FilesPanel(): React.JSX.Element {
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2 mt-auto">
-
         {!installed && (
-          <Button
-            onClick={install}
-            variant="primary"
-            disabled={installing || !installPath}
-          >
+          <Button onClick={install} variant="primary" disabled={installing || !installPath}>
             {t('universe.files.install')}
           </Button>
         )}
 
         {installed && needsUpdate && (
-          <Button
-            onClick={update}
-            variant="primary"
-            disabled={installing}
-          >
+          <Button onClick={update} variant="primary" disabled={installing}>
             {t('universe.files.update')}
           </Button>
         )}
 
         {installed && !needsUpdate && (
-          <Button
-            onClick={verify}
-            variant="secondary"
-            disabled={installing}
-          >
+          <Button onClick={verify} variant="secondary" disabled={installing}>
             {t('universe.files.verify')}
           </Button>
         )}
@@ -127,11 +102,7 @@ export default function FilesPanel(): React.JSX.Element {
           </Button>
         )}
 
-        <Button
-          onClick={clearCache}
-          variant="danger"
-          disabled={installing}
-        >
+        <Button onClick={clearCache} variant="danger" disabled={installing}>
           {t('universe.files.clearCache')}
         </Button>
       </div>

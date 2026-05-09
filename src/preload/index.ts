@@ -1,20 +1,16 @@
-// src/preload/index.ts
-
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import type { Env } from '../renderer/store/env'
 
 const api = {
-  // ── Fichiers / Installation ──────────────────────────────────────────────
+  // ── Fichiers / Installation ────────────────────────────────────────────────
 
-  /** Ouvre le dialogue natif de sélection de répertoire. */
   selectDirectory: (): Promise<string | null> =>
     ipcRenderer.invoke('files:select-directory'),
 
-  /** Lance le téléchargement et l'installation du jeu. */
-  installGame: (installPath: string): Promise<void> =>
-    ipcRenderer.invoke('files:install', installPath),
+  installGame: (env: Env, installPath: string): Promise<void> =>
+    ipcRenderer.invoke('files:install', env, installPath),
 
-  /** S'abonne aux événements de progression de l'installation (0–100). */
   onInstallProgress: (callback: (progress: number, label: string) => void): void => {
     ipcRenderer.removeAllListeners('files:progress')
     ipcRenderer.on('files:progress', (_event, progress: number, label: string) => {
@@ -22,15 +18,17 @@ const api = {
     })
   },
 
-  // ── Jeu ──────────────────────────────────────────────────────────────────
+  // ── Jeu ───────────────────────────────────────────────────────────────────
 
-  /** Lance l'exécutable du jeu depuis le répertoire d'installation. */
-  launchGame: (installPath: string): Promise<void> =>
-    ipcRenderer.invoke('game:launch', installPath),
+  launchGame: (env: Env, installPath: string): Promise<void> =>
+    ipcRenderer.invoke('game:launch', env, installPath),
 
-  /** Récupère le statut du serveur de jeu et le nombre de joueurs connectés. */
-  getServerStatus: (): Promise<{ status: 'online' | 'offline' | 'degraded' | 'checking'; players: number; statusPageUrl: string }> =>
-    ipcRenderer.invoke('game:get-server-status'),
+  getServerStatus: (env: Env): Promise<{
+    status: 'online' | 'offline' | 'degraded' | 'checking'
+    players: number
+    statusPageUrl: string
+  }> =>
+    ipcRenderer.invoke('game:get-server-status', env)
 }
 
 if (process.contextIsolated) {

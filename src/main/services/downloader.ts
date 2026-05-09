@@ -1,26 +1,27 @@
-// src/main/services/downloader.ts
-
 import { BrowserWindow } from 'electron'
 import axios from 'axios'
 import * as fs from 'fs'
 import * as path from 'path'
 import extract from 'extract-zip'
+import type { Env } from '../../renderer/store/env'
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
-/** URLs par OS — à remplacer par les URLs réelles */
-const GAME_ZIP_URLS: Partial<Record<NodeJS.Platform, string>> = {
-  win32:  'https://your-server.com/game/latest-windows.zip',
-  darwin: 'https://your-server.com/game/latest-macos.zip',
-  linux:  'https://your-server.com/game/latest-linux.zip',
+const GAME_ZIP_URLS: Record<Env, Partial<Record<NodeJS.Platform, string>>> = {
+  'universe': {
+    win32:  'https://your-server.com/universe/latest-windows.zip',
+    linux:  'https://your-server.com/universe/latest-linux.zip',
+    darwin: 'https://your-server.com/universe/latest-macos.zip'
+  },
+  'universe-testing': {
+    win32:  'https://your-server.com/universe-testing/latest-windows.zip',
+    linux:  'https://your-server.com/universe-testing/latest-linux.zip',
+    darwin: 'https://your-server.com/universe-testing/latest-macos.zip'
+  }
 }
 
-/**
- * Retourne l'URL de téléchargement adaptée à l'OS courant.
- * Lève une erreur si la plateforme n'est pas supportée.
- */
-function getZipUrl(): string {
-  const url = GAME_ZIP_URLS[process.platform]
+function getZipUrl(env: Env): string {
+  const url = GAME_ZIP_URLS[env][process.platform]
   if (!url) throw new Error(`Plateforme non supportée : ${process.platform}`)
   return url
 }
@@ -34,13 +35,10 @@ function sendProgress(win: BrowserWindow, progress: number, label: string): void
 
 // ─── Téléchargement ───────────────────────────────────────────────────────────
 
-async function downloadZip(
-  destPath: string,
-  win: BrowserWindow
-): Promise<string> {
+async function downloadZip(env: Env, destPath: string, win: BrowserWindow): Promise<string> {
   sendProgress(win, 0, 'Connexion au serveur...')
 
-  const response = await axios.get<NodeJS.ReadableStream>(getZipUrl(), {
+  const response = await axios.get<NodeJS.ReadableStream>(getZipUrl(env), {
     responseType: 'stream',
     timeout: 30_000,
     headers: { 'User-Agent': 'DyingStar-Launcher/1.0' }
@@ -56,14 +54,11 @@ async function downloadZip(
     response.data.on('data', (chunk: Buffer) => {
       downloaded += chunk.length
       writer.write(chunk)
-
       if (totalLength > 0) {
-        // Le téléchargement représente 70% de la progression totale
         const pct = (downloaded / totalLength) * 70
         sendProgress(win, pct, `Téléchargement... (${formatBytes(downloaded)} / ${formatBytes(totalLength)})`)
       }
     })
-
     response.data.on('end', () => { writer.end(); resolve() })
     response.data.on('error', reject)
     writer.on('error', reject)
@@ -74,11 +69,7 @@ async function downloadZip(
 
 // ─── Extraction ───────────────────────────────────────────────────────────────
 
-async function extractZip(
-  zipFilePath: string,
-  destPath: string,
-  win: BrowserWindow
-): Promise<void> {
+async function extractZip(zipFilePath: string, destPath: string, win: BrowserWindow): Promise<void> {
   sendProgress(win, 70, 'Extraction des fichiers...')
 
   await extract(zipFilePath, {
@@ -87,7 +78,6 @@ async function extractZip(
       const done = zipFile.entriesRead
       const total = zipFile.entryCount
       if (total > 0) {
-        // L'extraction représente 28% de la progression totale (70 → 98)
         const pct = 70 + (done / total) * 28
         sendProgress(win, pct, `Extraction... (${done} / ${total} fichiers)`)
       }
@@ -97,18 +87,11 @@ async function extractZip(
 
 // ─── Point d'entrée ───────────────────────────────────────────────────────────
 
-/**
- * Télécharge le ZIP du jeu depuis le serveur, l'extrait dans `installPath`,
- * puis supprime l'archive temporaire.
- *
- * La progression (0–100) est envoyée en continu au renderer via
- * l'événement IPC `files:progress`.
- */
 export async function downloadAndInstall(
+  env: Env,
   installPath: string,
   win: BrowserWindow
 ): Promise<void> {
-  // 1. Créer le répertoire cible si besoin
   if (!fs.existsSync(installPath)) {
     fs.mkdirSync(installPath, { recursive: true })
   }
@@ -116,22 +99,14 @@ export async function downloadAndInstall(
   let zipFilePath: string | null = null
 
   try {
-    // 2. Téléchargement
-    zipFilePath = await downloadZip(installPath, win)
-
-    // 3. Extraction
+    zipFilePath = await downloadZip(env, installPath, win)
     await extractZip(zipFilePath, installPath, win)
 
-    // 4. Nettoyage de l'archive temporaire
     sendProgress(win, 99, 'Nettoyage...')
     fs.unlinkSync(zipFilePath)
-
     sendProgress(win, 100, 'Installation terminée !')
   } catch (err) {
-    // Nettoyage en cas d'erreur
-    if (zipFilePath && fs.existsSync(zipFilePath)) {
-      fs.unlinkSync(zipFilePath)
-    }
+    if (zipFilePath && fs.existsSync(zipFilePath)) fs.unlinkSync(zipFilePath)
     throw err
   }
 }

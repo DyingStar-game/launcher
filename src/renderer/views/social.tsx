@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSocialStore } from '@store/social'
+import { useEnvStore } from '@store/env'
 import SocialSidebar from '@components/ui/socialSidebar'
 import Button from '@components/ui/button'
 import { FriendRow } from '@components/ui/friendRow'
@@ -8,7 +9,9 @@ import { RequestRow } from '@components/ui/requestRow'
 
 
 export default function SocialPage() {
-  const { friends, orgas, requests, fetchAll } = useSocialStore()
+  const { activeEnv } = useEnvStore()
+  const { data, fetchAll } = useSocialStore()
+  const { friends, requests } = data[activeEnv]
   const [tab, setTab] = useState('friends')
 
   useEffect(() => {

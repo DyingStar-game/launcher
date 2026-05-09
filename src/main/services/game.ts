@@ -3,6 +3,7 @@ import { spawn } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
 import { downloadAndInstall } from './downloader'
+import type { Env } from '../../renderer/store/env'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,7 +27,7 @@ interface ServerStatusResult {
 const GAME_EXECUTABLES: Partial<Record<NodeJS.Platform, string>> = {
   win32:  'DyingStar.exe',
   linux:  'DyingStar.x86_64',
-  darwin: 'DyingStar.app',        // TODO: ajuster selon le packaging macOS
+  darwin: 'DyingStar.app'           // TODO: ajuster selon packaging macOS
 }
 
 function getExecutablePath(installPath: string): string {
@@ -35,21 +36,24 @@ function getExecutablePath(installPath: string): string {
   return path.join(installPath, exe)
 }
 
-// ─── Mock / données serveur ───────────────────────────────────────────────────
+// ─── Mock statuts serveur par env ─────────────────────────────────────────────
 
-// TODO: remplacer par un vrai appel HTTP vers l'API de statut
-const serverStatus: ServerStatusResult = {
-  status: 'online',
-  players: 42,
-  statusPageUrl: 'https://status.dyingstar.example.com'
+// TODO: remplacer par de vrais appels HTTP vers les APIs de statut
+const SERVER_STATUS: Record<Env, ServerStatusResult> = {
+  'universe': {
+    status: 'online',
+    players: 42,
+    statusPageUrl: 'https://status.dyingstar.example.com'
+  },
+  'universe-testing': {
+    status: 'online',
+    players: 7,
+    statusPageUrl: 'https://status-testing.dyingstar.example.com'
+  }
 }
 
 // ─── Handlers IPC ─────────────────────────────────────────────────────────────
 
-/**
- * Enregistre tous les handlers IPC liés au jeu et à l'installation.
- * @param win  La fenêtre principale du launcher
- */
 export function registerFilesHandlers(win: BrowserWindow): void {
 
   // ── Sélection du répertoire d'installation ─────────────────────────────────
@@ -59,57 +63,53 @@ export function registerFilesHandlers(win: BrowserWindow): void {
       buttonLabel: 'Choisir ce dossier',
       properties: ['openDirectory', 'createDirectory']
     })
-
     if (result.canceled || result.filePaths.length === 0) return null
     return result.filePaths[0]
   })
 
   // ── Téléchargement + installation ──────────────────────────────────────────
-  ipcMain.handle('files:install', async (_event, installPath: string) => {
+  ipcMain.handle('files:install', async (_event, env: Env, installPath: string) => {
     if (!installPath || typeof installPath !== 'string') {
       throw new Error("Chemin d'installation invalide.")
     }
-    await downloadAndInstall(installPath, win)
+    await downloadAndInstall(env, installPath, win)
   })
 
   // ── Lancement du jeu ───────────────────────────────────────────────────────
-  ipcMain.handle('game:launch', async (_event, installPath: string) => {
+  ipcMain.handle('game:launch', async (_event, _env: Env, installPath: string) => {
     const exePath = getExecutablePath(installPath)
 
     if (!fs.existsSync(exePath)) {
       throw new Error(`Exécutable introuvable : ${exePath}`)
     }
 
-    // Sur Linux, s'assurer que le fichier est bien exécutable
     if (process.platform === 'linux') {
       fs.chmodSync(exePath, 0o755)
     }
 
-    // Lancement détaché : le jeu tourne indépendamment du launcher
     const child = spawn(exePath, [], {
       detached: true,
       stdio: 'ignore',
-      cwd: installPath       // répertoire de travail = dossier d'install
+      cwd: installPath
     })
 
-    child.unref()            // libère le launcher du cycle de vie du jeu
+    child.unref()
   })
 
-  // ── État du jeu (version installée vs disponible) ──────────────────────────
-  ipcMain.handle('game:get-state', async (): Promise<GameState> => {
-    // TODO: lire la version locale depuis le répertoire d'installation
-    //       et interroger le serveur pour la version disponible
+  // ── Statut du serveur par env ──────────────────────────────────────────────
+  ipcMain.handle('game:get-server-status', async (_event, env: Env): Promise<ServerStatusResult> => {
+    // TODO: vrai appel HTTP avec env
+    return SERVER_STATUS[env]
+  })
+
+  // ── État du jeu ────────────────────────────────────────────────────────────
+  ipcMain.handle('game:get-state', async (_event, _env: Env): Promise<GameState> => {
+    // TODO: lire version locale + interroger serveur
     return {
       installedVersion: null,
       availableVersion: '1.0.0',
       releaseDate: '2026-01-01',
       status: 'not-installed'
     }
-  })
-
-  // ── Statut du serveur de jeu ───────────────────────────────────────────────
-  ipcMain.handle('game:get-server-status', async (): Promise<ServerStatusResult> => {
-    // TODO: remplacer par un vrai appel HTTP vers l'API de statut
-    return serverStatus
   })
 }

@@ -1,4 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
+import type { Env } from '../renderer/store/env'
 
 type ServerStatus = 'online' | 'offline' | 'degraded' | 'checking'
 
@@ -18,7 +19,7 @@ declare global {
       selectDirectory: () => Promise<string | null>
 
       /** Lance le téléchargement et l'installation du jeu. */
-      installGame: (installPath: string) => Promise<void>
+      installGame: (env: Env, installPath: string) => Promise<void>
 
       /** S'abonne aux événements de progression de l'installation (0–100). */
       onInstallProgress: (callback: (progress: number, label: string) => void) => void
@@ -26,10 +27,10 @@ declare global {
       // ── Jeu ───────────────────────────────────────────────────────────────
 
       /** Lance l'exécutable du jeu (détaché du launcher). */
-      launchGame: (installPath: string) => Promise<void>
+      launchGame: (env: Env, installPath: string) => Promise<void>
 
       /** Récupère le statut du serveur et le nombre de joueurs connectés. */
-      getServerStatus: () => Promise<ServerStatusResult>
+      getServerStatus: (env: Env) => Promise<ServerStatusResult>
     }
   }
 }
