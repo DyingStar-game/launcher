@@ -15,7 +15,8 @@
         "create": "Create account",
         "logout": "Logout",
         "subscription": "Subscription",
-        "loading": "Connecting..."
+        "loading": "Connecting...",
+        "cancel": "Cancel"
       },
       "game": {
         "title": "Game",

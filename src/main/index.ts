@@ -1,5 +1,8 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
+import path from 'path'
+import fs from 'fs'
+import { execSync } from 'child_process'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { registerFilesHandlers } from './services/game'
@@ -7,8 +10,49 @@ import { registerVersionHandlers } from './services/version'
 import { registerAuthHandlers, handleOAuthCallback } from './services/auth'
 
 // ─── Custom protocol (must be set before app is ready) ────────────────────────
+// In development, Electron is launched as `electron /path/to/main.js`; the
+// protocol client must include the script path so the OS routes the callback
+// back to this instance via a second-instance launch.
 
-app.setAsDefaultProtocolClient('dyingstar')
+if (process.defaultApp && process.argv.length >= 2) {
+  app.setAsDefaultProtocolClient('dyingstar', process.execPath, [path.resolve(process.argv[1])])
+} else {
+  app.setAsDefaultProtocolClient('dyingstar')
+}
+
+// ─── Linux: ensure xdg protocol handler is registered ────────────────────────
+// Electron's setAsDefaultProtocolClient does not create the .desktop file on
+// Linux in dev mode. We do it manually so the OS can route dyingstar:// back.
+
+function registerLinuxProtocol(): void {
+  if (process.platform !== 'linux') return
+
+  const desktopDir = path.join(app.getPath('home'), '.local', 'share', 'applications')
+  const desktopFile = path.join(desktopDir, 'dyingstar-launcher.desktop')
+
+  const execLine = process.defaultApp && process.argv.length >= 2
+    ? `${process.execPath} ${path.resolve(process.argv[1])} %U`
+    : `${process.execPath} %U`
+
+  const contents = [
+    '[Desktop Entry]',
+    'Type=Application',
+    'Name=DyingStar Launcher',
+    `Exec=${execLine}`,
+    'MimeType=x-scheme-handler/dyingstar;',
+    'NoDisplay=true',
+  ].join('\n') + '\n'
+
+  try {
+    fs.mkdirSync(desktopDir, { recursive: true })
+    fs.writeFileSync(desktopFile, contents, 'utf-8')
+    execSync(`xdg-mime default dyingstar-launcher.desktop x-scheme-handler/dyingstar`)
+    execSync(`update-desktop-database ${desktopDir}`)
+    console.log('[Protocol] dyingstar:// registered via xdg')
+  } catch (err) {
+    console.error('[Protocol] Failed to register dyingstar:// handler:', err)
+  }
+}
 
 // ─── macOS / Linux: app already running, URL opened externally ────────────────
 
@@ -69,6 +113,8 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')
+
+  registerLinuxProtocol()
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

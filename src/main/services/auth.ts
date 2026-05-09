@@ -95,7 +95,7 @@ function extractUser(tokens: TokenSet): UserInfo {
 
 // ─── Auth Flow ────────────────────────────────────────────────────────────────
 
-export function startLogin(): void {
+export async function startLogin(): Promise<void> {
   const { verifier, challenge } = generatePKCE()
   const state = generateState()
   pkceSession = { verifier, state }
@@ -112,7 +112,7 @@ export function startLogin(): void {
   })
 
   const authUrl = `${KEYCLOAK_BASE}/realms/${REALM}/protocol/openid-connect/auth?${params}`
-  shell.openExternal(authUrl)
+  await shell.openExternal(authUrl)
 }
 
 export async function handleOAuthCallback(rawUrl: string): Promise<void> {
@@ -207,8 +207,13 @@ export function registerAuthHandlers(win: BrowserWindow): void {
   mainWindow = win
 
   // Open browser to start OAuth2 + PKCE login (covers both login & register)
-  ipcMain.handle('auth:login', () => {
-    startLogin()
+  ipcMain.handle('auth:login', async () => {
+    try {
+      await startLogin()
+    } catch (err) {
+      console.error('[Auth] Failed to open browser:', err)
+      mainWindow?.webContents.send('auth:state-changed', { status: 'error', error: 'browser_open_failed' })
+    }
   })
 
   // Clear tokens locally and open Keycloak logout URL

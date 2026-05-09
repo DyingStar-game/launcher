@@ -11,6 +11,7 @@ type AccountState = {
 
   login: () => Promise<void>
   logout: () => Promise<void>
+  cancelLogin: () => void
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -22,6 +23,7 @@ export const useAccountStore = create<AccountState>((set) => {
       set({ status: 'connected', username: data.user.username, email: data.user.email })
     } else {
       console.error('[AccountStore] Auth error:', data.error)
+      // Reset to disconnected so the user can retry
       set({ status: 'disconnected', username: undefined, email: undefined })
     }
   })
@@ -40,13 +42,21 @@ export const useAccountStore = create<AccountState>((set) => {
 
     login: async () => {
       set({ status: 'loading' })
-      // Opens the system browser; actual state update comes via onAuthStateChanged
-      await window.api.authLogin()
+      try {
+        await window.api.authLogin()
+        // State will be updated by onAuthStateChanged when the callback arrives
+      } catch {
+        set({ status: 'disconnected' })
+      }
     },
 
     logout: async () => {
       await window.api.authLogout()
       set({ status: 'disconnected', username: undefined, email: undefined })
+    },
+
+    cancelLogin: () => {
+      set({ status: 'disconnected' })
     },
   }
 })

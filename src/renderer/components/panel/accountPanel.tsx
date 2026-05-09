@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/button'
 
 export default function AccountPanel(): React.JSX.Element {
-  const { status, username, login, logout } = useAccountStore()
+  const { status, username, login, logout, cancelLogin } = useAccountStore()
   const { t } = useTranslation()
 
   return (
@@ -52,6 +52,12 @@ export default function AccountPanel(): React.JSX.Element {
               {t('universe.account.create')}
             </Button>
           </>
+        )}
+
+        {status === 'loading' && (
+          <Button onClick={cancelLogin} variant="secondary" className="w-full">
+            {t('universe.account.cancel')}
+          </Button>
         )}
 
         {status === 'connected' && (

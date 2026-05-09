@@ -15,7 +15,8 @@
         "create": "Créer un compte",
         "logout": "Se déconnecter",
         "subscription": "Abonnement",
-        "loading": "Connexion en cours..."
+        "loading": "Connexion en cours...",
+        "cancel": "Annuler"
       },
       "game": {
         "title": "Jeu",
