@@ -1,6 +1,9 @@
+// src/renderer/components/panel/filesPanel.tsx
+
 import { useFilesStore } from '@store/files'
 import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/button'
+import InputField from '@components/ui/inputField'
 
 export default function FilesPanel(): React.JSX.Element {
   const {
@@ -10,6 +13,10 @@ export default function FilesPanel(): React.JSX.Element {
     needsUpdate,
     installing,
     progress,
+    progressLabel,
+    installPath,
+    setInstallPath,
+    selectDirectory,
     install,
     update,
     verify,
@@ -21,12 +28,27 @@ export default function FilesPanel(): React.JSX.Element {
   return (
     <div className="h-full bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-7 flex flex-col gap-5 shadow-[0_12px_32px_rgba(0,0,0,0.35)] hover:border-[var(--color-ds-accent)]/40 transition-colors">
 
+      {/* En-tête */}
       <div className="flex items-center gap-3">
         <h2 className="text-[11px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.24em]">
           {t('universe.files.title')}
         </h2>
         <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
       </div>
+
+      {/* Répertoire d'installation */}
+      <InputField
+        label={t('universe.files.installPath')}
+        value={installPath}
+        onChange={setInstallPath}
+        placeholder="/home/user/games/dyingstar"
+        disabled={installing}
+        readOnly
+        action={{
+          label: t('universe.files.browse'),
+          onClick: selectDirectory
+        }}
+      />
 
       {/* Infos */}
       {!installed && (
@@ -46,15 +68,20 @@ export default function FilesPanel(): React.JSX.Element {
         </>
       )}
 
-      {/* Progress bar */}
+      {/* Barre de progression */}
       {installing && (
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-[var(--color-ds-muted)]">
-            {t('universe.files.installing')}
-          </p>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-[var(--color-ds-muted)]">
+              {progressLabel || t('universe.files.installing')}
+            </p>
+            <span className="text-xs text-[var(--color-ds-muted)] tabular-nums">
+              {progress}%
+            </span>
+          </div>
           <div className="w-full h-2 bg-[var(--color-ds-border)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[var(--color-ds-accent)] transition-all"
+              className="h-full bg-[var(--color-ds-accent)] transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -68,6 +95,7 @@ export default function FilesPanel(): React.JSX.Element {
           <Button
             onClick={install}
             variant="primary"
+            disabled={installing || !installPath}
           >
             {t('universe.files.install')}
           </Button>
@@ -77,6 +105,7 @@ export default function FilesPanel(): React.JSX.Element {
           <Button
             onClick={update}
             variant="primary"
+            disabled={installing}
           >
             {t('universe.files.update')}
           </Button>
@@ -86,13 +115,14 @@ export default function FilesPanel(): React.JSX.Element {
           <Button
             onClick={verify}
             variant="secondary"
+            disabled={installing}
           >
             {t('universe.files.verify')}
           </Button>
         )}
 
         {installed && (
-          <Button variant="secondary">
+          <Button variant="secondary" disabled={installing}>
             {t('universe.files.changelog')}
           </Button>
         )}
@@ -100,6 +130,7 @@ export default function FilesPanel(): React.JSX.Element {
         <Button
           onClick={clearCache}
           variant="danger"
+          disabled={installing}
         >
           {t('universe.files.clearCache')}
         </Button>

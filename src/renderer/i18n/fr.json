@@ -25,7 +25,8 @@
         "status": {
             "online": "Serveurs disponibles",
             "offline": "Serveurs indisponibles",
-            "degraded": "Problèmes en cours"
+            "degraded": "Problèmes en cours",
+            "checked": "En cours de résupération..."
         },
         "viewStatus": "Voir le statut"
       },
@@ -39,7 +40,9 @@
         "verify": "Vérifier les fichiers",
         "clearCache": "Vider le cache",
         "changelog": "Voir le changelog",
-        "installing": "Installation en cours..."
+        "installing": "Installation en cours...",
+        "installPath": "Répertoire d'installation",
+        "browse": "Parcourir"
       },
       "social": {
         "title": "Social",

@@ -2,12 +2,13 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { registerFilesHandlers } from './services/game'
 
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1200,
+    height: 700,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -16,6 +17,9 @@ function createWindow(): void {
       sandbox: false
     }
   })
+
+  // Enregistrement des handlers IPC
+  registerFilesHandlers(mainWindow)
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()

@@ -1,33 +1,44 @@
 import { create } from 'zustand'
+import { useFilesStore } from './files'
 
-export type ServerStatus = 'online' | 'offline' | 'degraded'
+type ServerStatus = 'online' | 'offline' | 'degraded' | 'checking'
 
 type GameState = {
-  installed: boolean
   serverStatus: ServerStatus
   players: number
 
-  play: () => void
+  // Actions
   fetchServerStatus: () => Promise<void>
+  play: () => Promise<void>
 }
 
 export const useGameStore = create<GameState>((set) => ({
-  installed: false,
-  serverStatus: 'online',
+  serverStatus: 'checking',
   players: 0,
 
-  play: () => {
-    console.log('Launching game...')
-    // 🔌 à remplacer par Electron (window.api.launchGame())
+  fetchServerStatus: async () => {
+    set({ serverStatus: 'checking' })
+    try {
+      const result = await window.api.getServerStatus()
+      set({
+        serverStatus: result.status,
+        players: result.players
+      })
+    } catch {
+      set({ serverStatus: 'offline', players: 0 })
+    }
   },
 
-  fetchServerStatus: async () => {
-    // 🔌 Simulation API
-    await new Promise((res) => setTimeout(res, 500))
-
-    set({
-      serverStatus: 'online',
-      players: Math.floor(Math.random() * 5000)
-    })
+  play: async () => {
+    const { installPath } = useFilesStore.getState()
+    if (!installPath) {
+      console.warn('[GameStore] Aucun répertoire d\'installation défini.')
+      return
+    }
+    try {
+      await window.api.launchGame(installPath)
+    } catch (err) {
+      console.error('[GameStore] Échec du lancement :', err)
+    }
   }
 }))

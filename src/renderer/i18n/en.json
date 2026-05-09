@@ -25,7 +25,8 @@
         "status": {
             "online": "Servers available",
             "offline": "Servers offline",
-            "degraded": "Issues ongoing"
+            "degraded": "Issues ongoing",
+            "checked": "Checking..."
         },
         "viewStatus": "View status"
       },
@@ -39,7 +40,9 @@
         "verify": "Verify files",
         "clearCache": "Clear cache",
         "changelog": "View changelog",
-        "installing": "Installing..."
+        "installing": "Installing...",
+        "installPath": "Install folder",
+        "browse": "Browse"
       },
       "social": {
         "title": "Social",
