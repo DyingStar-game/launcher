@@ -46,8 +46,19 @@ function registerLinuxProtocol(): void {
   try {
     fs.mkdirSync(desktopDir, { recursive: true })
     fs.writeFileSync(desktopFile, contents, 'utf-8')
-    execSync(`xdg-mime default dyingstar-launcher.desktop x-scheme-handler/dyingstar`)
-    execSync(`update-desktop-database ${desktopDir}`)
+
+    try {
+      execSync(`xdg-mime default dyingstar-launcher.desktop x-scheme-handler/dyingstar`)
+    } catch {
+      console.warn('[Protocol] xdg-mime not available, skipping mime association')
+    }
+
+    try {
+      execSync(`update-desktop-database ${desktopDir}`)
+    } catch {
+      console.warn('[Protocol] update-desktop-database not available, skipping db update')
+    }
+
     console.log('[Protocol] dyingstar:// registered via xdg')
   } catch (err) {
     console.error('[Protocol] Failed to register dyingstar:// handler:', err)
