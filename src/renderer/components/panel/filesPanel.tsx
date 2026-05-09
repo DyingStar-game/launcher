@@ -1,15 +1,24 @@
-// src/renderer/components/panel/filesPanel.tsx
-
 import { useFilesStore } from '@store/files'
 import { useEnvStore } from '@store/env'
+import { useVersionStore } from '@store/version'
 import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/button'
 import InputField from '@components/ui/inputField'
+import UpdateAlert from '@components/ui/updateAlert'
 
 export default function FilesPanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data, setInstallPath, selectDirectory, install, update, verify, clearCache } = useFilesStore()
   const { installed, version, releaseDate, needsUpdate, installing, progress, progressLabel, installPath } = data[activeEnv]
+
+  const { latestGameVersions } = useVersionStore()
+  const latestGameVersion = latestGameVersions[activeEnv]
+
+  // Mise à jour dispo si version connue et différente de l'installée
+  const gameUpdateAvailable =
+    installed &&
+    latestGameVersion !== null &&
+    latestGameVersion !== version
 
   const { t } = useTranslation()
 
@@ -24,6 +33,15 @@ export default function FilesPanel(): React.JSX.Element {
         <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
       </div>
 
+      {/* Alerte mise à jour jeu */}
+      {gameUpdateAvailable && latestGameVersion && (
+        <UpdateAlert
+          variant="game"
+          currentVersion={version ?? undefined}
+          latestVersion={latestGameVersion}
+        />
+      )}
+
       {/* Répertoire d'installation */}
       <InputField
         label={t('universe.files.installPath')}
@@ -32,13 +50,10 @@ export default function FilesPanel(): React.JSX.Element {
         placeholder="/home/user/games/dyingstar"
         disabled={installing}
         readOnly
-        action={{
-          label: t('universe.files.browse'),
-          onClick: selectDirectory
-        }}
+        action={{ label: t('universe.files.browse'), onClick: selectDirectory }}
       />
 
-      {/* Infos */}
+      {/* Infos version */}
       {!installed && (
         <p className="text-[var(--color-ds-muted)] text-sm">
           {t('universe.files.notInstalled')}
@@ -46,14 +61,14 @@ export default function FilesPanel(): React.JSX.Element {
       )}
 
       {installed && (
-        <>
+        <div className="flex flex-col gap-1">
           <p className="text-[var(--color-ds-muted)] text-sm">
             {t('universe.files.version', { version })}
           </p>
           <p className="text-[var(--color-ds-muted)] text-sm">
             {t('universe.files.releaseDate', { date: releaseDate })}
           </p>
-        </>
+        </div>
       )}
 
       {/* Barre de progression */}
@@ -84,13 +99,13 @@ export default function FilesPanel(): React.JSX.Element {
           </Button>
         )}
 
-        {installed && needsUpdate && (
+        {installed && (needsUpdate || gameUpdateAvailable) && (
           <Button onClick={update} variant="primary" disabled={installing}>
             {t('universe.files.update')}
           </Button>
         )}
 
-        {installed && !needsUpdate && (
+        {installed && !needsUpdate && !gameUpdateAvailable && (
           <Button onClick={verify} variant="secondary" disabled={installing}>
             {t('universe.files.verify')}
           </Button>

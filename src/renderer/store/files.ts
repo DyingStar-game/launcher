@@ -11,7 +11,7 @@ export type EnvFilesData = {
   releaseDate: string | null
   needsUpdate: boolean
   installPath: string
-  // Transitoires (non persistés)
+  // Transitoires
   installing: boolean
   progress: number
   progressLabel: string
@@ -46,16 +46,13 @@ const defaultData: Record<Env, EnvFilesData> = {
   'universe-testing': { ...defaultEnvData }
 }
 
-// ─── Helper interne ───────────────────────────────────────────────────────────
+// ─── Helper ───────────────────────────────────────────────────────────────────
 
 type SetFn = (fn: (s: FilesState) => Partial<FilesState>) => void
 
 function patchEnv(set: SetFn, env: Env, patch: Partial<EnvFilesData>): void {
   set((s) => ({
-    data: {
-      ...s.data,
-      [env]: { ...s.data[env], ...patch }
-    }
+    data: { ...s.data, [env]: { ...s.data[env], ...patch } }
   }))
 }
 
@@ -82,7 +79,6 @@ export const useFilesStore = create<FilesState>()(
       install: async () => {
         const env = useEnvStore.getState().activeEnv
         const { installPath } = get().data[env]
-
         if (!installPath) {
           console.warn('[FilesStore] Aucun répertoire d\'installation défini.')
           return
@@ -91,20 +87,21 @@ export const useFilesStore = create<FilesState>()(
         patchEnv(set, env, { installing: true, progress: 0, progressLabel: 'Connexion au serveur...' })
 
         window.api.onInstallProgress((progress, label) => {
-          // On met à jour l'env qui a déclenché l'install, même si l'utilisateur a switché
           patchEnv(set, env, { progress, progressLabel: label })
         })
 
         try {
-          await window.api.installGame(env, installPath)
+          // installGame retourne maintenant { version, releaseDate } depuis version.json
+          const { version, releaseDate } = await window.api.installGame(env, installPath)
+
           patchEnv(set, env, {
             installed: true,
-            version: '1.0.0',
-            releaseDate: new Date().toISOString().split('T')[0],
+            version,
+            releaseDate,
             installing: false,
             needsUpdate: false,
             progress: 100,
-            progressLabel: 'Installation terminée'
+            progressLabel: `Installation terminée — v${version}`
           })
         } catch (err) {
           console.error('[FilesStore] Échec installation :', err)
@@ -124,13 +121,15 @@ export const useFilesStore = create<FilesState>()(
         })
 
         try {
-          await window.api.installGame(env, installPath)
+          const { version, releaseDate } = await window.api.installGame(env, installPath)
+
           patchEnv(set, env, {
-            version: '1.1.0',
+            version,
+            releaseDate,
             installing: false,
             needsUpdate: false,
             progress: 100,
-            progressLabel: 'Mise à jour terminée'
+            progressLabel: `Mise à jour terminée — v${version}`
           })
         } catch (err) {
           console.error('[FilesStore] Échec mise à jour :', err)
@@ -142,13 +141,11 @@ export const useFilesStore = create<FilesState>()(
         const env = useEnvStore.getState().activeEnv
         const { installPath } = get().data[env]
         console.log('[FilesStore] Vérification dans :', installPath, '(env:', env, ')')
-        // TODO: IPC files:verify
       },
 
       clearCache: () => {
         const env = useEnvStore.getState().activeEnv
         console.log('[FilesStore] Cache vidé pour env :', env)
-        // TODO: IPC files:clear-cache
       }
     }),
     {
@@ -156,28 +153,27 @@ export const useFilesStore = create<FilesState>()(
       partialize: (state) => ({
         data: {
           'universe': {
-            installed:    state.data['universe'].installed,
-            version:      state.data['universe'].version,
-            releaseDate:  state.data['universe'].releaseDate,
-            needsUpdate:  state.data['universe'].needsUpdate,
-            installPath:  state.data['universe'].installPath
+            installed:   state.data['universe'].installed,
+            version:     state.data['universe'].version,
+            releaseDate: state.data['universe'].releaseDate,
+            needsUpdate: state.data['universe'].needsUpdate,
+            installPath: state.data['universe'].installPath
           },
           'universe-testing': {
-            installed:    state.data['universe-testing'].installed,
-            version:      state.data['universe-testing'].version,
-            releaseDate:  state.data['universe-testing'].releaseDate,
-            needsUpdate:  state.data['universe-testing'].needsUpdate,
-            installPath:  state.data['universe-testing'].installPath
+            installed:   state.data['universe-testing'].installed,
+            version:     state.data['universe-testing'].version,
+            releaseDate: state.data['universe-testing'].releaseDate,
+            needsUpdate: state.data['universe-testing'].needsUpdate,
+            installPath: state.data['universe-testing'].installPath
           }
         }
       }),
-      // Fusion avec les valeurs par défaut au chargement (réhydrate les champs transitoires)
       merge: (persisted: unknown, current) => {
         const p = persisted as Partial<FilesState>
         return {
           ...current,
           data: {
-            'universe': { ...defaultEnvData, ...(p.data?.['universe'] ?? {}) },
+            'universe':         { ...defaultEnvData, ...(p.data?.['universe']         ?? {}) },
             'universe-testing': { ...defaultEnvData, ...(p.data?.['universe-testing'] ?? {}) }
           }
         }

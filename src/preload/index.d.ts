@@ -8,6 +8,18 @@ interface ServerStatusResult {
   players: number
   statusPageUrl: string
 }
+ 
+interface InstallResult {
+  version: string
+  releaseDate: string
+}
+ 
+interface VersionCheckResult {
+  currentLauncherVersion: string
+  latestLauncherVersion: string
+  launcherUpdateAvailable: boolean
+  latestGameVersions: Record<Env, string | null>
+}
 
 declare global {
   interface Window {
@@ -31,6 +43,9 @@ declare global {
 
       /** Récupère le statut du serveur et le nombre de joueurs connectés. */
       getServerStatus: (env: Env) => Promise<ServerStatusResult>
+
+      // ── Versions ─────────────────────────────────────────────────────────
+      checkVersions: () => Promise<VersionCheckResult>
     }
   }
 }

@@ -27,7 +27,7 @@ interface ServerStatusResult {
 const GAME_EXECUTABLES: Partial<Record<NodeJS.Platform, string>> = {
   win32:  'DyingStar.exe',
   linux:  'DyingStar.x86_64',
-  darwin: 'DyingStar.app'           // TODO: ajuster selon packaging macOS
+  darwin: 'DyingStar.app'
 }
 
 function getExecutablePath(installPath: string): string {
@@ -38,7 +38,6 @@ function getExecutablePath(installPath: string): string {
 
 // ─── Mock statuts serveur par env ─────────────────────────────────────────────
 
-// TODO: remplacer par de vrais appels HTTP vers les APIs de statut
 const SERVER_STATUS: Record<Env, ServerStatusResult> = {
   'universe': {
     status: 'online',
@@ -67,38 +66,34 @@ export function registerFilesHandlers(win: BrowserWindow): void {
     return result.filePaths[0]
   })
 
-  // ── Téléchargement + installation ──────────────────────────────────────────
+  // ── Téléchargement + installation → retourne { version, releaseDate } ──────
   ipcMain.handle('files:install', async (_event, env: Env, installPath: string) => {
     if (!installPath || typeof installPath !== 'string') {
       throw new Error("Chemin d'installation invalide.")
     }
-    await downloadAndInstall(env, installPath, win)
+    // Le résultat InstallResult est sérialisé et renvoyé au renderer
+    return await downloadAndInstall(env, installPath, win)
   })
 
   // ── Lancement du jeu ───────────────────────────────────────────────────────
   ipcMain.handle('game:launch', async (_event, _env: Env, installPath: string) => {
     const exePath = getExecutablePath(installPath)
-
     if (!fs.existsSync(exePath)) {
       throw new Error(`Exécutable introuvable : ${exePath}`)
     }
-
-    if (process.platform === 'linux') {
-      fs.chmodSync(exePath, 0o755)
-    }
+    if (process.platform === 'linux') fs.chmodSync(exePath, 0o755)
 
     const child = spawn(exePath, [], {
       detached: true,
       stdio: 'ignore',
       cwd: installPath
     })
-
     child.unref()
   })
 
   // ── Statut du serveur par env ──────────────────────────────────────────────
   ipcMain.handle('game:get-server-status', async (_event, env: Env): Promise<ServerStatusResult> => {
-    // TODO: vrai appel HTTP avec env
+    // TODO: vrai appel HTTP selon l'env
     return SERVER_STATUS[env]
   })
 

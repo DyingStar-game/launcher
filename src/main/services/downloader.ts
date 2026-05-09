@@ -5,6 +5,13 @@ import * as path from 'path'
 import extract from 'extract-zip'
 import type { Env } from '../../renderer/store/env'
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface InstallResult {
+  version: string
+  releaseDate: string
+}
+
 // ─── Configuration ────────────────────────────────────────────────────────────
 
 const GAME_ZIP_URLS: Record<Env, Partial<Record<NodeJS.Platform, string>>> = {
@@ -26,7 +33,7 @@ function getZipUrl(env: Env): string {
   return url
 }
 
-// ─── Helper : envoyer la progression au renderer ──────────────────────────────
+// ─── Helper progression ───────────────────────────────────────────────────────
 
 function sendProgress(win: BrowserWindow, progress: number, label: string): void {
   if (win.isDestroyed()) return
@@ -55,8 +62,8 @@ async function downloadZip(env: Env, destPath: string, win: BrowserWindow): Prom
       downloaded += chunk.length
       writer.write(chunk)
       if (totalLength > 0) {
-        const pct = (downloaded / totalLength) * 70
-        sendProgress(win, pct, `Téléchargement... (${formatBytes(downloaded)} / ${formatBytes(totalLength)})`)
+        sendProgress(win, (downloaded / totalLength) * 70,
+          `Téléchargement... (${formatBytes(downloaded)} / ${formatBytes(totalLength)})`)
       }
     })
     response.data.on('end', () => { writer.end(); resolve() })
@@ -75,14 +82,40 @@ async function extractZip(zipFilePath: string, destPath: string, win: BrowserWin
   await extract(zipFilePath, {
     dir: destPath,
     onEntry: (_entry, zipFile) => {
-      const done = zipFile.entriesRead
-      const total = zipFile.entryCount
-      if (total > 0) {
-        const pct = 70 + (done / total) * 28
-        sendProgress(win, pct, `Extraction... (${done} / ${total} fichiers)`)
+      if (zipFile.entryCount > 0) {
+        const pct = 70 + (zipFile.entriesRead / zipFile.entryCount) * 28
+        sendProgress(win, pct, `Extraction... (${zipFile.entriesRead} / ${zipFile.entryCount} fichiers)`)
       }
     }
   })
+}
+
+// ─── Lecture du manifeste de version ─────────────────────────────────────────
+
+function readVersionManifest(installPath: string): InstallResult {
+  // Le ZIP doit contenir un fichier version.json à sa racine :
+  // { "version": "1.2.0", "releaseDate": "2026-05-01" }
+  const manifestPath = path.join(installPath, 'version.json')
+
+  if (!fs.existsSync(manifestPath)) {
+    console.warn('[Downloader] version.json introuvable, valeurs par défaut utilisées.')
+    return {
+      version: 'unknown',
+      releaseDate: new Date().toISOString().split('T')[0]
+    }
+  }
+
+  try {
+    const raw = fs.readFileSync(manifestPath, 'utf-8')
+    const json = JSON.parse(raw) as { version?: string; releaseDate?: string }
+    return {
+      version:     json.version     ?? 'unknown',
+      releaseDate: json.releaseDate ?? new Date().toISOString().split('T')[0]
+    }
+  } catch {
+    console.warn('[Downloader] Impossible de parser version.json.')
+    return { version: 'unknown', releaseDate: new Date().toISOString().split('T')[0] }
+  }
 }
 
 // ─── Point d'entrée ───────────────────────────────────────────────────────────
@@ -91,7 +124,7 @@ export async function downloadAndInstall(
   env: Env,
   installPath: string,
   win: BrowserWindow
-): Promise<void> {
+): Promise<InstallResult> {
   if (!fs.existsSync(installPath)) {
     fs.mkdirSync(installPath, { recursive: true })
   }
@@ -104,7 +137,11 @@ export async function downloadAndInstall(
 
     sendProgress(win, 99, 'Nettoyage...')
     fs.unlinkSync(zipFilePath)
-    sendProgress(win, 100, 'Installation terminée !')
+
+    // Lire version.json extrait du zip
+    const manifest = readVersionManifest(installPath)
+    sendProgress(win, 100, `Installation terminée — v${manifest.version}`)
+    return manifest
   } catch (err) {
     if (zipFilePath && fs.existsSync(zipFilePath)) fs.unlinkSync(zipFilePath)
     throw err

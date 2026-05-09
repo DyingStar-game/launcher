@@ -8,7 +8,7 @@ const api = {
   selectDirectory: (): Promise<string | null> =>
     ipcRenderer.invoke('files:select-directory'),
 
-  installGame: (env: Env, installPath: string): Promise<void> =>
+  installGame: (env: Env, installPath: string): Promise<{ version: string; releaseDate: string }> =>
     ipcRenderer.invoke('files:install', env, installPath),
 
   onInstallProgress: (callback: (progress: number, label: string) => void): void => {
@@ -28,7 +28,17 @@ const api = {
     players: number
     statusPageUrl: string
   }> =>
-    ipcRenderer.invoke('game:get-server-status', env)
+    ipcRenderer.invoke('game:get-server-status', env),
+
+  // ── Versions ──────────────────────────────────────────────────────────────
+
+  checkVersions: (): Promise<{
+    currentLauncherVersion: string
+    latestLauncherVersion: string
+    launcherUpdateAvailable: boolean
+    latestGameVersions: Record<Env, string | null>
+  }> =>
+    ipcRenderer.invoke('version:check')
 }
 
 if (process.contextIsolated) {
