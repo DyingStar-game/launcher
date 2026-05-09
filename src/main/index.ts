@@ -4,9 +4,38 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { registerFilesHandlers } from './services/game'
 import { registerVersionHandlers } from './services/version'
+import { registerAuthHandlers, handleOAuthCallback } from './services/auth'
+
+// ─── Custom protocol (must be set before app is ready) ────────────────────────
+
+app.setAsDefaultProtocolClient('dyingstar')
+
+// ─── macOS / Linux: app already running, URL opened externally ────────────────
+
+app.on('open-url', (_event, url) => {
+  handleOAuthCallback(url)
+})
+
+// ─── Windows: second instance spawned with the URL as argv ───────────────────
+
+let mainWindow: BrowserWindow | null = null
+
+const gotLock = app.requestSingleInstanceLock()
+if (!gotLock) {
+  app.quit()
+} else {
+  app.on('second-instance', (_event, argv) => {
+    const url = argv.find((a) => a.startsWith('dyingstar://'))
+    if (url) handleOAuthCallback(url)
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+  })
+}
 
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     show: false,
@@ -20,9 +49,10 @@ function createWindow(): void {
 
   // Enregistrement des handlers IPC
   registerFilesHandlers(mainWindow)
+  registerAuthHandlers(mainWindow)
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow!.show()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {

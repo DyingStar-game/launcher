@@ -1,5 +1,9 @@
 appId: com.electron.app
 productName: react-ts
+protocols:
+  - name: DyingStar Launcher
+    schemes:
+      - dyingstar
 directories:
   buildResources: build
 files:

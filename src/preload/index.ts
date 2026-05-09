@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { Env } from '../renderer/store/env'
+import type { UserInfo } from '../main/services/auth'
 
 const api = {
   // ── Fichiers / Installation ────────────────────────────────────────────────
@@ -38,7 +39,29 @@ const api = {
     launcherUpdateAvailable: boolean
     latestGameVersions: Record<Env, string | null>
   }> =>
-    ipcRenderer.invoke('version:check')
+    ipcRenderer.invoke('version:check'),
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+
+  /** Ouvre le navigateur sur la page Discord/Keycloak (login et création de compte). */
+  authLogin: (): Promise<void> =>
+    ipcRenderer.invoke('auth:login'),
+
+  /** Efface les tokens locaux et ouvre la page de déconnexion Keycloak. */
+  authLogout: (): Promise<void> =>
+    ipcRenderer.invoke('auth:logout'),
+
+  /** Recharge la session depuis le stockage chiffré. Retourne null si aucune session valide. */
+  authLoadUser: (): Promise<UserInfo | null> =>
+    ipcRenderer.invoke('auth:load-user'),
+
+  /** S'abonne aux changements d'état d'authentification poussés depuis le main. */
+  onAuthStateChanged: (
+    callback: (data: { status: 'connected'; user: UserInfo } | { status: 'error'; error: string }) => void
+  ): void => {
+    ipcRenderer.removeAllListeners('auth:state-changed')
+    ipcRenderer.on('auth:state-changed', (_event, data) => callback(data))
+  }
 }
 
 if (process.contextIsolated) {

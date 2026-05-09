@@ -21,6 +21,16 @@ interface VersionCheckResult {
   latestGameVersions: Record<Env, string | null>
 }
 
+interface UserInfo {
+  sub: string
+  username: string
+  email: string
+}
+
+type AuthStateChangedPayload =
+  | { status: 'connected'; user: UserInfo }
+  | { status: 'error'; error: string }
+
 declare global {
   interface Window {
     electron: ElectronAPI
@@ -46,6 +56,20 @@ declare global {
 
       // ── Versions ─────────────────────────────────────────────────────────
       checkVersions: () => Promise<VersionCheckResult>
+
+      // ── Auth ─────────────────────────────────────────────────────────────
+
+      /** Ouvre le navigateur sur la page Discord/Keycloak (login et création de compte). */
+      authLogin: () => Promise<void>
+
+      /** Efface les tokens locaux et ouvre la page de déconnexion Keycloak. */
+      authLogout: () => Promise<void>
+
+      /** Recharge la session depuis le stockage chiffré. Retourne null si aucune session valide. */
+      authLoadUser: () => Promise<UserInfo | null>
+
+      /** S'abonne aux changements d'état d'authentification poussés depuis le main. */
+      onAuthStateChanged: (callback: (data: AuthStateChangedPayload) => void) => void
     }
   }
 }

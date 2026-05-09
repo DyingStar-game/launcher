@@ -48,7 +48,7 @@ export default function AccountPanel(): React.JSX.Element {
               {t('universe.account.login')}
             </Button>
 
-            <Button variant="secondary" className="w-full">
+            <Button onClick={login} variant="secondary" className="w-full">
               {t('universe.account.create')}
             </Button>
           </>

@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { useEnvStore } from './env'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -8,36 +7,46 @@ type AccountStatus = 'connected' | 'disconnected' | 'loading'
 type AccountState = {
   status: AccountStatus
   username?: string
+  email?: string
 
   login: () => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
-// Le compte est unique (même utilisateur sur les deux envs)
-// mais les endpoints d'auth peuvent différer selon l'env.
 
-export const useAccountStore = create<AccountState>((set) => ({
-  status: 'disconnected',
-  username: undefined,
+export const useAccountStore = create<AccountState>((set) => {
+  // Subscribe to auth state changes pushed from main process
+  window.api.onAuthStateChanged((data) => {
+    if (data.status === 'connected') {
+      set({ status: 'connected', username: data.user.username, email: data.user.email })
+    } else {
+      console.error('[AccountStore] Auth error:', data.error)
+      set({ status: 'disconnected', username: undefined, email: undefined })
+    }
+  })
 
-  login: async () => {
-    const env = useEnvStore.getState().activeEnv
-    set({ status: 'loading' })
+  // Restore session from encrypted storage on startup
+  window.api.authLoadUser().then((user) => {
+    if (user) {
+      set({ status: 'connected', username: user.username, email: user.email })
+    }
+  })
 
-    // TODO: appeler l'endpoint Discord OAuth de l'env concerné
-    // const authUrl = env === 'universe'
-    //   ? 'https://auth.dyingstar.com/discord'
-    //   : 'https://auth-testing.dyingstar.com/discord'
-    // const user = await window.api.loginWithDiscord(authUrl)
-    console.log('[AccountStore] Login sur env :', env)
+  return {
+    status: 'disconnected',
+    username: undefined,
+    email: undefined,
 
-    await new Promise((res) => setTimeout(res, 1000))
+    login: async () => {
+      set({ status: 'loading' })
+      // Opens the system browser; actual state update comes via onAuthStateChanged
+      await window.api.authLogin()
+    },
 
-    set({ status: 'connected', username: 'Player123' })
-  },
-
-  logout: () => {
-    set({ status: 'disconnected', username: undefined })
+    logout: async () => {
+      await window.api.authLogout()
+      set({ status: 'disconnected', username: undefined, email: undefined })
+    },
   }
-}))
+})
