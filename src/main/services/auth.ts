@@ -37,15 +37,23 @@ interface PKCESession {
 let pkceSession: PKCESession | null = null
 let mainWindow: BrowserWindow | null = null
 
-// ─── Token Storage (safeStorage) ─────────────────────────────────────────────
+// ─── Token Storage ────────────────────────────────────────────────────────────
+// Uses safeStorage (OS keychain) when available, plain JSON otherwise.
+// Plain JSON fallback is acceptable because the tokens are short-lived and the
+// file sits in the user's private appData directory.
 
 function getTokenPath(): string {
   return path.join(app.getPath('userData'), 'tokens.enc')
 }
 
 function storeTokens(tokens: TokenSet): void {
-  const encrypted = safeStorage.encryptString(JSON.stringify(tokens))
-  fs.writeFileSync(getTokenPath(), encrypted)
+  const json = JSON.stringify(tokens)
+  if (safeStorage.isEncryptionAvailable()) {
+    fs.writeFileSync(getTokenPath(), safeStorage.encryptString(json))
+  } else {
+    console.warn('[Auth] safeStorage unavailable, storing tokens as plain JSON')
+    fs.writeFileSync(getTokenPath(), json, 'utf-8')
+  }
 }
 
 function loadTokens(): TokenSet | null {
@@ -53,7 +61,11 @@ function loadTokens(): TokenSet | null {
   if (!fs.existsSync(p)) return null
   try {
     const buf = fs.readFileSync(p)
-    return JSON.parse(safeStorage.decryptString(buf)) as TokenSet
+    if (safeStorage.isEncryptionAvailable()) {
+      return JSON.parse(safeStorage.decryptString(buf)) as TokenSet
+    } else {
+      return JSON.parse(buf.toString('utf-8')) as TokenSet
+    }
   } catch {
     return null
   }
