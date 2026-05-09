@@ -41,7 +41,7 @@ declare global {
       selectDirectory: () => Promise<string | null>
 
       /** Lance le téléchargement et l'installation du jeu. */
-      installGame: (env: Env, installPath: string) => Promise<void>
+      installGame: (env: Env, installPath: string) => Promise<InstallResult>
 
       /** S'abonne aux événements de progression de l'installation (0–100). */
       onInstallProgress: (callback: (progress: number, label: string) => void) => void

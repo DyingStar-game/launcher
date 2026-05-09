@@ -51,7 +51,7 @@ async function downloadZip(env: Env, destPath: string, win: BrowserWindow): Prom
     headers: { 'User-Agent': 'DyingStar-Launcher/1.0' }
   })
 
-  const totalLength = parseInt(response.headers['content-length'] ?? '0', 10)
+  const totalLength = parseInt(String(response.headers['content-length'] ?? '0'), 10)
   let downloaded = 0
 
   const zipFilePath = path.join(destPath, '__game_download.zip')

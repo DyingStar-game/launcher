@@ -1,4 +1,4 @@
-export function FriendRow({ friend }) {
+export function FriendRow({ friend, onRemove }: { friend: any; onRemove?: () => void }) {
     const color =
       friend.status === 'online'
         ? 'bg-green-500'
@@ -27,7 +27,7 @@ export function FriendRow({ friend }) {
           </div>
         </div>
   
-        <button className="text-xs text-[var(--color-ds-muted)] hover:text-white">
+        <button className="text-xs text-[var(--color-ds-muted)] hover:text-white" onClick={onRemove}>
           Message
         </button>
       </div>
