@@ -8,6 +8,10 @@ import icon from '../../resources/icon.png?asset'
 import { registerFilesHandlers } from './services/game'
 import { registerVersionHandlers } from './services/version'
 import { registerAuthHandlers, handleOAuthCallback } from './services/auth'
+import log from 'electron-log'
+
+// ─── Manage log ────────────────────────
+log.transports.file.level = 'debug'
 
 // ─── Custom protocol (must be set before app is ready) ────────────────────────
 // In development, Electron is launched as `electron /path/to/main.js`; the
@@ -109,6 +113,8 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow!.show()
+    // Temporaire pour le debug
+    mainWindow!.webContents.openDevTools()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {

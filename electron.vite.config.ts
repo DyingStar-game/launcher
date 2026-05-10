@@ -13,7 +13,8 @@ export default defineConfig({
         '@store':      resolve(__dirname, 'src/renderer/store'),
         '@components': resolve(__dirname, 'src/renderer/components'),
         '@views':      resolve(__dirname, 'src/renderer/views'),
-        '@i18n':       resolve(__dirname, 'src/renderer/i18n')
+        '@i18n':       resolve(__dirname, 'src/renderer/i18n'),
+        '@config':     resolve(__dirname, 'src/renderer/config')
       }
     },
     plugins: [tailwindcss(), react()]

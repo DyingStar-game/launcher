@@ -8,34 +8,40 @@ interface ServerStatusResult {
   players: number
   statusPageUrl: string
 }
- 
+
 interface InstallResult {
   version: string
   releaseDate: string
 }
- 
+
+// Ajout du type manquant (référencé dans VersionCheckResult)
+interface GameVersionInfo {
+  version:     string | null
+  releaseDate: string | null
+}
+
 interface VersionCheckResult {
-  currentLauncherVersion: string
-  latestLauncherVersion: string
+  currentLauncherVersion:  string
+  latestLauncherVersion:   string
   launcherUpdateAvailable: boolean
-  latestGameVersions: Record<Env, string | null>
+  latestGameVersions:      Record<Env, GameVersionInfo>
 }
 
 interface UserInfo {
-  sub: string
+  sub:      string
   username: string
-  email: string
+  email:    string
 }
 
 type AuthStateChangedPayload =
-  | { status: 'connected'; user: UserInfo }
-  | { status: 'error'; error: string }
+  | { env: Env; status: 'connected'; user: UserInfo }
+  | { env: Env; status: 'error';     error: string }
 
 declare global {
   interface Window {
     electron: ElectronAPI
     api: {
-      // ── Fichiers / Installation ────────────────────────────────────────────
+      // ── Fichiers / Installation ──────────────────────────────────────────
 
       /** Ouvre un dialogue natif de sélection de répertoire. */
       selectDirectory: () => Promise<string | null>
@@ -46,7 +52,7 @@ declare global {
       /** S'abonne aux événements de progression de l'installation (0–100). */
       onInstallProgress: (callback: (progress: number, label: string) => void) => void
 
-      // ── Jeu ───────────────────────────────────────────────────────────────
+      // ── Jeu ─────────────────────────────────────────────────────────────
 
       /** Lance l'exécutable du jeu (détaché du launcher). */
       launchGame: (env: Env, installPath: string) => Promise<void>
@@ -55,20 +61,21 @@ declare global {
       getServerStatus: (env: Env) => Promise<ServerStatusResult>
 
       // ── Versions ─────────────────────────────────────────────────────────
+
       checkVersions: () => Promise<VersionCheckResult>
 
       // ── Auth ─────────────────────────────────────────────────────────────
 
-      /** Ouvre le navigateur sur la page Discord/Keycloak (login et création de compte). */
-      authLogin: () => Promise<void>
+      /** Ouvre le navigateur sur la page Discord/Keycloak pour l'env donné. */
+      authLogin: (env: Env) => Promise<void>
 
-      /** Efface les tokens locaux et ouvre la page de déconnexion Keycloak. */
-      authLogout: () => Promise<void>
+      /** Efface les tokens de l'env donné et ouvre la page de déconnexion Keycloak. */
+      authLogout: (env: Env) => Promise<void>
 
-      /** Recharge la session depuis le stockage chiffré. Retourne null si aucune session valide. */
-      authLoadUser: () => Promise<UserInfo | null>
+      /** Recharge la session depuis le stockage chiffré pour l'env donné. */
+      authLoadUser: (env: Env) => Promise<UserInfo | null>
 
-      /** S'abonne aux changements d'état d'authentification poussés depuis le main. */
+      /** S'abonne aux changements d'état auth — payload inclut l'env concerné. */
       onAuthStateChanged: (callback: (data: AuthStateChangedPayload) => void) => void
     }
   }

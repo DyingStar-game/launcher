@@ -3,56 +3,59 @@ import type { Env } from './env'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+export type GameVersionInfo = {
+  version:     string | null
+  releaseDate: string | null
+}
+
 type VersionState = {
   // Launcher
-  currentLauncherVersion: string
-  latestLauncherVersion: string | null
+  currentLauncherVersion:  string
+  latestLauncherVersion:   string | null
   launcherUpdateAvailable: boolean
 
-  // Jeu par env
-  latestGameVersions: Record<Env, string | null>
+  // Jeu par env — version ET date de la release distante
+  latestGameVersions: Record<Env, GameVersionInfo>
 
-  // État du check
   checking: boolean
-  checked: boolean
+  checked:  boolean
 
   checkVersions: () => Promise<void>
 }
 
+// ─── Valeurs par défaut ───────────────────────────────────────────────────────
+
+const defaultGameVersionInfo: GameVersionInfo = { version: null, releaseDate: null }
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useVersionStore = create<VersionState>((set) => ({
-  currentLauncherVersion: '',
-  latestLauncherVersion: null,
+  currentLauncherVersion:  '',
+  latestLauncherVersion:   null,
   launcherUpdateAvailable: false,
 
   latestGameVersions: {
-    'universe':         null,
-    'universe-testing': null
+    'universe':         { ...defaultGameVersionInfo },
+    'universe-testing': { ...defaultGameVersionInfo }
   },
 
   checking: false,
-  checked: false,
+  checked:  false,
 
   checkVersions: async () => {
     set({ checking: true })
-
     try {
       const result = await window.api.checkVersions()
-
       set({
-        currentLauncherVersion: result.currentLauncherVersion,
-        latestLauncherVersion:  result.latestLauncherVersion,
+        currentLauncherVersion:  result.currentLauncherVersion,
+        latestLauncherVersion:   result.latestLauncherVersion,
         launcherUpdateAvailable: result.launcherUpdateAvailable,
-        latestGameVersions: {
-          'universe':         result.latestGameVersions['universe'],
-          'universe-testing': result.latestGameVersions['universe-testing']
-        },
+        latestGameVersions:      result.latestGameVersions,
         checking: false,
         checked:  true
       })
     } catch (err) {
-      console.error('[VersionStore] Échec du check de version :', err)
+      console.error('[VersionStore] Échec du check :', err)
       set({ checking: false, checked: true })
     }
   }

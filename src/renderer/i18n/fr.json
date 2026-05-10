@@ -16,7 +16,9 @@
         "logout": "Se déconnecter",
         "subscription": "Abonnement",
         "loading": "Connexion en cours...",
-        "cancel": "Annuler"
+        "cancel": "Annuler",
+        "unavailable": "Authentification non disponible pour cet environnement.",
+        "unavailableBtn": "Indisponible"
       },
       "game": {
         "title": "Jeu",
@@ -43,7 +45,9 @@
         "changelog": "Voir le changelog",
         "installing": "Installation en cours...",
         "installPath": "Répertoire d'installation",
-        "browse": "Parcourir"
+        "browse": "Parcourir",
+        "unavailable": "Installation non disponible pour cet environnement.",
+        "unavailableBtn": "Indisponible"
       },
       "social": {
         "title": "Social",

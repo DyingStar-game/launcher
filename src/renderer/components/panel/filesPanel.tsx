@@ -1,6 +1,8 @@
 import { useFilesStore } from '@store/files'
 import { useEnvStore } from '@store/env'
 import { useVersionStore } from '@store/version'
+import { ENV_CAPABILITIES } from '@config/envCapabilities'
+import type { GameVersionInfo } from '@store/version'
 import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/button'
 import InputField from '@components/ui/inputField'
@@ -9,16 +11,29 @@ import UpdateAlert from '@components/ui/updateAlert'
 export default function FilesPanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data, setInstallPath, selectDirectory, install, update, verify, clearCache } = useFilesStore()
-  const { installed, version, releaseDate, needsUpdate, installing, progress, progressLabel, installPath } = data[activeEnv]
+  const {
+    installed,
+    version,
+    releaseDate,
+    installing,
+    progress,
+    progressLabel,
+    installPath
+  } = data[activeEnv]
 
-  const { latestGameVersions } = useVersionStore()
-  const latestGameVersion = latestGameVersions[activeEnv]
+  const { installAvailable } = ENV_CAPABILITIES[activeEnv]
 
-  // Mise à jour dispo si version connue et différente de l'installée
+  const latestGameInfo: GameVersionInfo | undefined = useVersionStore(
+    (s) => s.latestGameVersions[activeEnv]
+  )
+  const latestVersion:     string | null = latestGameInfo?.version     ?? null
+  const latestReleaseDate: string | null = latestGameInfo?.releaseDate ?? null
+
   const gameUpdateAvailable =
     installed &&
-    latestGameVersion !== null &&
-    latestGameVersion !== version
+    latestVersion !== null &&
+    version !== null &&
+    latestVersion.localeCompare(version, undefined, { numeric: false }) > 0
 
   const { t } = useTranslation()
 
@@ -33,12 +48,13 @@ export default function FilesPanel(): React.JSX.Element {
         <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
       </div>
 
-      {/* Alerte mise à jour jeu */}
-      {gameUpdateAvailable && latestGameVersion && (
+      {/* Alerte mise à jour */}
+      {gameUpdateAvailable && latestVersion && (
         <UpdateAlert
           variant="game"
           currentVersion={version ?? undefined}
-          latestVersion={latestGameVersion}
+          latestVersion={latestVersion}
+          latestReleaseDate={latestReleaseDate ?? undefined}
         />
       )}
 
@@ -48,15 +64,24 @@ export default function FilesPanel(): React.JSX.Element {
         value={installPath}
         onChange={setInstallPath}
         placeholder="/home/user/games/dyingstar"
-        disabled={installing}
+        disabled={installing || !installAvailable}
         readOnly
-        action={{ label: t('universe.files.browse'), onClick: selectDirectory }}
+        action={installAvailable ? {
+          label: t('universe.files.browse'),
+          onClick: selectDirectory
+        } : undefined}
       />
 
       {/* Infos version */}
-      {!installed && (
+      {!installed && installAvailable && (
         <p className="text-[var(--color-ds-muted)] text-sm">
           {t('universe.files.notInstalled')}
+        </p>
+      )}
+
+      {!installAvailable && (
+        <p className="text-[var(--color-ds-muted)] text-sm">
+          {t('universe.files.unavailable')}
         </p>
       )}
 
@@ -93,33 +118,44 @@ export default function FilesPanel(): React.JSX.Element {
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2 mt-auto">
-        {!installed && (
+
+        {/* Env non disponible */}
+        {!installAvailable && (
+          <Button variant="secondary" className="w-full" disabled>
+            {t('universe.files.unavailableBtn')}
+          </Button>
+        )}
+
+        {/* Env disponible */}
+        {installAvailable && !installed && (
           <Button onClick={install} variant="primary" disabled={installing || !installPath}>
             {t('universe.files.install')}
           </Button>
         )}
 
-        {installed && (needsUpdate || gameUpdateAvailable) && (
+        {installAvailable && installed && gameUpdateAvailable && (
           <Button onClick={update} variant="primary" disabled={installing}>
             {t('universe.files.update')}
           </Button>
         )}
 
-        {installed && !needsUpdate && !gameUpdateAvailable && (
+        {installAvailable && installed && !gameUpdateAvailable && (
           <Button onClick={verify} variant="secondary" disabled={installing}>
             {t('universe.files.verify')}
           </Button>
         )}
 
-        {installed && (
+        {installAvailable && installed && (
           <Button variant="secondary" disabled={installing}>
             {t('universe.files.changelog')}
           </Button>
         )}
 
-        <Button onClick={clearCache} variant="danger" disabled={installing}>
-          {t('universe.files.clearCache')}
-        </Button>
+        {installAvailable && (
+          <Button onClick={clearCache} variant="danger" disabled={installing}>
+            {t('universe.files.clearCache')}
+          </Button>
+        )}
       </div>
     </div>
   )

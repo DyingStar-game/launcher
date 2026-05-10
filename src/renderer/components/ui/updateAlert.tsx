@@ -1,10 +1,11 @@
 type Variant = 'launcher' | 'game'
 
 type Props = {
-  variant: Variant
-  currentVersion?: string
-  latestVersion: string
-  onDismiss?: () => void
+  variant:            Variant
+  currentVersion?:    string
+  latestVersion:      string
+  latestReleaseDate?: string
+  onDismiss?:         () => void
 }
 
 const CONFIG = {
@@ -35,7 +36,7 @@ const COLOR_CLASSES = {
     wrapper: 'border-amber-500/30 bg-amber-500/8',
     icon:    'text-amber-400',
     title:   'text-amber-300',
-    text:    'text-amber-200/70',
+    text:    'text-sky-200/70',
     badge:   'border-amber-500/30 bg-amber-500/15 text-amber-300',
     dismiss: 'text-amber-400/50 hover:text-amber-300'
   },
@@ -49,7 +50,26 @@ const COLOR_CLASSES = {
   }
 }
 
-export default function UpdateAlert({ variant, currentVersion, latestVersion, onDismiss }: Props): React.JSX.Element {
+/**
+ * Formate un timestamp YYYYMMDDHHMMSS en "10/05/2026 09:29"
+ * Laisse passer les autres formats tels quels (semver, etc.)
+ */
+function formatVersion(v: string): string {
+  if (v.length === 14 && /^\d+$/.test(v)) {
+    const date = `${v.slice(6, 8)}/${v.slice(4, 6)}/${v.slice(0, 4)}`
+    const time = `${v.slice(8, 10)}:${v.slice(10, 12)}`
+    return `${date} ${time}`
+  }
+  return v
+}
+
+export default function UpdateAlert({
+  variant,
+  currentVersion,
+  latestVersion,
+  latestReleaseDate,
+  onDismiss
+}: Props): React.JSX.Element {
   const cfg = CONFIG[variant]
   const cls = COLOR_CLASSES[cfg.color]
 
@@ -64,17 +84,22 @@ export default function UpdateAlert({ variant, currentVersion, latestVersion, on
         <span className={`text-xs font-semibold ${cls.title}`}>
           {cfg.label}
         </span>
-        <span className={`text-[11px] ${cls.text}`}>
-          {currentVersion
-            ? `Version actuelle : ${currentVersion} → `
-            : ''}
-          <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-mono font-semibold ${cls.badge}`}>
-            v{latestVersion}
-          </span>
-          {variant === 'launcher' && (
-            <span className="ml-1">Relancez le launcher pour l'installer.</span>
+
+        <div className={`flex flex-wrap items-center gap-1.5 text-[11px] ${cls.text}`}>
+          {currentVersion && (
+            <span className="font-mono opacity-60">{formatVersion(currentVersion)}</span>
           )}
-        </span>
+          {currentVersion && <span>→</span>}
+          <span className={`inline-flex items-center px-1.5 py-0.5 rounded border font-mono font-semibold text-[10px] ${cls.badge}`}>
+            {formatVersion(latestVersion)}
+          </span>
+          {latestReleaseDate && (
+            <span className="opacity-60">· Sortie le {latestReleaseDate}</span>
+          )}
+          {variant === 'launcher' && (
+            <span>· Relancez le launcher pour l'installer.</span>
+          )}
+        </div>
       </div>
 
       {/* Fermer (optionnel) */}

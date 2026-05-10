@@ -16,7 +16,9 @@
         "logout": "Logout",
         "subscription": "Subscription",
         "loading": "Connecting...",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "unavailable": "Authentication not available for this environment.",
+        "unavailableBtn": "Unavailable"
       },
       "game": {
         "title": "Game",
@@ -43,7 +45,9 @@
         "changelog": "View changelog",
         "installing": "Installing...",
         "installPath": "Install folder",
-        "browse": "Browse"
+        "browse": "Browse",
+        "unavailable": "Installation not available for this environment.",
+        "unavailableBtn": "Unavailable"
       },
       "social": {
         "title": "Social",

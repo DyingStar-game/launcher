@@ -1,45 +1,64 @@
+// src/main/services/version.ts
+
 import { ipcMain, app } from 'electron'
 import type { Env } from '../../renderer/store/env'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+interface RemoteVersionPayload {
+  version:     string   // format YYYYMMDDHHMMSS ex: "20260510092919"
+  releaseDate: string   // format YYYY-MM-DD    ex: "2026-05-10"
+}
+
+interface GameVersionInfo {
+  version:     string | null
+  releaseDate: string | null
+}
+
 interface VersionCheckResult {
-  currentLauncherVersion: string
-  latestLauncherVersion: string
+  currentLauncherVersion:  string
+  latestLauncherVersion:   string
   launcherUpdateAvailable: boolean
-  latestGameVersions: Record<Env, string | null>
+  latestGameVersions:      Record<Env, GameVersionInfo>
 }
 
-// ─── Endpoints de version par env ─────────────────────────────────────────────
+// ─── Endpoints ────────────────────────────────────────────────────────────────
 
-// TODO: remplacer par les vraies URLs
-const GAME_VERSION_URLS: Record<Env, string> = {
-  'universe':         'https://your-server.com/universe/version.json',
-  'universe-testing': 'https://your-server.com/universe-testing/version.json'
+// TODO: remplacer GAME_VERSION_URL_UNIVERSE par l'URL prod quand disponible
+const GAME_VERSION_URL: Record<Env, string> = {
+  'universe':         'https://dyingstar-game.com/version',
+  'universe-testing': 'https://dyingstar-game.com/version'
 }
 
-// TODO: remplacer par la vraie URL de l'API du launcher
-const LAUNCHER_VERSION_URL = 'https://your-server.com/launcher/version.json'
+// TODO: remplacer par l'URL réelle de versioning du launcher
+const LAUNCHER_VERSION_URL = 'https://dyingstar-game.com/launcher/version'
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Comparaison ──────────────────────────────────────────────────────────────
 
-function compareVersions(a: string, b: string): number {
-  const pa = a.split('.').map(Number)
-  const pb = b.split('.').map(Number)
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    const diff = (pa[i] ?? 0) - (pb[i] ?? 0)
-    if (diff !== 0) return diff
-  }
-  return 0
+/**
+ * Retourne true si `remote` est plus récent que `local`.
+ * Fonctionne pour le format YYYYMMDDHHMMSS (comparaison lexicographique)
+ * ainsi que pour le semver (1.2.3) tant que les longueurs sont identiques.
+ */
+function isNewer(remote: string, local: string): boolean {
+  return remote.localeCompare(local, undefined, { numeric: false }) > 0
 }
 
-async function fetchLatestVersion(url: string): Promise<string | null> {
+// ─── Fetch ────────────────────────────────────────────────────────────────────
+
+async function fetchRemoteVersion(url: string): Promise<RemoteVersionPayload | null> {
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
-    if (!res.ok) return null
-    const json = await res.json() as { version: string }
-    return json.version ?? null
-  } catch {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(8_000),
+      headers: { 'Cache-Control': 'no-cache' }
+    })
+    if (!res.ok) {
+      console.warn(`[Version] HTTP ${res.status} sur ${url}`)
+      return null
+    }
+    return await res.json() as RemoteVersionPayload
+  } catch (err) {
+    console.warn('[Version] Impossible de contacter :', url, err)
     return null
   }
 }
@@ -51,25 +70,32 @@ export function registerVersionHandlers(): void {
   ipcMain.handle('version:check', async (): Promise<VersionCheckResult> => {
     const currentLauncherVersion = app.getVersion()
 
-    // Lancer tous les checks en parallèle
-    const [latestLauncher, latestUniverse, latestTesting] = await Promise.all([
-      fetchLatestVersion(LAUNCHER_VERSION_URL),
-      fetchLatestVersion(GAME_VERSION_URLS['universe']),
-      fetchLatestVersion(GAME_VERSION_URLS['universe-testing'])
+    // Tous les checks en parallèle
+    const [launcherPayload, universePayload, testingPayload] = await Promise.all([
+      fetchRemoteVersion(LAUNCHER_VERSION_URL),
+      fetchRemoteVersion(GAME_VERSION_URL['universe']),
+      fetchRemoteVersion(GAME_VERSION_URL['universe-testing'])
     ])
 
-    const latestLauncherVersion = latestLauncher ?? currentLauncherVersion
+    // ── Launcher ────────────────────────────────────────────────────────────
+    const latestLauncherVersion  = launcherPayload?.version ?? currentLauncherVersion
     const launcherUpdateAvailable =
-      latestLauncher !== null &&
-      compareVersions(latestLauncher, currentLauncherVersion) > 0
+      launcherPayload !== null &&
+      isNewer(launcherPayload.version, currentLauncherVersion)
+
+    // ── Jeu par env ──────────────────────────────────────────────────────────
+    const toInfo = (payload: RemoteVersionPayload | null): GameVersionInfo => ({
+      version:     payload?.version     ?? null,
+      releaseDate: payload?.releaseDate ?? null
+    })
 
     return {
       currentLauncherVersion,
       latestLauncherVersion,
       launcherUpdateAvailable,
       latestGameVersions: {
-        'universe':         latestUniverse,
-        'universe-testing': latestTesting
+        'universe':         toInfo(universePayload),
+        'universe-testing': toInfo(testingPayload)
       }
     }
   })

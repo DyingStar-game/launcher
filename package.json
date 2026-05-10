@@ -20,7 +20,9 @@
       "!**/*.map"
     ],
     "asar": true,
-    "asarUnpack": ["**/*.{node,dll}"],
+    "asarUnpack": [
+      "**/*.{node,dll}"
+    ],
     "npmRebuild": true,
     "nodeGypRebuild": false,
     "buildDependenciesFromSource": false,
@@ -43,9 +45,24 @@
     },
     "linux": {
       "target": [
-        { "target": "AppImage", "arch": ["x64"] },
-        { "target": "deb", "arch": ["x64"] },
-        { "target": "rpm", "arch": ["x64"] }
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "category": "Game"
     }
@@ -70,6 +87,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "axios": "^1.16.0",
     "debug": "^4.4.3",
+    "electron-log": "^5.4.3",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.3.9",
     "extract-zip": "^2.0.1",

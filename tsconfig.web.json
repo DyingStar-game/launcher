@@ -15,7 +15,8 @@
       "@components/*": ["src/renderer/components/*"],
       "@views/*": ["src/renderer/views/*"],
       "@store/*": ["src/renderer/store/*"],
-      "@i18n/*": ["src/renderer/i18n/*"]
+      "@i18n/*": ["src/renderer/i18n/*"],
+      "@config/*": ["src/renderer/config/*"]
     }
   }
 }

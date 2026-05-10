@@ -21,8 +21,8 @@ const GAME_ZIP_URLS: Record<Env, Partial<Record<NodeJS.Platform, string>>> = {
     darwin: 'https://your-server.com/universe/latest-macos.zip'
   },
   'universe-testing': {
-    win32:  'https://your-server.com/universe-testing/latest-windows.zip',
-    linux:  'https://your-server.com/universe-testing/latest-linux.zip',
+    win32:  'https://dyingstar-game.com/DyingStar-windows-testing.zip',
+    linux:  'https://dyingstar-game.com/DyingStar-linux-testing.zip',
     darwin: 'https://your-server.com/universe-testing/latest-macos.zip'
   }
 }
