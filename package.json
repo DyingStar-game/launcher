@@ -1,10 +1,13 @@
 {
   "name": "dying-star-launcher",
-  "version": "1.0.0",
-  "description": "Launcher for Dynig Star Game",
+  "version": "0.1.0",
+  "description": "Launcher for DyingStar Game",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": {
+    "name": "dyingstar-game.com",
+    "email": "contact@dyingstar-game.com"
+  },
+  "homepage": "https://www.dyingstar-game.com",
   "build": {
     "appId": "com.dyingstar.launcher",
     "productName": "Dying_Star_Launcher",
@@ -37,6 +40,14 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] },
+        { "target": "rpm", "arch": ["x64"] }
+      ],
+      "category": "Game"
     }
   },
   "scripts": {
