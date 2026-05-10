@@ -1,13 +1,14 @@
 import { create } from 'zustand'
 import { useEnvStore, type Env } from './env'
 import { useFilesStore } from './files'
+import type { ServerStatusValue } from '../../main/services/gameStatus'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ServerStatus = 'online' | 'offline' | 'degraded' | 'checking'
+export type { ServerStatusValue }
 
 type EnvGameData = {
-  serverStatus: ServerStatus
+  status:  ServerStatusValue
   players: number
 }
 
@@ -18,41 +19,33 @@ type GameState = {
   play: () => Promise<void>
 }
 
-// ─── Valeurs par défaut ───────────────────────────────────────────────────────
-
-const defaultEnvData: EnvGameData = {
-  serverStatus: 'checking',
-  players: 0
-}
-
-const defaultData: Record<Env, EnvGameData> = {
-  'universe':         { ...defaultEnvData },
-  'universe-testing': { ...defaultEnvData }
-}
+const defaultEnvData: EnvGameData = { status: 'unknown', players: 0 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useGameStore = create<GameState>((set) => ({
-  data: defaultData,
+  data: {
+    'universe':         { ...defaultEnvData },
+    'universe-testing': { ...defaultEnvData }
+  },
 
   fetchServerStatus: async () => {
     const env = useEnvStore.getState().activeEnv
 
-    set((s) => ({
-      data: { ...s.data, [env]: { ...s.data[env], serverStatus: 'checking' } }
-    }))
+    // Ne pas forcer « unknown » avant la réponse : sinon l’UI affiche « Inconnu »
+    // à chaque poll jusqu’à la fin du fetch (et en continu si l’appel échoue).
 
     try {
       const result = await window.api.getServerStatus(env)
       set((s) => ({
         data: {
           ...s.data,
-          [env]: { serverStatus: result.status, players: result.players }
+          [env]: { status: result.status, players: result.players }
         }
       }))
     } catch {
       set((s) => ({
-        data: { ...s.data, [env]: { serverStatus: 'offline', players: 0 } }
+        data: { ...s.data, [env]: { ...s.data[env], status: 'unknown', players: 0 } }
       }))
     }
   },

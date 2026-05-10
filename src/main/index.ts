@@ -7,11 +7,17 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { registerFilesHandlers } from './services/game'
 import { registerVersionHandlers } from './services/version'
+import { registerGameStatusHandlers } from './services/gameStatus'
 import { registerAuthHandlers, handleOAuthCallback } from './services/auth'
 import log from 'electron-log'
 
-// ─── Manage log ────────────────────────
-log.transports.file.level = 'debug'
+// ─── Manage log (import.meta.env = valeurs figées au build, comme les autres VITE_*) ───
+if (import.meta.env.VITE_ELECTRON_ENABLE_LOGGING === 'true') log.transports.file.level = 'debug'
+
+function parsePositiveInt(raw: string | undefined, fallback: number): number {
+  const n = Number(raw)
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback
+}
 
 // ─── Custom protocol (must be set before app is ready) ────────────────────────
 // In development, Electron is launched as `electron /path/to/main.js`; the
@@ -95,8 +101,8 @@ if (!gotLock) {
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width:  parsePositiveInt(import.meta.env.VITE_WINDOW_WIDTH, 1200),
+    height: parsePositiveInt(import.meta.env.VITE_WINDOW_HEIGHT, 800),
     title: app.getName(),
     show: false,
     autoHideMenuBar: true,
@@ -113,8 +119,7 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow!.show()
-    // Temporaire pour le debug
-    mainWindow!.webContents.openDevTools()
+    if (import.meta.env.VITE_ENABLE_DEVTOOLS === 'true') mainWindow!.webContents.openDevTools()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -140,8 +145,9 @@ app.whenReady().then(() => {
 
   ipcMain.on('ping', () => console.log('pong'))
 
-  // Handlers indépendants de la fenêtre (pas besoin de win)
+  // Handlers indépendants de la fenêtre
   registerVersionHandlers()
+  registerGameStatusHandlers()
 
   createWindow()
 

@@ -14,14 +14,6 @@ interface GameState {
   status: 'not-installed' | 'up-to-date' | 'update-available' | 'checking'
 }
 
-type ServerStatus = 'online' | 'offline' | 'degraded' | 'checking'
-
-interface ServerStatusResult {
-  status: ServerStatus
-  players: number
-  statusPageUrl: string
-}
-
 // ─── Exécutables par OS ───────────────────────────────────────────────────────
 
 const GAME_EXECUTABLES: Partial<Record<NodeJS.Platform, string>> = {
@@ -36,19 +28,26 @@ function getExecutablePath(installPath: string): string {
   return path.join(installPath, exe)
 }
 
-// ─── Mock statuts serveur par env ─────────────────────────────────────────────
-
-const SERVER_STATUS: Record<Env, ServerStatusResult> = {
-  'universe': {
-    status: 'online',
-    players: 42,
-    statusPageUrl: 'https://status.dyingstar.example.com'
-  },
-  'universe-testing': {
-    status: 'online',
-    players: 7,
-    statusPageUrl: 'https://status-testing.dyingstar.example.com'
+/** CHANGELOG.md à la racine du jeu ou dans un unique sous-dossier (ZIP avec dossier racine). */
+function findChangelogPath(installPath: string): string | null {
+  const direct = path.join(installPath, 'CHANGELOG.md')
+  try {
+    if (fs.existsSync(direct) && fs.statSync(direct).isFile()) return direct
+  } catch {
+    return null
   }
+
+  try {
+    const entries = fs.readdirSync(installPath, { withFileTypes: true })
+    for (const e of entries) {
+      if (!e.isDirectory()) continue
+      const nested = path.join(installPath, e.name, 'CHANGELOG.md')
+      if (fs.existsSync(nested) && fs.statSync(nested).isFile()) return nested
+    }
+  } catch {
+    return null
+  }
+  return null
 }
 
 // ─── Handlers IPC ─────────────────────────────────────────────────────────────
@@ -56,6 +55,7 @@ const SERVER_STATUS: Record<Env, ServerStatusResult> = {
 export function registerFilesHandlers(win: BrowserWindow): void {
 
   // ── Sélection du répertoire d'installation ─────────────────────────────────
+  ipcMain.removeHandler('files:select-directory')
   ipcMain.handle('files:select-directory', async () => {
     const result = await dialog.showOpenDialog(win, {
       title: "Répertoire d'installation",
@@ -67,6 +67,7 @@ export function registerFilesHandlers(win: BrowserWindow): void {
   })
 
   // ── Téléchargement + installation → retourne { version, releaseDate } ──────
+  ipcMain.removeHandler('files:install')
   ipcMain.handle('files:install', async (_event, env: Env, installPath: string) => {
     if (!installPath || typeof installPath !== 'string') {
       throw new Error("Chemin d'installation invalide.")
@@ -76,6 +77,20 @@ export function registerFilesHandlers(win: BrowserWindow): void {
   })
 
   // ── Lancement du jeu ───────────────────────────────────────────────────────
+  ipcMain.removeHandler('game:launch')
+  ipcMain.removeHandler('files:read-changelog')
+  ipcMain.handle('files:read-changelog', async (_event, installPath: string): Promise<string | null> => {
+    if (!installPath || typeof installPath !== 'string') return null
+    const root = path.resolve(installPath)
+    const changelogFile = findChangelogPath(root)
+    if (!changelogFile) return null
+    try {
+      return fs.readFileSync(changelogFile, 'utf-8')
+    } catch {
+      return null
+    }
+  })
+
   ipcMain.handle('game:launch', async (_event, _env: Env, installPath: string) => {
     const exePath = getExecutablePath(installPath)
     if (!fs.existsSync(exePath)) {
@@ -91,13 +106,8 @@ export function registerFilesHandlers(win: BrowserWindow): void {
     child.unref()
   })
 
-  // ── Statut du serveur par env ──────────────────────────────────────────────
-  ipcMain.handle('game:get-server-status', async (_event, env: Env): Promise<ServerStatusResult> => {
-    // TODO: vrai appel HTTP selon l'env
-    return SERVER_STATUS[env]
-  })
-
   // ── État du jeu ────────────────────────────────────────────────────────────
+  ipcMain.removeHandler('game:get-state')
   ipcMain.handle('game:get-state', async (_event, _env: Env): Promise<GameState> => {
     // TODO: lire version locale + interroger serveur
     return {

@@ -1,19 +1,20 @@
 import Shell from '@components/layout/shell'
 import { useEffect } from 'react'
 import { useVersionStore } from '@store/version'
+import { useAvailabilityStore } from '@store/availability'
 
-export function useVersionCheck(): void {
-  const { checkVersions, checked } = useVersionStore()
- 
+function useAppStartup(): void {
+  const { checkVersions, checked: versionChecked } = useVersionStore()
+  const { checkAvailability, checked: availChecked } = useAvailabilityStore()
+
   useEffect(() => {
-    if (!checked) {
-      checkVersions()
-    }
+    if (!availChecked) checkAvailability()
+    if (!versionChecked) checkVersions()
   }, [])
 }
 
 function App(): React.JSX.Element {
-  useVersionCheck()
+  useAppStartup()
   return <Shell />
 }
 

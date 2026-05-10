@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 type Variant = 'launcher' | 'game'
 
 type Props = {
@@ -16,8 +18,7 @@ const CONFIG = {
         <path d="M2 11v1a2 2 0 002 2h8a2 2 0 002-2v-1" />
       </svg>
     ),
-    color: 'amber',
-    label: 'Mise à jour du launcher disponible'
+    color: 'amber'
   },
   game: {
     icon: (
@@ -26,8 +27,7 @@ const CONFIG = {
         <path d="M8 5v3.5l2 1.5" />
       </svg>
     ),
-    color: 'sky',
-    label: 'Nouvelle version du jeu disponible'
+    color: 'sky'
   }
 } as const
 
@@ -70,8 +70,16 @@ export default function UpdateAlert({
   latestReleaseDate,
   onDismiss
 }: Props): React.JSX.Element {
+  const { t } = useTranslation()
   const cfg = CONFIG[variant]
   const cls = COLOR_CLASSES[cfg.color]
+
+  const title =
+    variant === 'launcher'
+      ? t('universe.updateAlert.launcher.title')
+      : t('universe.updateAlert.game.title')
+
+  const discordLauncherUrl = (import.meta.env.VITE_LAUNCHER_RELEASE_DISCORD_URL ?? '').trim()
 
   return (
     <div className={`flex items-start gap-3 px-4 py-3 rounded-xl border ${cls.wrapper} transition-all`}>
@@ -82,22 +90,34 @@ export default function UpdateAlert({
       {/* Texte */}
       <div className="flex-1 min-w-0 flex flex-col gap-0.5">
         <span className={`text-xs font-semibold ${cls.title}`}>
-          {cfg.label}
+          {title}
         </span>
 
-        <div className={`flex flex-wrap items-center gap-1.5 text-[11px] ${cls.text}`}>
-          {currentVersion && (
-            <span className="font-mono opacity-60">{formatVersion(currentVersion)}</span>
-          )}
-          {currentVersion && <span>→</span>}
-          <span className={`inline-flex items-center px-1.5 py-0.5 rounded border font-mono font-semibold text-[10px] ${cls.badge}`}>
-            {formatVersion(latestVersion)}
-          </span>
-          {latestReleaseDate && (
-            <span className="opacity-60">· Sortie le {latestReleaseDate}</span>
-          )}
-          {variant === 'launcher' && (
-            <span>· Relancez le launcher pour l'installer.</span>
+        <div className={`flex flex-col gap-1 text-[11px] ${cls.text}`}>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {currentVersion && (
+              <span className="font-mono opacity-60">{formatVersion(currentVersion)}</span>
+            )}
+            {currentVersion && <span>→</span>}
+            <span className={`inline-flex items-center px-1.5 py-0.5 rounded border font-mono font-semibold text-[10px] ${cls.badge}`}>
+              {formatVersion(latestVersion)}
+            </span>
+            {latestReleaseDate && (
+              <span className="opacity-60">· {t('universe.updateAlert.releaseOn', { date: latestReleaseDate })}</span>
+            )}
+          </div>
+          {variant === 'launcher' && discordLauncherUrl && (
+            <p className="text-[11px] leading-snug">
+              {t('universe.updateAlert.launcher.discordHint')}{' '}
+              <a
+                href={discordLauncherUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium underline underline-offset-2 decoration-[var(--color-ds-accent)]/60 hover:decoration-[var(--color-ds-accent)] text-[var(--color-ds-accent)]"
+              >
+                {t('universe.updateAlert.launcher.discordLink')}
+              </a>
+            </p>
           )}
         </div>
       </div>

@@ -1,13 +1,17 @@
-// src/main/services/version.ts
-
 import { ipcMain, app } from 'electron'
+import { getApiBase, ENDPOINTS } from '../config/env'
 import type { Env } from '../../renderer/store/env'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface RemoteVersionPayload {
-  version:     string   // format YYYYMMDDHHMMSS ex: "20260510092919"
-  releaseDate: string   // format YYYY-MM-DD    ex: "2026-05-10"
+  version:     string   // YYYYMMDDHHMMSS ex: "20260510092919"
+  releaseDate: string   // YYYY-MM-DD     ex: "2026-05-10"
+}
+
+interface GitHubLatestReleasePayload {
+  tag_name:      string
+  published_at?: string
 }
 
 interface GameVersionInfo {
@@ -15,50 +19,88 @@ interface GameVersionInfo {
   releaseDate: string | null
 }
 
+interface LauncherReleaseInfo {
+  version:     string
+  releaseDate: string | null
+}
+
 interface VersionCheckResult {
-  currentLauncherVersion:  string
-  latestLauncherVersion:   string
-  launcherUpdateAvailable: boolean
-  latestGameVersions:      Record<Env, GameVersionInfo>
+  currentLauncherVersion:    string
+  latestLauncherVersion:     string | null
+  latestLauncherReleaseDate: string | null
+  launcherUpdateAvailable:   boolean
+  latestGameVersions:        Record<Env, GameVersionInfo>
 }
 
-// ─── Endpoints ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// TODO: remplacer GAME_VERSION_URL_UNIVERSE par l'URL prod quand disponible
-const GAME_VERSION_URL: Record<Env, string> = {
-  'universe':         'https://dyingstar-game.com/version',
-  'universe-testing': 'https://dyingstar-game.com/version'
+/** Compare semver / tags du launcher (ex. 0.2.0 vs 0.10.1). */
+function isNewerLauncherVersion(remote: string, local: string): boolean {
+  return remote.localeCompare(local, undefined, { numeric: true, sensitivity: 'base' }) > 0
 }
 
-// TODO: remplacer par l'URL réelle de versioning du launcher
-const LAUNCHER_VERSION_URL = 'https://dyingstar-game.com/launcher/version'
-
-// ─── Comparaison ──────────────────────────────────────────────────────────────
-
-/**
- * Retourne true si `remote` est plus récent que `local`.
- * Fonctionne pour le format YYYYMMDDHHMMSS (comparaison lexicographique)
- * ainsi que pour le semver (1.2.3) tant que les longueurs sont identiques.
- */
-function isNewer(remote: string, local: string): boolean {
-  return remote.localeCompare(local, undefined, { numeric: false }) > 0
-}
-
-// ─── Fetch ────────────────────────────────────────────────────────────────────
-
-async function fetchRemoteVersion(url: string): Promise<RemoteVersionPayload | null> {
+async function fetchGameVersion(url: string): Promise<RemoteVersionPayload | null> {
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(8_000),
       headers: { 'Cache-Control': 'no-cache' }
     })
-    if (!res.ok) {
-      console.warn(`[Version] HTTP ${res.status} sur ${url}`)
-      return null
-    }
+    if (!res.ok) return null
     return await res.json() as RemoteVersionPayload
-  } catch (err) {
-    console.warn('[Version] Impossible de contacter :', url, err)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Déduit owner/repo depuis une URL de dépôt GitHub publique.
+ * Ex. https://github.com/DyingStar-game/launcher → DyingStar-game/launcher
+ */
+function parseGithubRepoUrl(repoPageUrl: string): { owner: string; repo: string } | null {
+  try {
+    const u = new URL(repoPageUrl.trim())
+    if (u.hostname !== 'github.com') return null
+    const parts = u.pathname.split('/').filter(Boolean)
+    if (parts.length < 2) return null
+    const repo = parts[1].replace(/\.git$/i, '')
+    return { owner: parts[0], repo }
+  } catch {
+    return null
+  }
+}
+
+async function fetchLatestLauncherReleaseFromGithub(
+  repoPageUrl: string
+): Promise<LauncherReleaseInfo | null> {
+  const parsed = parseGithubRepoUrl(repoPageUrl)
+  if (!parsed) return null
+
+  const apiUrl = `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/releases/latest`
+  const ua = `DyingStar-Launcher/${app.getVersion()}`
+
+  try {
+    const res = await fetch(apiUrl, {
+      signal: AbortSignal.timeout(10_000),
+      headers: {
+        Accept:               'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent':         ua
+      }
+    })
+    // Aucune release publique → pas de bandeau
+    if (res.status === 404) return null
+    if (!res.ok) return null
+
+    const data = await res.json() as GitHubLatestReleasePayload
+    const rawTag = data.tag_name?.trim() ?? ''
+    if (!rawTag) return null
+
+    const version = rawTag.startsWith('v') || rawTag.startsWith('V') ? rawTag.slice(1) : rawTag
+    const releaseDate =
+      data.published_at?.match(/^(\d{4}-\d{2}-\d{2})/)?.[1] ?? null
+
+    return { version, releaseDate }
+  } catch {
     return null
   }
 }
@@ -69,33 +111,45 @@ export function registerVersionHandlers(): void {
 
   ipcMain.handle('version:check', async (): Promise<VersionCheckResult> => {
     const currentLauncherVersion = app.getVersion()
+    const githubRepoUrl = (import.meta.env.VITE_LAUNCHER_GITHUB_REPO_URL ?? '').trim()
 
-    // Tous les checks en parallèle
-    const [launcherPayload, universePayload, testingPayload] = await Promise.all([
-      fetchRemoteVersion(LAUNCHER_VERSION_URL),
-      fetchRemoteVersion(GAME_VERSION_URL['universe']),
-      fetchRemoteVersion(GAME_VERSION_URL['universe-testing'])
-    ])
+    const envs: Env[] = ['universe', 'universe-testing']
 
-    // ── Launcher ────────────────────────────────────────────────────────────
-    const latestLauncherVersion  = launcherPayload?.version ?? currentLauncherVersion
-    const launcherUpdateAvailable =
-      launcherPayload !== null &&
-      isNewer(launcherPayload.version, currentLauncherVersion)
+    const payloads = await Promise.all(
+      envs.map((env) => {
+        const base = getApiBase(env)
+        if (!base) return Promise.resolve(null)
+        return fetchGameVersion(ENDPOINTS.version(base))
+      })
+    )
 
-    // ── Jeu par env ──────────────────────────────────────────────────────────
-    const toInfo = (payload: RemoteVersionPayload | null): GameVersionInfo => ({
-      version:     payload?.version     ?? null,
-      releaseDate: payload?.releaseDate ?? null
+    const toInfo = (p: RemoteVersionPayload | null): GameVersionInfo => ({
+      version:     p?.version     ?? null,
+      releaseDate: p?.releaseDate ?? null
     })
+
+    // ── Launcher : dernière release GitHub (pas /version du jeu)
+    let latestLauncherVersion:     string | null = null
+    let latestLauncherReleaseDate: string | null = null
+    let launcherUpdateAvailable = false
+
+    if (githubRepoUrl) {
+      const gh = await fetchLatestLauncherReleaseFromGithub(githubRepoUrl)
+      if (gh) {
+        latestLauncherVersion = gh.version
+        latestLauncherReleaseDate = gh.releaseDate
+        launcherUpdateAvailable = isNewerLauncherVersion(gh.version, currentLauncherVersion)
+      }
+    }
 
     return {
       currentLauncherVersion,
       latestLauncherVersion,
+      latestLauncherReleaseDate,
       launcherUpdateAvailable,
       latestGameVersions: {
-        'universe':         toInfo(universePayload),
-        'universe-testing': toInfo(testingPayload)
+        'universe':         toInfo(payloads[0]),
+        'universe-testing': toInfo(payloads[1])
       }
     }
   })

@@ -3,37 +3,70 @@ import axios from 'axios'
 import * as fs from 'fs'
 import * as path from 'path'
 import extract from 'extract-zip'
+import {
+  getDownloadBase,
+  getUniverseZipUrlForPlatform,
+  getTestingZipUrlForPlatform,
+  ENDPOINTS
+} from '../config/env'
 import type { Env } from '../../renderer/store/env'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface InstallResult {
-  version: string
+  version:     string
   releaseDate: string
 }
 
-// ─── Configuration ────────────────────────────────────────────────────────────
-
-const GAME_ZIP_URLS: Record<Env, Partial<Record<NodeJS.Platform, string>>> = {
-  'universe': {
-    win32:  'https://your-server.com/universe/latest-windows.zip',
-    linux:  'https://your-server.com/universe/latest-linux.zip',
-    darwin: 'https://your-server.com/universe/latest-macos.zip'
-  },
-  'universe-testing': {
-    win32:  'https://dyingstar-game.com/DyingStar-windows-testing.zip',
-    linux:  'https://dyingstar-game.com/DyingStar-linux-testing.zip',
-    darwin: 'https://your-server.com/universe-testing/latest-macos.zip'
-  }
-}
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getZipUrl(env: Env): string {
-  const url = GAME_ZIP_URLS[env][process.platform]
-  if (!url) throw new Error(`Plateforme non supportée : ${process.platform}`)
-  return url
+  const platform = process.platform
+
+  if (env === 'universe') {
+    const direct = getUniverseZipUrlForPlatform(platform)
+    if (direct) return direct
+  }
+
+  if (env === 'universe-testing') {
+    const direct = getTestingZipUrlForPlatform(platform)
+    if (direct) return direct
+  }
+
+  const base = getDownloadBase(env)
+  if (!base) throw new Error(`Env "${env}" non configuré — URL de base manquante.`)
+
+  if (platform === 'win32')  return ENDPOINTS.zipWin32(base)
+  if (platform === 'linux')  return ENDPOINTS.zipLinux(base)
+  if (platform === 'darwin') return ENDPOINTS.zipDarwin(base)
+  throw new Error(`Plateforme non supportée : ${platform}`)
 }
 
-// ─── Helper progression ───────────────────────────────────────────────────────
+const ZIP_MAGIC = Buffer.from([0x50, 0x4b, 0x03, 0x04])
+
+function assertIsZipFile(filePath: string, sourceUrl: string): void {
+  let fd: number
+  try {
+    fd = fs.openSync(filePath, 'r')
+  } catch {
+    throw new Error(`Impossible de lire le fichier téléchargé — ${sourceUrl}`)
+  }
+  try {
+    const head = Buffer.alloc(4)
+    const read = fs.readSync(fd, head, 0, 4, 0)
+    if (read < 4 || !head.subarray(0, 4).equals(ZIP_MAGIC)) {
+      throw new Error(
+        `Le fichier reçu n’est pas une archive ZIP (souvent une page d’erreur HTML, ex. HTTP 404). Vérifiez l’URL : ${sourceUrl}`
+      )
+    }
+  } finally {
+    try {
+      fs.closeSync(fd)
+    } catch {
+      /* ignore */
+    }
+  }
+}
 
 function sendProgress(win: BrowserWindow, progress: number, label: string): void {
   if (win.isDestroyed()) return
@@ -45,31 +78,71 @@ function sendProgress(win: BrowserWindow, progress: number, label: string): void
 async function downloadZip(env: Env, destPath: string, win: BrowserWindow): Promise<string> {
   sendProgress(win, 0, 'Connexion au serveur...')
 
-  const response = await axios.get<NodeJS.ReadableStream>(getZipUrl(env), {
-    responseType: 'stream',
-    timeout: 30_000,
-    headers: { 'User-Agent': 'DyingStar-Launcher/1.0' }
-  })
+  const url = getZipUrl(env)
 
-  const totalLength = parseInt(String(response.headers['content-length'] ?? '0'), 10)
+  let response: Awaited<ReturnType<typeof axios.get<NodeJS.ReadableStream>>>
+  try {
+    response = await axios.get<NodeJS.ReadableStream>(url, {
+      responseType: 'stream',
+      timeout: 600_000,
+      headers: {
+        'User-Agent': 'DyingStar-Launcher/1.0',
+        Accept:       'application/zip, application/octet-stream, */*'
+      },
+      validateStatus: (s) => s >= 200 && s < 300
+    })
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      const code = err.response?.status
+      const hint =
+        code === 404
+          ? ` — l’archive n’existe pas à cet emplacement (404). Définissez VITE_GAME_DOWNLOAD_BASE_* si les ZIP sont sur un autre hôte.`
+          : ''
+      throw new Error(`Téléchargement impossible${code ? ` (HTTP ${code})` : ''}${hint}\n${url}`)
+    }
+    throw err
+  }
+
+  if (response.status !== 200) {
+    throw new Error(`Téléchargement refusé (HTTP ${response.status})\n${url}`)
+  }
+
+  const totalLength = Number(response.headers['content-length'] ?? 0)
   let downloaded = 0
+  let lastProgressReport = 0
 
   const zipFilePath = path.join(destPath, '__game_download.zip')
   const writer = fs.createWriteStream(zipFilePath)
 
   await new Promise<void>((resolve, reject) => {
-    response.data.on('data', (chunk: Buffer) => {
+    const stream = response.data
+    stream.on('error', reject)
+    writer.on('error', reject)
+    writer.on('finish', () => resolve())
+
+    stream.on('data', (chunk: Buffer) => {
       downloaded += chunk.length
-      writer.write(chunk)
+      if (!writer.write(chunk)) {
+        stream.pause()
+        writer.once('drain', () => stream.resume())
+      }
       if (totalLength > 0) {
-        sendProgress(win, (downloaded / totalLength) * 70,
-          `Téléchargement... (${formatBytes(downloaded)} / ${formatBytes(totalLength)})`)
+        sendProgress(
+          win,
+          (downloaded / totalLength) * 70,
+          `Téléchargement... (${formatBytes(downloaded)} / ${formatBytes(totalLength)})`
+        )
+      } else if (downloaded - lastProgressReport >= 2 * 1024 * 1024) {
+        lastProgressReport = downloaded
+        sendProgress(win, Math.min(65, 15 + downloaded / (80 * 1024 * 1024) * 50),
+          `Téléchargement... (${formatBytes(downloaded)})`)
       }
     })
-    response.data.on('end', () => { writer.end(); resolve() })
-    response.data.on('error', reject)
-    writer.on('error', reject)
+
+    stream.on('end', () => writer.end())
   })
+
+  assertIsZipFile(zipFilePath, url)
 
   return zipFilePath
 }
@@ -90,30 +163,23 @@ async function extractZip(zipFilePath: string, destPath: string, win: BrowserWin
   })
 }
 
-// ─── Lecture du manifeste de version ─────────────────────────────────────────
+// ─── Lecture version.json ─────────────────────────────────────────────────────
 
 function readVersionManifest(installPath: string): InstallResult {
-  // Le ZIP doit contenir un fichier version.json à sa racine :
-  // { "version": "1.2.0", "releaseDate": "2026-05-01" }
   const manifestPath = path.join(installPath, 'version.json')
-
   if (!fs.existsSync(manifestPath)) {
-    console.warn('[Downloader] version.json introuvable, valeurs par défaut utilisées.')
-    return {
-      version: 'unknown',
-      releaseDate: new Date().toISOString().split('T')[0]
-    }
+    console.warn('[Downloader] version.json introuvable.')
+    return { version: 'unknown', releaseDate: new Date().toISOString().split('T')[0] }
   }
-
   try {
-    const raw = fs.readFileSync(manifestPath, 'utf-8')
-    const json = JSON.parse(raw) as { version?: string; releaseDate?: string }
+    const json = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as {
+      version?: string; releaseDate?: string
+    }
     return {
       version:     json.version     ?? 'unknown',
       releaseDate: json.releaseDate ?? new Date().toISOString().split('T')[0]
     }
   } catch {
-    console.warn('[Downloader] Impossible de parser version.json.')
     return { version: 'unknown', releaseDate: new Date().toISOString().split('T')[0] }
   }
 }
@@ -130,15 +196,11 @@ export async function downloadAndInstall(
   }
 
   let zipFilePath: string | null = null
-
   try {
     zipFilePath = await downloadZip(env, installPath, win)
     await extractZip(zipFilePath, installPath, win)
-
     sendProgress(win, 99, 'Nettoyage...')
     fs.unlinkSync(zipFilePath)
-
-    // Lire version.json extrait du zip
     const manifest = readVersionManifest(installPath)
     sendProgress(win, 100, `Installation terminée — v${manifest.version}`)
     return manifest
@@ -151,7 +213,7 @@ export async function downloadAndInstall(
 // ─── Utilitaires ──────────────────────────────────────────────────────────────
 
 function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} o`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`
+  if (bytes < 1024)          return `${bytes} o`
+  if (bytes < 1024 * 1024)   return `${(bytes / 1024).toFixed(1)} Ko`
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`
 }

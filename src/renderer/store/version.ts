@@ -10,9 +10,10 @@ export type GameVersionInfo = {
 
 type VersionState = {
   // Launcher
-  currentLauncherVersion:  string
-  latestLauncherVersion:   string | null
-  launcherUpdateAvailable: boolean
+  currentLauncherVersion:    string
+  latestLauncherVersion:     string | null
+  latestLauncherReleaseDate: string | null
+  launcherUpdateAvailable:   boolean
 
   // Jeu par env — version ET date de la release distante
   latestGameVersions: Record<Env, GameVersionInfo>
@@ -30,9 +31,10 @@ const defaultGameVersionInfo: GameVersionInfo = { version: null, releaseDate: nu
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useVersionStore = create<VersionState>((set) => ({
-  currentLauncherVersion:  '',
-  latestLauncherVersion:   null,
-  launcherUpdateAvailable: false,
+  currentLauncherVersion:    '',
+  latestLauncherVersion:     null,
+  latestLauncherReleaseDate: null,
+  launcherUpdateAvailable:   false,
 
   latestGameVersions: {
     'universe':         { ...defaultGameVersionInfo },
@@ -47,10 +49,11 @@ export const useVersionStore = create<VersionState>((set) => ({
     try {
       const result = await window.api.checkVersions()
       set({
-        currentLauncherVersion:  result.currentLauncherVersion,
-        latestLauncherVersion:   result.latestLauncherVersion,
-        launcherUpdateAvailable: result.launcherUpdateAvailable,
-        latestGameVersions:      result.latestGameVersions,
+        currentLauncherVersion:    result.currentLauncherVersion,
+        latestLauncherVersion:     result.latestLauncherVersion,
+        latestLauncherReleaseDate: result.latestLauncherReleaseDate,
+        launcherUpdateAvailable:   result.launcherUpdateAvailable,
+        latestGameVersions:        result.latestGameVersions,
         checking: false,
         checked:  true
       })

@@ -1,9 +1,13 @@
 {
     "navbar": {
-      "home": "Accueil",
-      "social": "Social",
-      "lore": "Lore",
-      "support": "Faire un don"
+        "home": "Accueil",
+        "social": "Social",
+        "lore": "Lore",
+        "support": "Faire un don",
+        "openWebsite": "Ouvrir le site officiel",
+        "openDiscord": "Ouvrir Discord",
+        "openWiki": "Ouvrir le wiki",
+        "donateUnavailable": "Lien de soutien non configuré"
     },
     "universe": {
       "title": "Universe",
@@ -20,16 +24,30 @@
         "unavailable": "Authentification non disponible pour cet environnement.",
         "unavailableBtn": "Indisponible"
       },
+      "updateAlert": {
+        "launcher": {
+          "title": "Mise à jour du launcher disponible",
+          "discordHint": "La nouvelle version est disponible ici :",
+          "discordLink": "Discord"
+        },
+        "game": {
+          "title": "Nouvelle version du jeu disponible"
+        },
+        "releaseOn": "Sortie le {{date}}"
+      },
       "game": {
         "title": "Jeu",
         "play": "Jouer",
+        "playDisabledMaintenance": "Le serveur est en maintenance — le lancement du jeu est désactivé.",
         "notInstalled": "Jeu non installé",
         "players": "{{count}} joueurs en ligne",
         "status": {
-            "online": "Serveurs disponibles",
-            "offline": "Serveurs indisponibles",
-            "degraded": "Problèmes en cours",
-            "checked": "En cours de résupération..."
+          "online": "Opérationnel",
+          "degraded": "Dégradé",
+          "offline": "Hors ligne",
+          "maintenance": "En maintenance",
+          "unknown": "Inconnu",
+          "unavailable": "Non disponible"
         },
         "viewStatus": "Voir le statut"
       },
@@ -43,6 +61,9 @@
         "verify": "Vérifier les fichiers",
         "clearCache": "Vider le cache",
         "changelog": "Voir le changelog",
+        "changelogModalTitle": "Changelog — v{{version}}",
+        "changelogLoading": "Chargement du changelog…",
+        "changelogMissing": "Aucun fichier CHANGELOG.md n’a été trouvé dans l’installation (vérifie qu’il est bien inclus dans l’archive du jeu).",
         "installing": "Installation en cours...",
         "installPath": "Répertoire d'installation",
         "browse": "Parcourir",

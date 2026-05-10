@@ -1,14 +1,16 @@
 import { useAccountStore } from '@store/account'
 import { useEnvStore } from '@store/env'
+import { useAvailabilityStore } from '@store/availability'
 import { useTranslation } from 'react-i18next'
-import { ENV_CAPABILITIES } from '@config/envCapabilities'
 import Button from '@components/ui/button'
 
 export default function AccountPanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data, login, logout, cancelLogin } = useAccountStore()
+  const { available } = useAvailabilityStore()
+
   const { status, username } = data[activeEnv]
-  const { authAvailable } = ENV_CAPABILITIES[activeEnv]
+  const isAvailable = available[activeEnv]
   const { t } = useTranslation()
 
   return (
@@ -22,26 +24,26 @@ export default function AccountPanel(): React.JSX.Element {
       </div>
 
       {/* Env non disponible */}
-      {!authAvailable && (
+      {!isAvailable && (
         <p className="text-[var(--color-ds-muted)] text-sm">
           {t('universe.account.unavailable')}
         </p>
       )}
 
       {/* Status */}
-      {authAvailable && status === 'disconnected' && (
+      {isAvailable && status === 'disconnected' && (
         <p className="text-[var(--color-ds-muted)] text-sm">
           {t('universe.account.disconnected')}
         </p>
       )}
 
-      {authAvailable && status === 'loading' && (
+      {isAvailable && status === 'loading' && (
         <p className="text-[var(--color-ds-muted)] text-sm">
           {t('universe.account.loading')}
         </p>
       )}
 
-      {authAvailable && status === 'connected' && (
+      {isAvailable && status === 'connected' && (
         <p className="text-[var(--color-ds-text)] text-sm">
           {t('universe.account.connectedAs', { username })}
         </p>
@@ -50,15 +52,13 @@ export default function AccountPanel(): React.JSX.Element {
       {/* Actions */}
       <div className="flex flex-col gap-2 mt-auto">
 
-        {/* Auth non disponible pour cet env */}
-        {!authAvailable && (
+        {!isAvailable && (
           <Button variant="secondary" className="w-full" disabled>
             {t('universe.account.unavailableBtn')}
           </Button>
         )}
 
-        {/* Déconnecté */}
-        {authAvailable && status === 'disconnected' && (
+        {isAvailable && status === 'disconnected' && (
           <>
             <Button onClick={login} variant="primary" className="w-full">
               {t('universe.account.login')}
@@ -69,19 +69,17 @@ export default function AccountPanel(): React.JSX.Element {
           </>
         )}
 
-        {/* En cours de login */}
-        {authAvailable && status === 'loading' && (
+        {isAvailable && status === 'loading' && (
           <Button onClick={cancelLogin} variant="secondary" className="w-full">
             {t('universe.account.cancel')}
           </Button>
         )}
 
-        {/* Connecté */}
-        {authAvailable && status === 'connected' && (
+        {isAvailable && status === 'connected' && (
           <>
-            <Button variant="primary" className="w-full">
+            {/* <Button variant="primary" className="w-full">
               {t('universe.account.subscription')}
-            </Button>
+            </Button> */}
             <Button onClick={logout} variant="danger" className="w-full">
               {t('universe.account.logout')}
             </Button>

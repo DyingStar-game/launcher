@@ -1,16 +1,16 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 import type { Env } from '../renderer/store/env'
 
-type ServerStatus = 'online' | 'offline' | 'degraded' | 'checking'
+type ServerStatusValue = 'online' | 'degraded' | 'offline' | 'maintenance' | 'unknown' | 'unavailable'
 
 interface ServerStatusResult {
-  status: ServerStatus
-  players: number
-  statusPageUrl: string
+  status:    ServerStatusValue
+  players:   number
+  available: boolean
 }
 
 interface InstallResult {
-  version: string
+  version:     string
   releaseDate: string
 }
 
@@ -21,10 +21,11 @@ interface GameVersionInfo {
 }
 
 interface VersionCheckResult {
-  currentLauncherVersion:  string
-  latestLauncherVersion:   string
-  launcherUpdateAvailable: boolean
-  latestGameVersions:      Record<Env, GameVersionInfo>
+  currentLauncherVersion:    string
+  latestLauncherVersion:     string | null
+  latestLauncherReleaseDate: string | null
+  launcherUpdateAvailable:   boolean
+  latestGameVersions:        Record<Env, GameVersionInfo>
 }
 
 interface UserInfo {
@@ -52,6 +53,9 @@ declare global {
       /** S'abonne aux événements de progression de l'installation (0–100). */
       onInstallProgress: (callback: (progress: number, label: string) => void) => void
 
+      /** Lit CHANGELOG.md dans le dossier d’installation (après extraction du ZIP). */
+      readChangelog: (installPath: string) => Promise<string | null>
+
       // ── Jeu ─────────────────────────────────────────────────────────────
 
       /** Lance l'exécutable du jeu (détaché du launcher). */
@@ -59,6 +63,9 @@ declare global {
 
       /** Récupère le statut du serveur et le nombre de joueurs connectés. */
       getServerStatus: (env: Env) => Promise<ServerStatusResult>
+
+      // ── Disponibilité ─────────────────────────────────────────────────────
+      checkEnvAvailability:  () => Promise<Record<Env, boolean>>
 
       // ── Versions ─────────────────────────────────────────────────────────
 

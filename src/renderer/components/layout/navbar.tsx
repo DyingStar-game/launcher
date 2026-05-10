@@ -1,4 +1,5 @@
 import type React from 'react'
+import { useId } from 'react'
 import i18n from '@renderer/i18n'
 import { useEnvStore } from '@store/env'
 import { useNavigationStore } from '@store/navigation'
@@ -73,10 +74,39 @@ function FlagEN(): React.JSX.Element {
   )
 }
 
+function HeartDonateIcon(): React.JSX.Element {
+  const gradId = `navHeartFill-${useId().replace(/:/g, '')}`
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      overflow="visible"
+      className="h-[18px] w-[18px] shrink-0 overflow-visible"
+    >
+      <defs>
+        <linearGradient id={gradId} x1="12" y1="4" x2="12" y2="22" gradientUnits="userSpaceOnUse">
+          <stop stopColor="currentColor" stopOpacity="0.95" />
+          <stop offset="1" stopColor="currentColor" stopOpacity="0.72" />
+        </linearGradient>
+      </defs>
+      {/* Tracé centré dans 24×24 (≈ x∈[2,22]) pour éviter tout rognage au rendu */}
+      <path
+        fill={`url(#${gradId})`}
+        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+      />
+    </svg>
+  )
+}
+
 export default function Navbar(): React.JSX.Element {
   const { activeEnv, setEnv } = useEnvStore()
   const { currentView, navigate } = useNavigationStore()
   const { t } = useTranslation()
+
+  const navWebsite = (import.meta.env.VITE_NAV_WEBSITE_URL ?? '').trim()
+  const navDiscord = (import.meta.env.VITE_NAV_DISCORD_URL ?? '').trim()
+  const navWiki = (import.meta.env.VITE_NAV_WIKI_URL ?? '').trim()
+  const navDonate = (import.meta.env.VITE_NAV_DONATE_URL ?? '').trim()
 
   const handleEnvSwitch = (env: 'universe' | 'universe-testing'): void => {
     setEnv(env)
@@ -264,12 +294,14 @@ export default function Navbar(): React.JSX.Element {
         </div>
 
         <button
-          onClick={() => window.open('https://dyingstar.example.com', '_blank')}
-          className="text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
-          title="Site officiel"
-          aria-label="Ouvrir le site"
+          type="button"
+          disabled={!navWebsite}
+          onClick={() => navWebsite && window.open(navWebsite, '_blank')}
+          className="text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-[var(--color-ds-muted)]"
+          title={navWebsite ? t('navbar.openWebsite') : undefined}
+          aria-label={t('navbar.openWebsite')}
         >
-          <Icon>
+          <Icon className={!navWebsite ? 'opacity-60' : ''}>
             <Svg title="Site">
               <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.5 9h-3.2a15.7 15.7 0 00-1.1-5 8.04 8.04 0 014.3 5zM12 4c1 1.5 1.8 3.8 2.1 7H9.9C10.2 7.8 11 5.5 12 4zM4.5 13h3.2c.2 1.9.7 3.7 1.1 5a8.04 8.04 0 01-4.3-5zm0-2a8.04 8.04 0 014.3-5c-.4 1.3-.9 3.1-1.1 5H4.5zm7.5 9c-1-1.5-1.8-3.8-2.1-7h4.2c-.3 3.2-1.1 5.5-2.1 7zm3.2-2c.4-1.3.9-3.1 1.1-5h3.2a8.04 8.04 0 01-4.3 5z" />
             </Svg>
@@ -277,12 +309,14 @@ export default function Navbar(): React.JSX.Element {
         </button>
 
         <button
-          onClick={() => window.open('https://discord.gg/dyingstar', '_blank')}
-          className="text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
-          title="Discord"
-          aria-label="Ouvrir Discord"
+          type="button"
+          disabled={!navDiscord}
+          onClick={() => navDiscord && window.open(navDiscord, '_blank')}
+          className="text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-[var(--color-ds-muted)]"
+          title={navDiscord ? 'Discord' : undefined}
+          aria-label={t('navbar.openDiscord')}
         >
-          <Icon>
+          <Icon className={!navDiscord ? 'opacity-60' : ''}>
             <Svg title="Discord">
               <path d="M16.8 7.2c-1-.8-2.1-1.2-3.3-1.4l-.3.6c1.3.2 2.2.6 3 1.1-1.1-.6-2.4-1-4.2-1s-3.1.4-4.2 1c.8-.5 1.7-.9 3-1.1l-.3-.6c-1.2.2-2.3.6-3.3 1.4-2 3-2.6 5.9-2.3 8.7 1.3 1 2.7 1.6 4.1 2l.5-.8c-.9-.3-1.8-.7-2.6-1.2l.5-.4c1.6.8 3.2 1.1 4.6 1.1s3-.3 4.6-1.1l.5.4c-.8.5-1.7.9-2.6 1.2l.5.8c1.4-.4 2.8-1 4.1-2 .3-2.8-.3-5.7-2.3-8.7zM9.6 14.2c-.6 0-1.1-.6-1.1-1.3s.5-1.3 1.1-1.3 1.1.6 1.1 1.3-.5 1.3-1.1 1.3zm4.8 0c-.6 0-1.1-.6-1.1-1.3s.5-1.3 1.1-1.3 1.1.6 1.1 1.3-.5 1.3-1.1 1.3z" />
             </Svg>
@@ -290,12 +324,14 @@ export default function Navbar(): React.JSX.Element {
         </button>
 
         <button
-          onClick={() => window.open('https://wiki.dyingstar.example.com', '_blank')}
-          className="text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
-          title="Wiki"
-          aria-label="Ouvrir le wiki"
+          type="button"
+          disabled={!navWiki}
+          onClick={() => navWiki && window.open(navWiki, '_blank')}
+          className="text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-[var(--color-ds-muted)]"
+          title={navWiki ? 'Wiki' : undefined}
+          aria-label={t('navbar.openWiki')}
         >
-          <Icon>
+          <Icon className={!navWiki ? 'opacity-60' : ''}>
             <Svg title="Wiki">
               <path d="M6 4h11a2 2 0 012 2v12a2 2 0 01-2 2H6a3 3 0 01-3-3V6a2 2 0 012-2h1zm0 2H5v11a1 1 0 001 1h11V6H6zm2 2h7v2H8V8zm0 4h7v2H8v-2z" />
             </Svg>
@@ -303,19 +339,17 @@ export default function Navbar(): React.JSX.Element {
         </button>
 
         <Button
-          onClick={() => window.open('https://dyingstar.example.com/donate', '_blank')}
+          disabled={!navDonate}
+          onClick={() => navDonate && window.open(navDonate, '_blank')}
           variant="primary"
           size="sm"
-          className="ml-1 rounded-full px-4 shadow-none"
+          title={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
+          aria-label={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
+          className="ml-1 rounded-full px-4 shadow-none overflow-visible"
         >
-          <span className="inline-flex items-center gap-2">
-            <span className="inline-flex w-4 h-4">
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="fill-current">
-                <title>Soutenir</title>
-                <path d="M12 21s-7-4.4-9.4-8.3C.5 9.1 2.6 6 6.2 6c1.9 0 3.1 1 3.8 2 0 0 1.3-2 4-2 3.6 0 5.7 3.1 3.6 6.7C19 16.6 12 21 12 21z" />
-              </svg>
-            </span>
-            {t('navbar.support') ?? 'Soutenir'}
+          <span className="inline-flex items-center gap-2 overflow-visible">
+            <HeartDonateIcon />
+            {t('navbar.support')}
           </span>
         </Button>
       </div>

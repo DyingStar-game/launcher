@@ -1,9 +1,13 @@
 { 
     "navbar": {
-      "home": "Home",
-      "social": "Social",
-      "lore": "Lore",
-      "support": "Donate"
+        "home": "Home",
+        "social": "Social",
+        "lore": "Lore",
+        "support": "Donate",
+        "openWebsite": "Open official website",
+        "openDiscord": "Open Discord",
+        "openWiki": "Open wiki",
+        "donateUnavailable": "Support link not configured"
     },
     "universe": {
       "title": "Universe",
@@ -20,16 +24,30 @@
         "unavailable": "Authentication not available for this environment.",
         "unavailableBtn": "Unavailable"
       },
+      "updateAlert": {
+        "launcher": {
+          "title": "Launcher update available",
+          "discordHint": "The new version is available here:",
+          "discordLink": "Discord"
+        },
+        "game": {
+          "title": "New game version available"
+        },
+        "releaseOn": "Released {{date}}"
+      },
       "game": {
         "title": "Game",
         "play": "Play",
+        "playDisabledMaintenance": "The server is under maintenance — launching the game is disabled.",
         "notInstalled": "Game not installed",
         "players": "{{count}} players online",
         "status": {
-            "online": "Servers available",
-            "offline": "Servers offline",
+            "online": "Available",
             "degraded": "Issues ongoing",
-            "checked": "Checking..."
+            "offline": "Offline",
+            "maintenance": "Under maintenance",
+            "unknown": "Unknown",
+            "unavailable": "Unavailable"
         },
         "viewStatus": "View status"
       },
@@ -43,6 +61,9 @@
         "verify": "Verify files",
         "clearCache": "Clear cache",
         "changelog": "View changelog",
+        "changelogModalTitle": "Changelog — v{{version}}",
+        "changelogLoading": "Loading changelog…",
+        "changelogMissing": "No CHANGELOG.md was found in the install folder (make sure it is included in the game archive).",
         "installing": "Installing...",
         "installPath": "Install folder",
         "browse": "Browse",

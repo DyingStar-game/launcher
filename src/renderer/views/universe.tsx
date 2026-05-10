@@ -8,7 +8,12 @@ import UpdateAlert from '@components/ui/updateAlert'
 
 export default function Universe(): React.JSX.Element {
   useNavigationStore()
-  const { launcherUpdateAvailable, currentLauncherVersion, latestLauncherVersion } = useVersionStore()
+  const {
+    launcherUpdateAvailable,
+    currentLauncherVersion,
+    latestLauncherVersion,
+    latestLauncherReleaseDate
+  } = useVersionStore()
 
   return (
     <div className="h-full flex flex-col gap-0">
@@ -20,6 +25,7 @@ export default function Universe(): React.JSX.Element {
             variant="launcher"
             currentVersion={currentLauncherVersion}
             latestVersion={latestLauncherVersion}
+            latestReleaseDate={latestLauncherReleaseDate ?? undefined}
           />
         </div>
       )}

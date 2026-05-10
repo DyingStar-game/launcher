@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { Env } from '../renderer/store/env'
 import type { UserInfo } from '../main/services/auth'
+import type { ServerStatusValue } from '../main/services/gameStatus'
 
 const api = {
   // ── Fichiers / Installation ────────────────────────────────────────────────
@@ -19,43 +20,44 @@ const api = {
     })
   },
 
+  readChangelog: (installPath: string): Promise<string | null> =>
+    ipcRenderer.invoke('files:read-changelog', installPath),
+
   // ── Jeu ───────────────────────────────────────────────────────────────────
 
   launchGame: (env: Env, installPath: string): Promise<void> =>
     ipcRenderer.invoke('game:launch', env, installPath),
 
-  getServerStatus: (env: Env): Promise<{
-    status: 'online' | 'offline' | 'degraded' | 'checking'
-    players: number
-    statusPageUrl: string
-  }> =>
+  getServerStatus: (env: Env): Promise<{ status: ServerStatusValue; players: number; available: boolean }> =>
     ipcRenderer.invoke('game:get-server-status', env),
+
+  // ── Disponibilité des envs (ping au démarrage) ────────────────────────────
+
+  checkEnvAvailability: (): Promise<Record<Env, boolean>> =>
+    ipcRenderer.invoke('env:check-availability'),
 
   // ── Versions ──────────────────────────────────────────────────────────────
 
   checkVersions: (): Promise<{
-    currentLauncherVersion: string
-    latestLauncherVersion: string
-    launcherUpdateAvailable: boolean
-    latestGameVersions: Record<Env, { version: string | null; releaseDate: string | null }>
+    currentLauncherVersion:    string
+    latestLauncherVersion:     string | null
+    latestLauncherReleaseDate: string | null
+    launcherUpdateAvailable:   boolean
+    latestGameVersions:        Record<Env, { version: string | null; releaseDate: string | null }>
   }> =>
     ipcRenderer.invoke('version:check'),
 
   // ── Auth ──────────────────────────────────────────────────────────────────
 
-  /** Ouvre le navigateur sur la page Discord/Keycloak pour l'env donné. */
   authLogin: (env: Env): Promise<void> =>
     ipcRenderer.invoke('auth:login', env),
 
-  /** Efface les tokens de l'env donné et ouvre la page de déconnexion Keycloak. */
   authLogout: (env: Env): Promise<void> =>
     ipcRenderer.invoke('auth:logout', env),
 
-  /** Recharge la session depuis le stockage chiffré pour l'env donné. */
   authLoadUser: (env: Env): Promise<UserInfo | null> =>
     ipcRenderer.invoke('auth:load-user', env),
 
-  /** S'abonne aux changements d'état auth — le payload inclut l'env concerné. */
   onAuthStateChanged: (
     callback: (data:
       | { env: Env; status: 'connected'; user: UserInfo }
