@@ -135,7 +135,7 @@ const TAB_META: Record<Tab, { label: string; subtitle: string }> = {
 
 export default function SocialPage(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
-  const { data, fetchAll, acceptRequest, declineRequest, removeFriend, joinOrga } = useSocialStore()
+  const { data, fetchAll, acceptRequest, declineRequest, joinOrga } = useSocialStore()
   const { friends, orgas, requests } = data[activeEnv]
 
   const [tab, setTab] = useState<Tab>('friends')
@@ -219,7 +219,7 @@ export default function SocialPage(): React.JSX.Element {
                   </p>
                 )}
                 {friends.map((f) => (
-                  <FriendRow key={f.id} friend={f} onRemove={() => removeFriend(f.id)} />
+                  <FriendRow key={f.id} friend={f} />
                 ))}
               </>
             )}

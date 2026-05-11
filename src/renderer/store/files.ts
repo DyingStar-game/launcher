@@ -17,6 +17,9 @@ export type EnvFilesData = {
   progressLabel: string
 }
 
+/** Résultat du vidage cache Godot (shader_cache / chunk_cache). */
+export type ClearGodotCacheOutcome = 'success' | 'partial' | 'error'
+
 type FilesState = {
   data: Record<Env, EnvFilesData>
 
@@ -25,7 +28,7 @@ type FilesState = {
   install: () => Promise<void>
   update: () => Promise<void>
   verify: () => Promise<void>
-  clearCache: () => void
+  clearCache: () => Promise<ClearGodotCacheOutcome>
 }
 
 // ─── Valeurs par défaut ───────────────────────────────────────────────────────
@@ -123,6 +126,12 @@ export const useFilesStore = create<FilesState>()(
         try {
           const { version, releaseDate } = await window.api.installGame(env, installPath)
 
+          try {
+            await window.api.clearGodotGameCache()
+          } catch (cacheErr) {
+            console.warn('[FilesStore] Cache Godot après mise à jour :', cacheErr)
+          }
+
           patchEnv(set, env, {
             version,
             releaseDate,
@@ -143,9 +152,19 @@ export const useFilesStore = create<FilesState>()(
         console.log('[FilesStore] Vérification dans :', installPath, '(env:', env, ')')
       },
 
-      clearCache: () => {
-        const env = useEnvStore.getState().activeEnv
-        console.log('[FilesStore] Cache vidé pour env :', env)
+      clearCache: async (): Promise<ClearGodotCacheOutcome> => {
+        try {
+          const result = await window.api.clearGodotGameCache()
+          if (result.errors.length > 0) {
+            console.warn('[FilesStore] Cache Godot — erreurs :', result.errors)
+            return 'partial'
+          }
+          console.log('[FilesStore] Cache Godot vidé', { root: result.root, removed: result.removed.length })
+          return 'success'
+        } catch (err) {
+          console.error('[FilesStore] Échec vidage cache Godot :', err)
+          return 'error'
+        }
       }
     }),
     {

@@ -352,6 +352,22 @@ export default function Navbar(): React.JSX.Element {
             {t('navbar.support')}
           </span>
         </Button>
+
+        <button
+          type="button"
+          onClick={() => {
+            void window.api.quitApp()
+          }}
+          className="text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
+          title={t('navbar.quit')}
+          aria-label={t('navbar.quit')}
+        >
+          <Icon>
+            <Svg title={t('navbar.quit')}>
+              <path d="M16 17v-3H9v-4h7V7l5 5-5 5M4 19h7v-2H4V7h7V5H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2z" />
+            </Svg>
+          </Icon>
+        </button>
       </div>
     </nav>
   )

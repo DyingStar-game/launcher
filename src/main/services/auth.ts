@@ -215,6 +215,21 @@ async function refreshToken(kcBase: string, token: string): Promise<TokenSet | n
   return res.json() as Promise<TokenSet>
 }
 
+/** Access token JWT valide (rafraîchit si besoin) — pour lancement du client jeu. */
+export async function loadFreshAccessToken(env: Env): Promise<string | null> {
+  const kcBase = getKeycloakBase(env)
+  const tokens = loadTokens(env)
+  if (!kcBase || !tokens) return null
+
+  const refreshed = await refreshToken(kcBase, tokens.refresh_token)
+  if (!refreshed) {
+    clearStoredTokens(env)
+    return null
+  }
+  storeTokens(env, refreshed)
+  return refreshed.access_token
+}
+
 // ─── IPC Handlers ─────────────────────────────────────────────────────────────
 
 export function registerAuthHandlers(win: BrowserWindow): void {

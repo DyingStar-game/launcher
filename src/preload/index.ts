@@ -23,6 +23,13 @@ const api = {
   readChangelog: (installPath: string): Promise<string | null> =>
     ipcRenderer.invoke('files:read-changelog', installPath),
 
+  clearGodotGameCache: (): Promise<{
+    root: string
+    removed: string[]
+    skipped: string[]
+    errors: { path: string; message: string }[]
+  }> => ipcRenderer.invoke('files:clear-godot-cache'),
+
   // ── Jeu ───────────────────────────────────────────────────────────────────
 
   launchGame: (env: Env, installPath: string): Promise<void> =>
@@ -35,6 +42,8 @@ const api = {
 
   checkEnvAvailability: (): Promise<Record<Env, boolean>> =>
     ipcRenderer.invoke('env:check-availability'),
+
+  quitApp: (): Promise<void> => ipcRenderer.invoke('app:quit'),
 
   // ── Versions ──────────────────────────────────────────────────────────────
 

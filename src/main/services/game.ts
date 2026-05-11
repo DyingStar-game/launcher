@@ -2,7 +2,9 @@ import { ipcMain, dialog, BrowserWindow } from 'electron'
 import { spawn } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
-import { downloadAndInstall } from './downloader'
+import { downloadAndInstall, GAME_INSTALL_SUBDIR } from './downloader'
+import { loadFreshAccessToken } from './auth'
+import { clearDyingStarGodotCaches } from './godotUserdataCache'
 import type { Env } from '../../renderer/store/env'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -22,32 +24,60 @@ const GAME_EXECUTABLES: Partial<Record<NodeJS.Platform, string>> = {
   darwin: 'DyingStar.app'
 }
 
+function getGameRoot(installPath: string): string {
+  return path.join(installPath, GAME_INSTALL_SUBDIR)
+}
+
 function getExecutablePath(installPath: string): string {
   const exe = GAME_EXECUTABLES[process.platform]
   if (!exe) throw new Error(`Plateforme non supportée : ${process.platform}`)
-  return path.join(installPath, exe)
+  const inPayload = path.join(getGameRoot(installPath), exe)
+  if (fs.existsSync(inPayload)) return inPayload
+  const legacy = path.join(installPath, exe)
+  if (fs.existsSync(legacy)) return legacy
+  return inPayload
 }
 
-/** CHANGELOG.md à la racine du jeu ou dans un unique sous-dossier (ZIP avec dossier racine). */
-function findChangelogPath(installPath: string): string | null {
-  const direct = path.join(installPath, 'CHANGELOG.md')
+/** Cherche CHANGELOG.md à la racine de `root` ou dans un seul niveau de sous-dossier (ZIP avec dossier racine). */
+function findChangelogUnderRoot(root: string): string | null {
+  const direct = path.join(root, 'CHANGELOG.md')
   try {
     if (fs.existsSync(direct) && fs.statSync(direct).isFile()) return direct
   } catch {
-    return null
+    /* continue */
   }
-
   try {
-    const entries = fs.readdirSync(installPath, { withFileTypes: true })
+    const entries = fs.readdirSync(root, { withFileTypes: true })
     for (const e of entries) {
       if (!e.isDirectory()) continue
-      const nested = path.join(installPath, e.name, 'CHANGELOG.md')
-      if (fs.existsSync(nested) && fs.statSync(nested).isFile()) return nested
+      const nested = path.join(root, e.name, 'CHANGELOG.md')
+      try {
+        if (fs.existsSync(nested) && fs.statSync(nested).isFile()) return nested
+      } catch {
+        /* continue */
+      }
     }
   } catch {
     return null
   }
   return null
+}
+
+/**
+ * CHANGELOG : si le jeu est sous `…/DyingStar/`, on ne lit que là (pas un ancien fichier à la racine install).
+ * Sinon installation legacy → racine `installPath`.
+ */
+function findChangelogPath(installPath: string): string | null {
+  const resolved = path.resolve(installPath)
+  const gameRoot = getGameRoot(resolved)
+  try {
+    if (fs.existsSync(gameRoot) && fs.statSync(gameRoot).isDirectory()) {
+      return findChangelogUnderRoot(gameRoot)
+    }
+  } catch {
+    /* fallback legacy */
+  }
+  return findChangelogUnderRoot(resolved)
 }
 
 // ─── Handlers IPC ─────────────────────────────────────────────────────────────
@@ -78,6 +108,9 @@ export function registerFilesHandlers(win: BrowserWindow): void {
 
   // ── Lancement du jeu ───────────────────────────────────────────────────────
   ipcMain.removeHandler('game:launch')
+  ipcMain.removeHandler('files:clear-godot-cache')
+  ipcMain.handle('files:clear-godot-cache', async () => clearDyingStarGodotCaches())
+
   ipcMain.removeHandler('files:read-changelog')
   ipcMain.handle('files:read-changelog', async (_event, installPath: string): Promise<string | null> => {
     if (!installPath || typeof installPath !== 'string') return null
@@ -91,17 +124,25 @@ export function registerFilesHandlers(win: BrowserWindow): void {
     }
   })
 
-  ipcMain.handle('game:launch', async (_event, _env: Env, installPath: string) => {
+  ipcMain.handle('game:launch', async (_event, env: Env, installPath: string) => {
+    const token = await loadFreshAccessToken(env)
+    if (!token) {
+      throw new Error('Vous devez être connecté pour lancer le jeu.')
+    }
+
     const exePath = getExecutablePath(installPath)
     if (!fs.existsSync(exePath)) {
       throw new Error(`Exécutable introuvable : ${exePath}`)
     }
     if (process.platform === 'linux') fs.chmodSync(exePath, 0o755)
 
-    const child = spawn(exePath, [], {
+    const gameRoot = getGameRoot(installPath)
+    const cwd = fs.existsSync(gameRoot) ? gameRoot : installPath
+
+    const child = spawn(exePath, [`--token=${token}`], {
       detached: true,
       stdio: 'ignore',
-      cwd: installPath
+      cwd
     })
     child.unref()
   })

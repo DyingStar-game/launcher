@@ -85,11 +85,36 @@ export function getStatusBase(apiBase: string): string {
   }
 }
 
+function parseStatusNumericId(raw: string | undefined, fallback: number): number {
+  const n = Number(String(raw ?? '').trim())
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback
+}
+
+/** ID Cachet du composant « statut » (API /api/components/:id) — par environnement. */
+export function getStatusComponentId(env: Env): number {
+  const raw =
+    env === 'universe'
+      ? import.meta.env.VITE_STATUS_COMPONENT_ID_UNIVERSE
+      : import.meta.env.VITE_STATUS_COMPONENT_ID_TESTING
+  return parseStatusNumericId(raw, 3)
+}
+
+/** ID Cachet de la métrique « joueurs » (API /api/metrics/:id/points) — par environnement. */
+export function getStatusMetricId(env: Env): number {
+  const raw =
+    env === 'universe'
+      ? import.meta.env.VITE_STATUS_METRIC_ID_UNIVERSE
+      : import.meta.env.VITE_STATUS_METRIC_ID_TESTING
+  return parseStatusNumericId(raw, 2)
+}
+
 /** Tous les endpoints dérivés d'une URL de base */
 export const ENDPOINTS = {
   version:   (base: string): string => `${base}/version`,
-  status:    (base: string): string => `${getStatusBase(base)}/api/components/3`,
-  metrics:   (base: string): string => `${getStatusBase(base)}/api/metrics/2/points?sort=-id`,
+  status:    (base: string, componentId: number): string =>
+    `${getStatusBase(base)}/api/components/${componentId}`,
+  metrics:   (base: string, metricId: number): string =>
+    `${getStatusBase(base)}/api/metrics/${metricId}/points?sort=-id`,
   zipWin32:  (base: string): string => `${base}/game/latest-windows.zip`,
   zipLinux:  (base: string): string => `${base}/game/latest-linux.zip`,
   zipDarwin: (base: string): string => `${base}/game/latest-macos.zip`,

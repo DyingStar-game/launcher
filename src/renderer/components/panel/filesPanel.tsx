@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useFilesStore } from '@store/files'
 import { useEnvStore } from '@store/env'
 import { useVersionStore } from '@store/version'
@@ -10,10 +10,11 @@ import InputField from '@components/ui/inputField'
 import UpdateAlert from '@components/ui/updateAlert'
 import ChangelogModal from '@components/ui/changelogModal'
 import { formatReleaseDateDisplay } from '@renderer/lib/formatReleaseDate'
+import { isGameUpdateAvailable } from '@renderer/lib/isGameUpdateAvailable'
 
 export default function FilesPanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
-  const { data, setInstallPath, selectDirectory, install, update, verify, clearCache } = useFilesStore()
+  const { data, setInstallPath, selectDirectory, install, update, clearCache } = useFilesStore()
   const { available } = useAvailabilityStore()
 
   const {
@@ -29,17 +30,25 @@ export default function FilesPanel(): React.JSX.Element {
   const latestVersion:     string | null = latestGameInfo?.version     ?? null
   const latestReleaseDate: string | null = latestGameInfo?.releaseDate ?? null
 
-  const gameUpdateAvailable =
-    installed &&
-    latestVersion !== null &&
-    version !== null &&
-    latestVersion.localeCompare(version, undefined, { numeric: false }) > 0
+  const gameUpdateAvailable = isGameUpdateAvailable(installed, version, latestVersion)
 
   const { t } = useTranslation()
 
   const [changelogOpen, setChangelogOpen] = useState(false)
   const [changelogLoading, setChangelogLoading] = useState(false)
   const [changelogMd, setChangelogMd] = useState<string | null>(null)
+  const [cacheToast, setCacheToast] = useState<'success' | 'partial' | 'error' | null>(null)
+
+  useEffect(() => {
+    if (!cacheToast) return
+    const id = window.setTimeout(() => setCacheToast(null), 3800)
+    return () => window.clearTimeout(id)
+  }, [cacheToast])
+
+  const handleClearCache = useCallback(async () => {
+    const outcome = await clearCache()
+    setCacheToast(outcome)
+  }, [clearCache])
 
   const displayReleaseDate = formatReleaseDateDisplay(releaseDate)
 
@@ -60,7 +69,7 @@ export default function FilesPanel(): React.JSX.Element {
   }, [installPath])
 
   return (
-    <div className="h-full bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-7 flex flex-col gap-5 shadow-[0_12px_32px_rgba(0,0,0,0.35)] hover:border-[var(--color-ds-accent)]/40 transition-colors">
+    <div className="relative h-full bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-7 flex flex-col gap-5 shadow-[0_12px_32px_rgba(0,0,0,0.35)] hover:border-[var(--color-ds-accent)]/40 transition-colors">
 
       <div className="flex items-center gap-3">
         <h2 className="text-[11px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.24em]">
@@ -149,11 +158,11 @@ export default function FilesPanel(): React.JSX.Element {
           </Button>
         )}
 
-        {isAvailable && installed && !gameUpdateAvailable && (
+        {/* {isAvailable && installed && !gameUpdateAvailable && (
           <Button onClick={verify} variant="secondary" disabled={installing}>
             {t('universe.files.verify')}
           </Button>
-        )}
+        )} */}
 
         {isAvailable && installed && (
           <Button
@@ -165,12 +174,32 @@ export default function FilesPanel(): React.JSX.Element {
           </Button>
         )}
 
-        {isAvailable && (
-          <Button onClick={clearCache} variant="danger" disabled={installing}>
+        {isAvailable && installed && (
+          <Button onClick={handleClearCache} variant="danger" disabled={installing}>
             {t('universe.files.clearCache')}
           </Button>
         )}
       </div>
+
+      {cacheToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={[
+            'pointer-events-none absolute bottom-4 right-4 z-10 max-w-[min(calc(100%-2rem),22rem)]',
+            'rounded-lg border px-3 py-2 text-right text-xs font-medium shadow-lg',
+            cacheToast === 'success'
+              ? 'border-emerald-500/35 bg-emerald-500/15 text-emerald-200'
+              : cacheToast === 'partial'
+                ? 'border-amber-500/35 bg-amber-500/12 text-amber-100'
+                : 'border-red-500/35 bg-red-500/12 text-red-200'
+          ].join(' ')}
+        >
+          {cacheToast === 'success' && t('universe.files.clearCacheToastOk')}
+          {cacheToast === 'partial' && t('universe.files.clearCacheToastPartial')}
+          {cacheToast === 'error' && t('universe.files.clearCacheToastError')}
+        </div>
+      )}
 
       <ChangelogModal
         open={changelogOpen}

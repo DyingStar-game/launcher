@@ -11,6 +11,9 @@ import {
 } from '../config/env'
 import type { Env } from '../../renderer/store/env'
 
+/** Sous-dossier d’installation du payload du jeu (ZIP extrait ici, pas à la racine du chemin choisi). */
+export const GAME_INSTALL_SUBDIR = 'DyingStar'
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface InstallResult {
@@ -165,8 +168,8 @@ async function extractZip(zipFilePath: string, destPath: string, win: BrowserWin
 
 // ─── Lecture version.json ─────────────────────────────────────────────────────
 
-function readVersionManifest(installPath: string): InstallResult {
-  const manifestPath = path.join(installPath, 'version.json')
+function readVersionManifest(gameRoot: string): InstallResult {
+  const manifestPath = path.join(gameRoot, 'version.json')
   if (!fs.existsSync(manifestPath)) {
     console.warn('[Downloader] version.json introuvable.')
     return { version: 'unknown', releaseDate: new Date().toISOString().split('T')[0] }
@@ -198,10 +201,18 @@ export async function downloadAndInstall(
   let zipFilePath: string | null = null
   try {
     zipFilePath = await downloadZip(env, installPath, win)
-    await extractZip(zipFilePath, installPath, win)
+
+    const gameRoot = path.join(installPath, GAME_INSTALL_SUBDIR)
+    sendProgress(win, 68, 'Préparation du dossier du jeu...')
+    if (fs.existsSync(gameRoot)) {
+      fs.rmSync(gameRoot, { recursive: true, force: true })
+    }
+    fs.mkdirSync(gameRoot, { recursive: true })
+
+    await extractZip(zipFilePath, gameRoot, win)
     sendProgress(win, 99, 'Nettoyage...')
     fs.unlinkSync(zipFilePath)
-    const manifest = readVersionManifest(installPath)
+    const manifest = readVersionManifest(gameRoot)
     sendProgress(win, 100, `Installation terminée — v${manifest.version}`)
     return manifest
   } catch (err) {

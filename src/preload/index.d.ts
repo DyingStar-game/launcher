@@ -56,6 +56,14 @@ declare global {
       /** Lit CHANGELOG.md dans le dossier d’installation (après extraction du ZIP). */
       readChangelog: (installPath: string) => Promise<string | null>
 
+      /** Supprime shader_cache et chunk_cache dans le userdata Godot DyingStar. */
+      clearGodotGameCache: () => Promise<{
+        root: string
+        removed: string[]
+        skipped: string[]
+        errors: { path: string; message: string }[]
+      }>
+
       // ── Jeu ─────────────────────────────────────────────────────────────
 
       /** Lance l'exécutable du jeu (détaché du launcher). */
@@ -66,6 +74,9 @@ declare global {
 
       // ── Disponibilité ─────────────────────────────────────────────────────
       checkEnvAvailability:  () => Promise<Record<Env, boolean>>
+
+      /** Ferme complètement le launcher. */
+      quitApp: () => Promise<void>
 
       // ── Versions ─────────────────────────────────────────────────────────
 

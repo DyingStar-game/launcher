@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron'
-import { getApiBase, ENDPOINTS } from '../config/env'
+import { getApiBase, ENDPOINTS, getStatusComponentId, getStatusMetricId } from '../config/env'
 import type { Env } from '../../renderer/store/env'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,9 +50,12 @@ function parseCachetComponentStatus(json: unknown): { value: number | undefined;
   }
 }
 
-async function fetchStatus(apiBase: string): Promise<{ status: ServerStatusValue; label: string }> {
+async function fetchStatus(
+  apiBase: string,
+  componentId: number
+): Promise<{ status: ServerStatusValue; label: string }> {
   try {
-    const url = ENDPOINTS.status(apiBase)
+    const url = ENDPOINTS.status(apiBase, componentId)
     const res = await fetchWithTimeout(url)
     if (!res.ok) return { status: 'unknown', label: `HTTP ${res.status}` }
 
@@ -88,9 +91,9 @@ function parseMetricPoints(json: unknown): number {
   return Number.isFinite(n) ? n : 0
 }
 
-async function fetchPlayers(apiBase: string): Promise<number> {
+async function fetchPlayers(apiBase: string, metricId: number): Promise<number> {
   try {
-    const url = ENDPOINTS.metrics(apiBase)
+    const url = ENDPOINTS.metrics(apiBase, metricId)
     const res = await fetchWithTimeout(url)
     if (!res.ok) return 0
 
@@ -145,10 +148,13 @@ export function registerGameStatusHandlers(): void {
       return { status: 'unavailable', statusLabel: 'not_configured', players: 0, available: false }
     }
 
+    const componentId = getStatusComponentId(env)
+    const metricId = getStatusMetricId(env)
+
     // Fetch status + players en parallèle
     const [{ status, label }, players] = await Promise.all([
-      fetchStatus(base),
-      fetchPlayers(base)
+      fetchStatus(base, componentId),
+      fetchPlayers(base, metricId)
     ])
 
     return { status, statusLabel: label, players, available: true }

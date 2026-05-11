@@ -1,8 +1,11 @@
 import { useEffect } from 'react'
 import { useGameStore } from '@store/game'
 import { useFilesStore } from '@store/files'
+import { useVersionStore } from '@store/version'
 import { useEnvStore, type Env } from '@store/env'
+import { isGameUpdateAvailable } from '@renderer/lib/isGameUpdateAvailable'
 import { useAvailabilityStore } from '@store/availability'
+import { useAccountStore } from '@store/account'
 import { useTranslation } from 'react-i18next'
 import ServerStatus from '@components/ui/serverStatus'
 import Button from '@components/ui/button'
@@ -28,10 +31,18 @@ export default function GamePanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data: gameData, fetchServerStatus, play } = useGameStore()
   const { data: filesData } = useFilesStore()
+  const latestGameInfo = useVersionStore((s) => s.latestGameVersions[activeEnv])
   const { available } = useAvailabilityStore()
 
   const { status, players } = gameData[activeEnv]
-  const { installed } = filesData[activeEnv]
+  const { installed, version: localGameVersion } = filesData[activeEnv]
+  const accountStatus = useAccountStore((s) => s.data[activeEnv].status)
+  const isAuthenticated = accountStatus === 'connected'
+  const gameUpdateAvailable = isGameUpdateAvailable(
+    installed,
+    localGameVersion,
+    latestGameInfo?.version ?? null
+  )
   const isAvailable = available[activeEnv]
 
   const { t } = useTranslation()
@@ -49,8 +60,13 @@ export default function GamePanel(): React.JSX.Element {
     return () => window.clearInterval(id)
   }, [activeEnv, isAvailable, fetchServerStatus])
 
-  /** Uniquement si opérationnel ; maintenance / dégradé / hors ligne → désactivé. */
-  const canPlay = installed && isAvailable && status === 'online'
+  /** Opérationnel, à jour, connecté — sinon bouton désactivé. */
+  const canPlay =
+    installed &&
+    isAvailable &&
+    status === 'online' &&
+    !gameUpdateAvailable &&
+    isAuthenticated
 
   const statusPageUrl = statusPageUrlForEnv(activeEnv)
   const canOpenStatusPage = Boolean(statusPageUrl)
@@ -92,6 +108,24 @@ export default function GamePanel(): React.JSX.Element {
         {installed && isAvailable && status === 'maintenance' && (
           <p className="text-amber-400/95 text-xs leading-snug">
             {t('universe.game.playDisabledMaintenance')}
+          </p>
+        )}
+
+        {installed && gameUpdateAvailable && (
+          <p className="text-sky-300/95 text-xs leading-snug">
+            {t('universe.game.playDisabledUpdate')}
+          </p>
+        )}
+
+        {installed && isAvailable && accountStatus === 'loading' && (
+          <p className="text-[var(--color-ds-muted)] text-xs leading-snug">
+            {t('universe.game.playDisabledAuthLoading')}
+          </p>
+        )}
+
+        {installed && isAvailable && accountStatus === 'disconnected' && (
+          <p className="text-amber-400/95 text-xs leading-snug">
+            {t('universe.game.playDisabledAuth')}
           </p>
         )}
 

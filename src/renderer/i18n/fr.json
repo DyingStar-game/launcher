@@ -7,7 +7,8 @@
         "openWebsite": "Ouvrir le site officiel",
         "openDiscord": "Ouvrir Discord",
         "openWiki": "Ouvrir le wiki",
-        "donateUnavailable": "Lien de soutien non configuré"
+        "donateUnavailable": "Lien de soutien non configuré",
+        "quit": "Quitter l'application"
     },
     "universe": {
       "title": "Universe",
@@ -39,6 +40,9 @@
         "title": "Jeu",
         "play": "Jouer",
         "playDisabledMaintenance": "Le serveur est en maintenance — le lancement du jeu est désactivé.",
+        "playDisabledUpdate": "Une mise à jour du jeu est disponible — installez-la avant de jouer.",
+        "playDisabledAuth": "Connectez-vous pour lancer le jeu.",
+        "playDisabledAuthLoading": "Vérification de la session…",
         "notInstalled": "Jeu non installé",
         "players": "{{count}} joueurs en ligne",
         "status": {
@@ -60,6 +64,9 @@
         "update": "Mettre à jour",
         "verify": "Vérifier les fichiers",
         "clearCache": "Vider le cache",
+        "clearCacheToastOk": "Cache vidé.",
+        "clearCacheToastPartial": "Cache partiellement vidé (certains dossiers n’ont pas pu être supprimés).",
+        "clearCacheToastError": "Impossible de vider le cache.",
         "changelog": "Voir le changelog",
         "changelogModalTitle": "Changelog — v{{version}}",
         "changelogLoading": "Chargement du changelog…",

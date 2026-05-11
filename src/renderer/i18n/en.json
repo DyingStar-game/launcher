@@ -7,7 +7,8 @@
         "openWebsite": "Open official website",
         "openDiscord": "Open Discord",
         "openWiki": "Open wiki",
-        "donateUnavailable": "Support link not configured"
+        "donateUnavailable": "Support link not configured",
+        "quit": "Quit application"
     },
     "universe": {
       "title": "Universe",
@@ -39,6 +40,9 @@
         "title": "Game",
         "play": "Play",
         "playDisabledMaintenance": "The server is under maintenance — launching the game is disabled.",
+        "playDisabledUpdate": "A game update is available — install it before playing.",
+        "playDisabledAuth": "Sign in to launch the game.",
+        "playDisabledAuthLoading": "Checking your session…",
         "notInstalled": "Game not installed",
         "players": "{{count}} players online",
         "status": {
@@ -60,6 +64,9 @@
         "update": "Update",
         "verify": "Verify files",
         "clearCache": "Clear cache",
+        "clearCacheToastOk": "Cache cleared.",
+        "clearCacheToastPartial": "Cache partially cleared (some folders could not be removed).",
+        "clearCacheToastError": "Could not clear the cache.",
         "changelog": "View changelog",
         "changelogModalTitle": "Changelog — v{{version}}",
         "changelogLoading": "Loading changelog…",

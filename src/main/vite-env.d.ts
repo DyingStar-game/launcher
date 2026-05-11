@@ -23,6 +23,12 @@ interface ImportMetaEnv {
   readonly VITE_ENABLE_DEVTOOLS: string
   /** `"true"` pour niveau de log fichier debug (electron-log) */
   readonly VITE_ELECTRON_ENABLE_LOGGING: string
+  /** ID Cachet `/api/components/:id` (universe). Entier > 0 ; défaut logique 3 dans env.ts si absent. */
+  readonly VITE_STATUS_COMPONENT_ID_UNIVERSE: string
+  readonly VITE_STATUS_COMPONENT_ID_TESTING: string
+  /** ID Cachet `/api/metrics/:id/points` (joueurs). Défaut 2 dans env.ts si absent. */
+  readonly VITE_STATUS_METRIC_ID_UNIVERSE: string
+  readonly VITE_STATUS_METRIC_ID_TESTING: string
 }
 
 interface ImportMeta {

@@ -145,6 +145,11 @@ app.whenReady().then(() => {
 
   ipcMain.on('ping', () => console.log('pong'))
 
+  ipcMain.removeHandler('app:quit')
+  ipcMain.handle('app:quit', () => {
+    app.quit()
+  })
+
   // Handlers indépendants de la fenêtre
   registerVersionHandlers()
   registerGameStatusHandlers()
