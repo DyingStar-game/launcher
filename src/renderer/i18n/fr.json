@@ -8,7 +8,12 @@
         "openDiscord": "Ouvrir Discord",
         "openWiki": "Ouvrir le wiki",
         "donateUnavailable": "Lien de soutien non configuré",
-        "quit": "Quitter l'application"
+        "quit": "Quitter l'application",
+        "minimize": "Réduire",
+        "close": "Fermer"
+    },
+    "universeTesting": {
+        "banner": "Environnement de test — les données ne sont pas celles du serveur live"
     },
     "universe": {
       "title": "Universe",
@@ -16,8 +21,7 @@
         "title": "Compte",
         "disconnected": "Non connecté",
         "connectedAs": "Connecté en tant que {{username}}",
-        "login": "Se connecter",
-        "create": "Créer un compte",
+        "login": "Se connecter avec Discord",
         "logout": "Se déconnecter",
         "subscription": "Abonnement",
         "loading": "Connexion en cours...",
@@ -43,6 +47,7 @@
         "playDisabledUpdate": "Une mise à jour du jeu est disponible — installez-la avant de jouer.",
         "playDisabledAuth": "Connectez-vous pour lancer le jeu.",
         "playDisabledAuthLoading": "Vérification de la session…",
+        "playDisabledRunning": "Le jeu est déjà lancé.",
         "notInstalled": "Jeu non installé",
         "players": "{{count}} joueurs en ligne",
         "status": {

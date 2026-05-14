@@ -9,6 +9,7 @@ import { useAccountStore } from '@store/account'
 import { useTranslation } from 'react-i18next'
 import ServerStatus from '@components/ui/serverStatus'
 import Button from '@components/ui/button'
+import PanelMessage from '@components/ui/panelMessage'
 
 function statusPageUrlForEnv(env: Env): string {
   const raw =
@@ -29,7 +30,7 @@ function pollIntervalMinutes(): number {
 
 export default function GamePanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
-  const { data: gameData, fetchServerStatus, play } = useGameStore()
+  const { data: gameData, fetchServerStatus, play, gameRunning } = useGameStore()
   const { data: filesData } = useFilesStore()
   const latestGameInfo = useVersionStore((s) => s.latestGameVersions[activeEnv])
   const { available } = useAvailabilityStore()
@@ -66,7 +67,8 @@ export default function GamePanel(): React.JSX.Element {
     isAvailable &&
     status === 'online' &&
     !gameUpdateAvailable &&
-    isAuthenticated
+    isAuthenticated &&
+    !gameRunning
 
   const statusPageUrl = statusPageUrlForEnv(activeEnv)
   const canOpenStatusPage = Boolean(statusPageUrl)
@@ -98,35 +100,41 @@ export default function GamePanel(): React.JSX.Element {
 
       {/* Jeu non installé */}
       {!installed && (
-        <p className="text-[var(--color-ds-muted)] text-sm">
+        <PanelMessage variant="error">
           {t('universe.game.notInstalled')}
-        </p>
+        </PanelMessage>
       )}
 
       {/* Actions */}
       <div className="flex flex-col gap-2 mt-auto">
         {installed && isAvailable && status === 'maintenance' && (
-          <p className="text-amber-400/95 text-xs leading-snug">
+          <PanelMessage variant="warning">
             {t('universe.game.playDisabledMaintenance')}
-          </p>
+          </PanelMessage>
         )}
 
         {installed && gameUpdateAvailable && (
-          <p className="text-sky-300/95 text-xs leading-snug">
+          <PanelMessage variant="info">
             {t('universe.game.playDisabledUpdate')}
-          </p>
+          </PanelMessage>
+        )}
+
+        {installed && gameRunning && (
+          <PanelMessage variant="info">
+            {t('universe.game.playDisabledRunning')}
+          </PanelMessage>
         )}
 
         {installed && isAvailable && accountStatus === 'loading' && (
-          <p className="text-[var(--color-ds-muted)] text-xs leading-snug">
+          <PanelMessage variant="info">
             {t('universe.game.playDisabledAuthLoading')}
-          </p>
+          </PanelMessage>
         )}
 
         {installed && isAvailable && accountStatus === 'disconnected' && (
-          <p className="text-amber-400/95 text-xs leading-snug">
+          <PanelMessage variant="warning">
             {t('universe.game.playDisabledAuth')}
-          </p>
+          </PanelMessage>
         )}
 
         <Button

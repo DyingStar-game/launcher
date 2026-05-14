@@ -56,6 +56,12 @@ declare global {
       /** Lit CHANGELOG.md dans le dossier d’installation (après extraction du ZIP). */
       readChangelog: (installPath: string) => Promise<string | null>
 
+      /** Relit la version installée (API /version + version.json). */
+      resolveInstalledVersion: (
+        env: Env,
+        installPath: string
+      ) => Promise<InstallResult | null>
+
       /** Supprime shader_cache et chunk_cache dans le userdata Godot DyingStar. */
       clearGodotGameCache: () => Promise<{
         root: string
@@ -69,6 +75,12 @@ declare global {
       /** Lance l'exécutable du jeu (détaché du launcher). */
       launchGame: (env: Env, installPath: string) => Promise<void>
 
+      /** True si un processus jeu lancé par le launcher est encore actif. */
+      isGameRunning: () => Promise<boolean>
+
+      /** Écoute les changements d'état « jeu en cours ». */
+      onGameRunningChanged: (callback: (running: boolean) => void) => void
+
       /** Récupère le statut du serveur et le nombre de joueurs connectés. */
       getServerStatus: (env: Env) => Promise<ServerStatusResult>
 
@@ -77,6 +89,12 @@ declare global {
 
       /** Ferme complètement le launcher. */
       quitApp: () => Promise<void>
+
+      minimizeWindow: () => Promise<void>
+
+      closeWindow: () => Promise<void>
+
+      fitWindowToContent: (size: { width: number; height: number }) => Promise<void>
 
       // ── Versions ─────────────────────────────────────────────────────────
 

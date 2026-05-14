@@ -16,7 +16,7 @@ export default function Universe(): React.JSX.Element {
   } = useVersionStore()
 
   return (
-    <div className="h-full flex flex-col gap-0">
+    <div className="min-h-full flex flex-col gap-0">
 
       {/* Alerte launcher */}
       {launcherUpdateAvailable && latestLauncherVersion && (
@@ -30,7 +30,7 @@ export default function Universe(): React.JSX.Element {
         </div>
       )}
 
-      <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-4 p-4">
+      <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-4 p-4 min-h-[640px]">
         <AccountPanel />
         <SocialPanel />
         <GamePanel />

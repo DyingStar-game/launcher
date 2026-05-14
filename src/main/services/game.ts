@@ -1,9 +1,9 @@
 import { ipcMain, dialog, BrowserWindow } from 'electron'
-import { spawn } from 'child_process'
+import { spawn, type ChildProcess } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
-import { downloadAndInstall, GAME_INSTALL_SUBDIR } from './downloader'
-import { loadFreshAccessToken } from './auth'
+import { downloadAndInstall, GAME_INSTALL_SUBDIR, resolveInstalledVersion } from './downloader'
+import { loadFreshGameToken } from './auth'
 import { clearDyingStarGodotCaches } from './godotUserdataCache'
 import type { Env } from '../../renderer/store/env'
 
@@ -80,9 +80,70 @@ function findChangelogPath(installPath: string): string | null {
   return findChangelogUnderRoot(resolved)
 }
 
+// ─── Suivi du processus jeu ───────────────────────────────────────────────────
+
+let launcherWindow: BrowserWindow | null = null
+let trackedGamePid: number | null = null
+let gamePollTimer: ReturnType<typeof setInterval> | null = null
+
+function isPidAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function notifyGameRunning(running: boolean): void {
+  if (!launcherWindow || launcherWindow.isDestroyed()) return
+  launcherWindow.webContents.send('game:running-changed', { running })
+}
+
+function clearGameWatch(): void {
+  if (gamePollTimer) {
+    clearInterval(gamePollTimer)
+    gamePollTimer = null
+  }
+  trackedGamePid = null
+}
+
+function stopGameWatchIfExited(): void {
+  if (trackedGamePid === null) return
+  if (!isPidAlive(trackedGamePid)) {
+    clearGameWatch()
+    notifyGameRunning(false)
+  }
+}
+
+function watchGameProcess(child: ChildProcess): void {
+  clearGameWatch()
+  const pid = child.pid
+  if (!pid) return
+
+  trackedGamePid = pid
+  notifyGameRunning(true)
+
+  const onDone = (): void => {
+    if (trackedGamePid !== pid) return
+    clearGameWatch()
+    notifyGameRunning(false)
+  }
+
+  child.once('exit', onDone)
+  child.once('error', onDone)
+
+  gamePollTimer = setInterval(stopGameWatchIfExited, 2000)
+}
+
+function isGameRunning(): boolean {
+  return trackedGamePid !== null && isPidAlive(trackedGamePid)
+}
+
 // ─── Handlers IPC ─────────────────────────────────────────────────────────────
 
 export function registerFilesHandlers(win: BrowserWindow): void {
+  launcherWindow = win
 
   // ── Sélection du répertoire d'installation ─────────────────────────────────
   ipcMain.removeHandler('files:select-directory')
@@ -108,10 +169,12 @@ export function registerFilesHandlers(win: BrowserWindow): void {
 
   // ── Lancement du jeu ───────────────────────────────────────────────────────
   ipcMain.removeHandler('game:launch')
+  ipcMain.removeHandler('game:is-running')
   ipcMain.removeHandler('files:clear-godot-cache')
   ipcMain.handle('files:clear-godot-cache', async () => clearDyingStarGodotCaches())
 
   ipcMain.removeHandler('files:read-changelog')
+  ipcMain.removeHandler('files:resolve-installed-version')
   ipcMain.handle('files:read-changelog', async (_event, installPath: string): Promise<string | null> => {
     if (!installPath || typeof installPath !== 'string') return null
     const root = path.resolve(installPath)
@@ -124,10 +187,26 @@ export function registerFilesHandlers(win: BrowserWindow): void {
     }
   })
 
+  ipcMain.handle(
+    'files:resolve-installed-version',
+    async (_event, env: Env, installPath: string): Promise<{ version: string; releaseDate: string } | null> => {
+      if (!installPath || typeof installPath !== 'string') return null
+      const gameRoot = getGameRoot(path.resolve(installPath))
+      if (!fs.existsSync(gameRoot)) return null
+      return resolveInstalledVersion(env, gameRoot)
+    }
+  )
+
   ipcMain.handle('game:launch', async (_event, env: Env, installPath: string) => {
-    const token = await loadFreshAccessToken(env)
+    if (isGameRunning()) {
+      throw new Error('Le jeu est déjà en cours d\'exécution.')
+    }
+
+    const token = await loadFreshGameToken(env)
     if (!token) {
-      throw new Error('Vous devez être connecté pour lancer le jeu.')
+      throw new Error(
+        'Session invalide ou jeton incomplet (identifiant ou pseudo manquant). Reconnectez-vous puis réessayez.'
+      )
     }
 
     const exePath = getExecutablePath(installPath)
@@ -139,13 +218,18 @@ export function registerFilesHandlers(win: BrowserWindow): void {
     const gameRoot = getGameRoot(installPath)
     const cwd = fs.existsSync(gameRoot) ? gameRoot : installPath
 
+    // Le client Godot ne lit que `--token=<jwt>` (un seul argument avec '=').
+    // Voir DyingStar/server/client.gd (branche develop).
     const child = spawn(exePath, [`--token=${token}`], {
       detached: true,
       stdio: 'ignore',
       cwd
     })
+    watchGameProcess(child)
     child.unref()
   })
+
+  ipcMain.handle('game:is-running', () => isGameRunning())
 
   // ── État du jeu ────────────────────────────────────────────────────────────
   ipcMain.removeHandler('game:get-state')

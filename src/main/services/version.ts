@@ -39,6 +39,12 @@ function isNewerLauncherVersion(remote: string, local: string): boolean {
   return remote.localeCompare(local, undefined, { numeric: true, sensitivity: 'base' }) > 0
 }
 
+export async function fetchRemoteGameVersion(env: Env): Promise<RemoteVersionPayload | null> {
+  const base = getApiBase(env)
+  if (!base) return null
+  return fetchGameVersion(ENDPOINTS.version(base))
+}
+
 async function fetchGameVersion(url: string): Promise<RemoteVersionPayload | null> {
   try {
     const res = await fetch(url, {
@@ -115,13 +121,7 @@ export function registerVersionHandlers(): void {
 
     const envs: Env[] = ['universe', 'universe-testing']
 
-    const payloads = await Promise.all(
-      envs.map((env) => {
-        const base = getApiBase(env)
-        if (!base) return Promise.resolve(null)
-        return fetchGameVersion(ENDPOINTS.version(base))
-      })
-    )
+    const payloads = await Promise.all(envs.map((env) => fetchRemoteGameVersion(env)))
 
     const toInfo = (p: RemoteVersionPayload | null): GameVersionInfo => ({
       version:     p?.version     ?? null,

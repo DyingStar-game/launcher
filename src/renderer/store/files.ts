@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useEnvStore, type Env } from './env'
+import { useVersionStore } from './version'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,6 +30,7 @@ type FilesState = {
   update: () => Promise<void>
   verify: () => Promise<void>
   clearCache: () => Promise<ClearGodotCacheOutcome>
+  syncInstalledVersions: () => Promise<void>
 }
 
 // ─── Valeurs par défaut ───────────────────────────────────────────────────────
@@ -106,6 +108,7 @@ export const useFilesStore = create<FilesState>()(
             progress: 100,
             progressLabel: `Installation terminée — v${version}`
           })
+          void useVersionStore.getState().checkVersions()
         } catch (err) {
           console.error('[FilesStore] Échec installation :', err)
           patchEnv(set, env, { installing: false, progress: 0, progressLabel: '' })
@@ -140,6 +143,7 @@ export const useFilesStore = create<FilesState>()(
             progress: 100,
             progressLabel: `Mise à jour terminée — v${version}`
           })
+          void useVersionStore.getState().checkVersions()
         } catch (err) {
           console.error('[FilesStore] Échec mise à jour :', err)
           patchEnv(set, env, { installing: false, progress: 0, progressLabel: '' })
@@ -165,6 +169,26 @@ export const useFilesStore = create<FilesState>()(
           console.error('[FilesStore] Échec vidage cache Godot :', err)
           return 'error'
         }
+      },
+
+      syncInstalledVersions: async () => {
+        const envs: Env[] = ['universe', 'universe-testing']
+        await Promise.all(
+          envs.map(async (env) => {
+            const { installed, installPath } = get().data[env]
+            if (!installed || !installPath) return
+            try {
+              const resolved = await window.api.resolveInstalledVersion(env, installPath)
+              if (!resolved?.version) return
+              patchEnv(set, env, {
+                version: resolved.version,
+                releaseDate: resolved.releaseDate
+              })
+            } catch (err) {
+              console.warn('[FilesStore] Sync version installée :', env, err)
+            }
+          })
+        )
       }
     }),
     {
@@ -196,6 +220,9 @@ export const useFilesStore = create<FilesState>()(
             'universe-testing': { ...defaultEnvData, ...(p.data?.['universe-testing'] ?? {}) }
           }
         }
+      },
+      onRehydrateStorage: () => (state) => {
+        if (state) void state.syncInstalledVersions()
       }
     }
   )

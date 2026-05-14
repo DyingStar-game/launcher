@@ -9,6 +9,7 @@ import { registerFilesHandlers } from './services/game'
 import { registerVersionHandlers } from './services/version'
 import { registerGameStatusHandlers } from './services/gameStatus'
 import { registerAuthHandlers, handleOAuthCallback } from './services/auth'
+import { registerWindowHandlers, MIN_WIDTH, MIN_HEIGHT } from './services/window'
 import log from 'electron-log'
 
 // ─── Manage log (import.meta.env = valeurs figées au build, comme les autres VITE_*) ───
@@ -103,6 +104,10 @@ function createWindow(): void {
   mainWindow = new BrowserWindow({
     width:  parsePositiveInt(import.meta.env.VITE_WINDOW_WIDTH, 1200),
     height: parsePositiveInt(import.meta.env.VITE_WINDOW_HEIGHT, 800),
+    minWidth:  MIN_WIDTH,
+    minHeight: MIN_HEIGHT,
+    frame: false,
+    backgroundColor: '#0d0d14',
     title: app.getName(),
     show: false,
     autoHideMenuBar: true,
@@ -112,6 +117,8 @@ function createWindow(): void {
       sandbox: false
     }
   })
+
+  registerWindowHandlers(() => mainWindow)
 
   // Enregistrement des handlers IPC
   registerFilesHandlers(mainWindow)

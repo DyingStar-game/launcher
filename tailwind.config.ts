@@ -14,7 +14,7 @@ export default {
         "ds-danger":   "#ef4444",   // serveurs indispo
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Poppins", "system-ui", "sans-serif"],
       },
     },
   },

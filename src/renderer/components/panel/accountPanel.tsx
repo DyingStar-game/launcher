@@ -3,6 +3,7 @@ import { useEnvStore } from '@store/env'
 import { useAvailabilityStore } from '@store/availability'
 import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/button'
+import DiscordIcon from '@components/ui/discordIcon'
 
 export default function AccountPanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
@@ -23,14 +24,12 @@ export default function AccountPanel(): React.JSX.Element {
         <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
       </div>
 
-      {/* Env non disponible */}
       {!isAvailable && (
         <p className="text-[var(--color-ds-muted)] text-sm">
           {t('universe.account.unavailable')}
         </p>
       )}
 
-      {/* Status */}
       {isAvailable && status === 'disconnected' && (
         <p className="text-[var(--color-ds-muted)] text-sm">
           {t('universe.account.disconnected')}
@@ -49,7 +48,6 @@ export default function AccountPanel(): React.JSX.Element {
         </p>
       )}
 
-      {/* Actions */}
       <div className="flex flex-col gap-2 mt-auto">
 
         {!isAvailable && (
@@ -59,14 +57,10 @@ export default function AccountPanel(): React.JSX.Element {
         )}
 
         {isAvailable && status === 'disconnected' && (
-          <>
-            <Button onClick={login} variant="primary" className="w-full">
-              {t('universe.account.login')}
-            </Button>
-            <Button onClick={login} variant="secondary" className="w-full">
-              {t('universe.account.create')}
-            </Button>
-          </>
+          <Button onClick={login} variant="primary" className="w-full">
+            <DiscordIcon className="w-5 h-5" />
+            {t('universe.account.login')}
+          </Button>
         )}
 
         {isAvailable && status === 'loading' && (
@@ -76,14 +70,9 @@ export default function AccountPanel(): React.JSX.Element {
         )}
 
         {isAvailable && status === 'connected' && (
-          <>
-            {/* <Button variant="primary" className="w-full">
-              {t('universe.account.subscription')}
-            </Button> */}
-            <Button onClick={logout} variant="danger" className="w-full">
-              {t('universe.account.logout')}
-            </Button>
-          </>
+          <Button onClick={logout} variant="danger" className="w-full">
+            {t('universe.account.logout')}
+          </Button>
         )}
       </div>
     </div>

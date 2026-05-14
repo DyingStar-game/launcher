@@ -1,7 +1,40 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* Tokens couleurs DyingStar — à ajuster avec la vraie charte */
 @theme {
+  --font-sans: 'Poppins', system-ui, sans-serif;
   --color-ds-bg:      #0d0d14;
   --color-ds-surface: #16161f;
   --color-ds-surface-hover: rgba(255,255,255,0.05);
@@ -14,13 +47,29 @@
   --color-ds-danger:  #ef4444;
 }
 
-html, body, #root {
-  height: 100%;
+html, body {
+  min-height: 100%;
   width: 100%;
   background-color: var(--color-ds-bg);
   color: var(--color-ds-text);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-sans);
   overflow: hidden;
+}
+
+#root {
+  min-height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Barre de titre custom (fenêtre sans cadre OS) */
+.app-drag {
+  -webkit-app-region: drag;
+}
+
+.app-no-drag {
+  -webkit-app-region: no-drag;
 }
 
 .lore-markdown {

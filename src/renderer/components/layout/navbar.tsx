@@ -6,6 +6,7 @@ import { useNavigationStore } from '@store/navigation'
 import type { View } from '@store/navigation'
 import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/button'
+import DiscordIcon from '@components/ui/discordIcon'
 import type { ReactNode } from 'react'
 
 function Icon({
@@ -119,10 +120,10 @@ export default function Navbar(): React.JSX.Element {
   ]
 
   return (
-    <nav className="flex items-center justify-between px-6 h-14 bg-[var(--color-ds-surface)] border-b border-[var(--color-ds-border)] shrink-0">
+    <nav className="app-drag flex items-center justify-between px-6 h-14 bg-[var(--color-ds-surface)] border-b border-[var(--color-ds-border)] shrink-0">
 
       {/* Gauche : logo + onglets environnement */}
-      <div className="flex items-center gap-6">
+      <div className="app-no-drag flex items-center gap-6">
         <span className="font-bold text-[var(--color-ds-accent)] text-lg tracking-wider select-none">
         <svg
       width='160'
@@ -269,7 +270,7 @@ export default function Navbar(): React.JSX.Element {
       </div>
 
       {/* Droite : langues + liens externes + soutenir */}
-      <div className="flex items-center gap-3">
+      <div className="app-no-drag flex items-center gap-3">
         <div className="flex items-center gap-1 pr-2 border-r border-[var(--color-ds-border)]">
           <button
             onClick={() => i18n.changeLanguage('en')}
@@ -317,9 +318,7 @@ export default function Navbar(): React.JSX.Element {
           aria-label={t('navbar.openDiscord')}
         >
           <Icon className={!navDiscord ? 'opacity-60' : ''}>
-            <Svg title="Discord">
-              <path d="M16.8 7.2c-1-.8-2.1-1.2-3.3-1.4l-.3.6c1.3.2 2.2.6 3 1.1-1.1-.6-2.4-1-4.2-1s-3.1.4-4.2 1c.8-.5 1.7-.9 3-1.1l-.3-.6c-1.2.2-2.3.6-3.3 1.4-2 3-2.6 5.9-2.3 8.7 1.3 1 2.7 1.6 4.1 2l.5-.8c-.9-.3-1.8-.7-2.6-1.2l.5-.4c1.6.8 3.2 1.1 4.6 1.1s3-.3 4.6-1.1l.5.4c-.8.5-1.7.9-2.6 1.2l.5.8c1.4-.4 2.8-1 4.1-2 .3-2.8-.3-5.7-2.3-8.7zM9.6 14.2c-.6 0-1.1-.6-1.1-1.3s.5-1.3 1.1-1.3 1.1.6 1.1 1.3-.5 1.3-1.1 1.3zm4.8 0c-.6 0-1.1-.6-1.1-1.3s.5-1.3 1.1-1.3 1.1.6 1.1 1.3-.5 1.3-1.1 1.3z" />
-            </Svg>
+            <DiscordIcon className="w-4.5 h-4.5" title="Discord" />
           </Icon>
         </button>
 
@@ -353,21 +352,34 @@ export default function Navbar(): React.JSX.Element {
           </span>
         </Button>
 
-        <button
-          type="button"
-          onClick={() => {
-            void window.api.quitApp()
-          }}
-          className="text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
-          title={t('navbar.quit')}
-          aria-label={t('navbar.quit')}
-        >
-          <Icon>
-            <Svg title={t('navbar.quit')}>
-              <path d="M16 17v-3H9v-4h7V7l5 5-5 5M4 19h7v-2H4V7h7V5H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2z" />
-            </Svg>
-          </Icon>
-        </button>
+        <div className="flex items-center gap-1 pl-2 border-l border-[var(--color-ds-border)]">
+          <button
+            type="button"
+            onClick={() => { void window.api.minimizeWindow() }}
+            className="text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
+            title={t('navbar.minimize')}
+            aria-label={t('navbar.minimize')}
+          >
+            <Icon>
+              <Svg title={t('navbar.minimize')}>
+                <path d="M5 19h14v-2H5v2z" />
+              </Svg>
+            </Icon>
+          </button>
+          <button
+            type="button"
+            onClick={() => { void window.api.closeWindow() }}
+            className="text-[var(--color-ds-muted)] hover:text-red-300 transition-colors cursor-pointer"
+            title={t('navbar.close')}
+            aria-label={t('navbar.close')}
+          >
+            <Icon className="hover:border-red-500/40">
+              <Svg title={t('navbar.close')}>
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+              </Svg>
+            </Icon>
+          </button>
+        </div>
       </div>
     </nav>
   )

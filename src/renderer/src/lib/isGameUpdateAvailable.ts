@@ -8,6 +8,6 @@ export function isGameUpdateAvailable(
     installed &&
     latestRemoteVersion !== null &&
     localVersion !== null &&
-    latestRemoteVersion.localeCompare(localVersion, undefined, { numeric: false }) > 0
+    latestRemoteVersion.localeCompare(localVersion, undefined, { numeric: true, sensitivity: 'base' }) > 0
   )
 }

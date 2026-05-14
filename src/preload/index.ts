@@ -23,6 +23,12 @@ const api = {
   readChangelog: (installPath: string): Promise<string | null> =>
     ipcRenderer.invoke('files:read-changelog', installPath),
 
+  resolveInstalledVersion: (
+    env: Env,
+    installPath: string
+  ): Promise<{ version: string; releaseDate: string } | null> =>
+    ipcRenderer.invoke('files:resolve-installed-version', env, installPath),
+
   clearGodotGameCache: (): Promise<{
     root: string
     removed: string[]
@@ -35,6 +41,16 @@ const api = {
   launchGame: (env: Env, installPath: string): Promise<void> =>
     ipcRenderer.invoke('game:launch', env, installPath),
 
+  isGameRunning: (): Promise<boolean> =>
+    ipcRenderer.invoke('game:is-running'),
+
+  onGameRunningChanged: (callback: (running: boolean) => void): void => {
+    ipcRenderer.removeAllListeners('game:running-changed')
+    ipcRenderer.on('game:running-changed', (_event, payload: { running: boolean }) => {
+      callback(payload.running)
+    })
+  },
+
   getServerStatus: (env: Env): Promise<{ status: ServerStatusValue; players: number; available: boolean }> =>
     ipcRenderer.invoke('game:get-server-status', env),
 
@@ -44,6 +60,13 @@ const api = {
     ipcRenderer.invoke('env:check-availability'),
 
   quitApp: (): Promise<void> => ipcRenderer.invoke('app:quit'),
+
+  minimizeWindow: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
+
+  closeWindow: (): Promise<void> => ipcRenderer.invoke('window:close'),
+
+  fitWindowToContent: (size: { width: number; height: number }): Promise<void> =>
+    ipcRenderer.invoke('window:fit-content', size),
 
   // ── Versions ──────────────────────────────────────────────────────────────
 

@@ -99,6 +99,58 @@ function decodeJwtPayload(token: string): Record<string, unknown> {
   return JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'))
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function getJwtSub(token: string): string | null {
+  try {
+    const sub = decodeJwtPayload(token)['sub']
+    return typeof sub === 'string' && sub.length > 0 ? sub : null
+  } catch {
+    return null
+  }
+}
+
+function isValidPlayerSub(sub: string): boolean {
+  return UUID_RE.test(sub)
+}
+
+function isJwtNotExpired(token: string): boolean {
+  try {
+    const exp = decodeJwtPayload(token)['exp']
+    if (typeof exp !== 'number') return false
+    return exp > Math.floor(Date.now() / 1000)
+  } catch {
+    return false
+  }
+}
+
+function getJwtPreferredUsername(token: string): string | null {
+  try {
+    const username = decodeJwtPayload(token)['preferred_username']
+    return typeof username === 'string' && username.length > 0 ? username : null
+  } catch {
+    return null
+  }
+}
+
+function isValidGameLaunchToken(token: string): boolean {
+  const sub = getJwtSub(token)
+  return (
+    sub !== null &&
+    isValidPlayerSub(sub) &&
+    getJwtPreferredUsername(token) !== null &&
+    isJwtNotExpired(token)
+  )
+}
+
+/** Choisit l'id_token pour le client jeu (claims identité requis côté serveur). */
+function pickGameLaunchToken(tokens: TokenSet): string | null {
+  const token = tokens.id_token
+  if (!token || !isValidGameLaunchToken(token)) return null
+  return token
+}
+
 function extractUser(tokens: TokenSet): UserInfo {
   const p = decodeJwtPayload(tokens.id_token)
   return {
@@ -207,7 +259,8 @@ async function refreshToken(kcBase: string, token: string): Promise<TokenSet | n
       body: new URLSearchParams({
         grant_type:    'refresh_token',
         client_id:     CLIENT_ID,
-        refresh_token: token
+        refresh_token: token,
+        scope:         'openid email profile'
       }).toString()
     }
   )
@@ -215,8 +268,18 @@ async function refreshToken(kcBase: string, token: string): Promise<TokenSet | n
   return res.json() as Promise<TokenSet>
 }
 
-/** Access token JWT valide (rafraîchit si besoin) — pour lancement du client jeu. */
-export async function loadFreshAccessToken(env: Env): Promise<string | null> {
+function mergeTokenSet(previous: TokenSet, refreshed: TokenSet): TokenSet {
+  const idCandidates = [refreshed.id_token, previous.id_token].filter(Boolean)
+  const id_token =
+    idCandidates.find((t) => isValidGameLaunchToken(t)) ??
+    refreshed.id_token ??
+    previous.id_token
+
+  return { ...previous, ...refreshed, id_token }
+}
+
+/** JWT valide pour le client jeu (rafraîchit si besoin, sub UUID requis). */
+export async function loadFreshGameToken(env: Env): Promise<string | null> {
   const kcBase = getKeycloakBase(env)
   const tokens = loadTokens(env)
   if (!kcBase || !tokens) return null
@@ -226,8 +289,26 @@ export async function loadFreshAccessToken(env: Env): Promise<string | null> {
     clearStoredTokens(env)
     return null
   }
-  storeTokens(env, refreshed)
-  return refreshed.access_token
+
+  const merged = mergeTokenSet(tokens, refreshed)
+  storeTokens(env, merged)
+  const launchToken = pickGameLaunchToken(merged)
+  if (!launchToken) {
+    console.error('[Auth] Jeton jeu invalide:', describeGameTokenIssue(merged))
+  }
+  return launchToken
+}
+
+function describeGameTokenIssue(tokens: TokenSet): string {
+  const token = tokens.id_token
+  if (!token) return 'id_token absent — reconnectez-vous'
+  if (!isJwtNotExpired(token)) return 'id_token expiré — reconnectez-vous'
+  const sub = getJwtSub(token)
+  if (!sub || !isValidPlayerSub(sub)) return `sub UUID invalide (${sub ?? 'vide'})`
+  if (!getJwtPreferredUsername(token)) {
+    return 'preferred_username absent de l\'id_token (vérifier Keycloak / scope profile)'
+  }
+  return 'raison inconnue'
 }
 
 // ─── IPC Handlers ─────────────────────────────────────────────────────────────
@@ -271,7 +352,8 @@ export function registerAuthHandlers(win: BrowserWindow): void {
     const refreshed = await refreshToken(kcBase, tokens.refresh_token)
     if (!refreshed) { clearStoredTokens(env); return null }
 
-    storeTokens(env, refreshed)
-    return extractUser(refreshed)
+    const merged = mergeTokenSet(tokens, refreshed)
+    storeTokens(env, merged)
+    return extractUser(merged)
   })
 }

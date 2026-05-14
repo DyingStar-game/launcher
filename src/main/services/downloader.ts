@@ -9,6 +9,7 @@ import {
   getTestingZipUrlForPlatform,
   ENDPOINTS
 } from '../config/env'
+import { fetchRemoteGameVersion } from './version'
 import type { Env } from '../../renderer/store/env'
 
 /** Sous-dossier d’installation du payload du jeu (ZIP extrait ici, pas à la racine du chemin choisi). */
@@ -168,10 +169,35 @@ async function extractZip(zipFilePath: string, destPath: string, win: BrowserWin
 
 // ─── Lecture version.json ─────────────────────────────────────────────────────
 
+function findVersionManifestPath(gameRoot: string): string | null {
+  const direct = path.join(gameRoot, 'version.json')
+  try {
+    if (fs.existsSync(direct) && fs.statSync(direct).isFile()) return direct
+  } catch {
+    /* continue */
+  }
+
+  try {
+    for (const entry of fs.readdirSync(gameRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue
+      const nested = path.join(gameRoot, entry.name, 'version.json')
+      try {
+        if (fs.existsSync(nested) && fs.statSync(nested).isFile()) return nested
+      } catch {
+        /* continue */
+      }
+    }
+  } catch {
+    return null
+  }
+
+  return null
+}
+
 function readVersionManifest(gameRoot: string): InstallResult {
-  const manifestPath = path.join(gameRoot, 'version.json')
-  if (!fs.existsSync(manifestPath)) {
-    console.warn('[Downloader] version.json introuvable.')
+  const manifestPath = findVersionManifestPath(gameRoot)
+  if (!manifestPath) {
+    console.warn('[Downloader] version.json introuvable sous', gameRoot)
     return { version: 'unknown', releaseDate: new Date().toISOString().split('T')[0] }
   }
   try {
@@ -185,6 +211,19 @@ function readVersionManifest(gameRoot: string): InstallResult {
   } catch {
     return { version: 'unknown', releaseDate: new Date().toISOString().split('T')[0] }
   }
+}
+
+/** Version locale alignée sur l’API /version (référence du bandeau « mise à jour »). */
+export async function resolveInstalledVersion(env: Env, gameRoot: string): Promise<InstallResult> {
+  const fromFile = readVersionManifest(gameRoot)
+  const fromApi = await fetchRemoteGameVersion(env)
+  if (fromApi?.version) {
+    return {
+      version:     fromApi.version,
+      releaseDate: fromApi.releaseDate ?? fromFile.releaseDate
+    }
+  }
+  return fromFile
 }
 
 // ─── Point d'entrée ───────────────────────────────────────────────────────────
@@ -212,7 +251,7 @@ export async function downloadAndInstall(
     await extractZip(zipFilePath, gameRoot, win)
     sendProgress(win, 99, 'Nettoyage...')
     fs.unlinkSync(zipFilePath)
-    const manifest = readVersionManifest(gameRoot)
+    const manifest = await resolveInstalledVersion(env, gameRoot)
     sendProgress(win, 100, `Installation terminée — v${manifest.version}`)
     return manifest
   } catch (err) {

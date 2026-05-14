@@ -14,8 +14,10 @@ type EnvGameData = {
 
 type GameState = {
   data: Record<Env, EnvGameData>
+  gameRunning: boolean
 
   fetchServerStatus: () => Promise<void>
+  syncGameRunning: () => Promise<void>
   play: () => Promise<void>
 }
 
@@ -23,46 +25,63 @@ const defaultEnvData: EnvGameData = { status: 'unknown', players: 0 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
-export const useGameStore = create<GameState>((set) => ({
-  data: {
-    'universe':         { ...defaultEnvData },
-    'universe-testing': { ...defaultEnvData }
-  },
+export const useGameStore = create<GameState>((set, get) => {
+  window.api.onGameRunningChanged((running) => {
+    set({ gameRunning: running })
+  })
 
-  fetchServerStatus: async () => {
-    const env = useEnvStore.getState().activeEnv
+  void window.api.isGameRunning().then((running) => {
+    set({ gameRunning: running })
+  })
 
-    // Ne pas forcer « unknown » avant la réponse : sinon l’UI affiche « Inconnu »
-    // à chaque poll jusqu’à la fin du fetch (et en continu si l’appel échoue).
+  return {
+    data: {
+      'universe':         { ...defaultEnvData },
+      'universe-testing': { ...defaultEnvData }
+    },
+    gameRunning: false,
 
-    try {
-      const result = await window.api.getServerStatus(env)
-      set((s) => ({
-        data: {
-          ...s.data,
-          [env]: { status: result.status, players: result.players }
-        }
-      }))
-    } catch {
-      set((s) => ({
-        data: { ...s.data, [env]: { ...s.data[env], status: 'unknown', players: 0 } }
-      }))
-    }
-  },
+    fetchServerStatus: async () => {
+      const env = useEnvStore.getState().activeEnv
 
-  play: async () => {
-    const env = useEnvStore.getState().activeEnv
-    const { installPath } = useFilesStore.getState().data[env]
+      try {
+        const result = await window.api.getServerStatus(env)
+        set((s) => ({
+          data: {
+            ...s.data,
+            [env]: { status: result.status, players: result.players }
+          }
+        }))
+      } catch {
+        set((s) => ({
+          data: { ...s.data, [env]: { ...s.data[env], status: 'unknown', players: 0 } }
+        }))
+      }
+    },
 
-    if (!installPath) {
-      console.warn('[GameStore] Aucun répertoire d\'installation pour env :', env)
-      return
-    }
+    syncGameRunning: async () => {
+      const running = await window.api.isGameRunning()
+      set({ gameRunning: running })
+    },
 
-    try {
-      await window.api.launchGame(env, installPath)
-    } catch (err) {
-      console.error('[GameStore] Échec du lancement :', err)
+    play: async () => {
+      if (get().gameRunning) return
+
+      const env = useEnvStore.getState().activeEnv
+      const { installPath } = useFilesStore.getState().data[env]
+
+      if (!installPath) {
+        console.warn('[GameStore] Aucun répertoire d\'installation pour env :', env)
+        return
+      }
+
+      try {
+        await window.api.launchGame(env, installPath)
+        set({ gameRunning: true })
+      } catch (err) {
+        console.error('[GameStore] Échec du lancement :', err)
+        await get().syncGameRunning()
+      }
     }
   }
-}))
+})
