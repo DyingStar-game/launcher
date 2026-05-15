@@ -1,0 +1,102 @@
+{ 
+    "navbar": {
+        "home": "Home",
+        "social": "Social",
+        "lore": "Lore",
+        "support": "Donate",
+        "openWebsite": "Open official website",
+        "openDiscord": "Open Discord",
+        "openWiki": "Open wiki",
+        "donateUnavailable": "Support link not configured",
+        "quit": "Quit application",
+        "minimize": "Minimize",
+        "close": "Close"
+    },
+    "universeTesting": {
+        "banner": "Testing environment — data is not from the live server"
+    },
+    "universe": {
+      "title": "Universe",
+      "account": {
+        "title": "Account",
+        "disconnected": "Not connected",
+        "connectedAs": "Logged in as {{username}}",
+        "login": "Login with Discord",
+        "logout": "Logout",
+        "subscription": "Subscription",
+        "loading": "Connecting...",
+        "cancel": "Cancel",
+        "unavailable": "Authentication not available for this environment.",
+        "unavailableBtn": "Unavailable"
+      },
+      "updateAlert": {
+        "launcher": {
+          "title": "Launcher update available",
+          "discordHint": "The new version is available here:",
+          "discordLink": "Discord"
+        },
+        "game": {
+          "title": "New game version available"
+        },
+        "releaseOn": "Released {{date}}"
+      },
+      "game": {
+        "title": "Game",
+        "play": "Play",
+        "playDisabledMaintenance": "The server is under maintenance — launching the game is disabled.",
+        "playDisabledUpdate": "A game update is available — install it before playing.",
+        "playDisabledAuth": "Sign in to launch the game.",
+        "playDisabledAuthLoading": "Checking your session…",
+        "playDisabledRunning": "The game is already running.",
+        "notInstalled": "Game not installed",
+        "players": "{{count}} players online",
+        "status": {
+            "online": "Available",
+            "degraded": "Issues ongoing",
+            "offline": "Offline",
+            "maintenance": "Under maintenance",
+            "unknown": "Unknown",
+            "unavailable": "Unavailable"
+        },
+        "viewStatus": "View status"
+      },
+      "files": {
+        "title": "Game files",
+        "version": "Version: {{version}}",
+        "releaseDate": "Release: {{date}}",
+        "notInstalled": "Game not installed",
+        "install": "Install",
+        "update": "Update",
+        "verify": "Verify files",
+        "clearCache": "Clear cache",
+        "clearCacheToastOk": "Cache cleared.",
+        "clearCacheToastPartial": "Cache partially cleared (some folders could not be removed).",
+        "clearCacheToastError": "Could not clear the cache.",
+        "changelog": "View changelog",
+        "changelogModalTitle": "Changelog — v{{version}}",
+        "changelogLoading": "Loading changelog…",
+        "changelogMissing": "No CHANGELOG.md was found in the install folder (make sure it is included in the game archive).",
+        "installing": "Installing...",
+        "installPath": "Install folder",
+        "browse": "Browse",
+        "unavailable": "Installation not available for this environment.",
+        "unavailableBtn": "Unavailable"
+      },
+      "social": {
+        "title": "Social",
+        "noFriends": "No friends",
+        "seeAll": "See all",
+        "notifications": "{{count}} notifications"
+      },
+      "socialPage": {
+        "friends": "Friends",
+        "organizations": "Organizations",
+        "requests": "Requests",
+        "addFriend": "Add friend",
+        "createOrga": "Create organization",
+        "joinOrga": "Join organization",
+        "accept": "Accept",
+        "decline": "Decline"
+      }
+    }
+  }

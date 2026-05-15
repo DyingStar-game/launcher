@@ -1,0 +1,102 @@
+{
+    "navbar": {
+        "home": "Accueil",
+        "social": "Social",
+        "lore": "Lore",
+        "support": "Faire un don",
+        "openWebsite": "Ouvrir le site officiel",
+        "openDiscord": "Ouvrir Discord",
+        "openWiki": "Ouvrir le wiki",
+        "donateUnavailable": "Lien de soutien non configuré",
+        "quit": "Quitter l'application",
+        "minimize": "Réduire",
+        "close": "Fermer"
+    },
+    "universeTesting": {
+        "banner": "Environnement de test — les données ne sont pas celles du serveur live"
+    },
+    "universe": {
+      "title": "Universe",
+      "account": {
+        "title": "Compte",
+        "disconnected": "Non connecté",
+        "connectedAs": "Connecté en tant que {{username}}",
+        "login": "Se connecter avec Discord",
+        "logout": "Se déconnecter",
+        "subscription": "Abonnement",
+        "loading": "Connexion en cours...",
+        "cancel": "Annuler",
+        "unavailable": "Authentification non disponible pour cet environnement.",
+        "unavailableBtn": "Indisponible"
+      },
+      "updateAlert": {
+        "launcher": {
+          "title": "Mise à jour du launcher disponible",
+          "discordHint": "La nouvelle version est disponible ici :",
+          "discordLink": "Discord"
+        },
+        "game": {
+          "title": "Nouvelle version du jeu disponible"
+        },
+        "releaseOn": "Sortie le {{date}}"
+      },
+      "game": {
+        "title": "Jeu",
+        "play": "Jouer",
+        "playDisabledMaintenance": "Le serveur est en maintenance — le lancement du jeu est désactivé.",
+        "playDisabledUpdate": "Une mise à jour du jeu est disponible — installez-la avant de jouer.",
+        "playDisabledAuth": "Connectez-vous pour lancer le jeu.",
+        "playDisabledAuthLoading": "Vérification de la session…",
+        "playDisabledRunning": "Le jeu est déjà lancé.",
+        "notInstalled": "Jeu non installé",
+        "players": "{{count}} joueurs en ligne",
+        "status": {
+          "online": "Opérationnel",
+          "degraded": "Dégradé",
+          "offline": "Hors ligne",
+          "maintenance": "En maintenance",
+          "unknown": "Inconnu",
+          "unavailable": "Non disponible"
+        },
+        "viewStatus": "Voir le statut"
+      },
+      "files": {
+        "title": "Fichiers du jeu",
+        "version": "Version : {{version}}",
+        "releaseDate": "Release : {{date}}",
+        "notInstalled": "Jeu non installé",
+        "install": "Installer",
+        "update": "Mettre à jour",
+        "verify": "Vérifier les fichiers",
+        "clearCache": "Vider le cache",
+        "clearCacheToastOk": "Cache vidé.",
+        "clearCacheToastPartial": "Cache partiellement vidé (certains dossiers n’ont pas pu être supprimés).",
+        "clearCacheToastError": "Impossible de vider le cache.",
+        "changelog": "Voir le changelog",
+        "changelogModalTitle": "Changelog — v{{version}}",
+        "changelogLoading": "Chargement du changelog…",
+        "changelogMissing": "Aucun fichier CHANGELOG.md n’a été trouvé dans l’installation (vérifie qu’il est bien inclus dans l’archive du jeu).",
+        "installing": "Installation en cours...",
+        "installPath": "Répertoire d'installation",
+        "browse": "Parcourir",
+        "unavailable": "Installation non disponible pour cet environnement.",
+        "unavailableBtn": "Indisponible"
+      },
+      "social": {
+        "title": "Social",
+        "noFriends": "Aucun ami",
+        "seeAll": "Voir tout",
+        "notifications": "{{count}} notifications"
+      },
+      "socialPage": {
+        "friends": "Amis",
+        "organizations": "Organisations",
+        "requests": "Requêtes",
+        "addFriend": "Ajouter un ami",
+        "createOrga": "Créer une organisation",
+        "joinOrga": "Rejoindre",
+        "accept": "Accepter",
+        "decline": "Refuser"
+      }
+    }
+  }

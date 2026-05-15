@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Tokens couleurs DyingStar — à ajuster avec la vraie charte */
+@theme {
+  --font-sans: 'Poppins', system-ui, sans-serif;
+  --color-ds-bg:      #0d0d14;
+  --color-ds-surface: #16161f;
+  --color-ds-surface-hover: rgba(255,255,255,0.05);
+  --color-ds-border:  #2a2a3a;
+  --color-ds-accent:  rgb(255, 186, 8,0.8);
+  --color-ds-text:    rgb(255, 186, 8);
+  --color-ds-muted:   #6b6b80;
+  --color-ds-success: #22c55e;
+  --color-ds-warning: #f59e0b;
+  --color-ds-danger:  #ef4444;
+}
+
+html, body {
+  min-height: 100%;
+  width: 100%;
+  background-color: var(--color-ds-bg);
+  color: var(--color-ds-text);
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+#root {
+  min-height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Barre de titre custom (fenêtre sans cadre OS) */
+.app-drag {
+  -webkit-app-region: drag;
+}
+
+.app-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+.lore-markdown {
+  color: var(--color-ds-text);
+  font-size: 15px;
+  line-height: 1.75;
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+/* TITRES */
+.lore-markdown h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin: 2rem 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.lore-markdown h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 2rem 0 0.8rem;
+  color: var(--color-ds-text);
+}
+
+.lore-markdown h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.6rem;
+  color: var(--color-ds-muted);
+}
+
+/* PARAGRAPHES */
+.lore-markdown p {
+  margin: 0.8rem 0;
+  color: var(--color-ds-text);
+}
+
+/* BLOCKQUOTE (style Medium) */
+.lore-markdown blockquote {
+  border-left: 3px solid var(--color-ds-accent);
+  padding: 0.8rem 1rem;
+  margin: 1.5rem 0;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  font-style: italic;
+  color: var(--color-ds-muted);
+}
+
+/* LISTES */
+.lore-markdown ul {
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+
+.lore-markdown li {
+  margin: 0.4rem 0;
+}
+
+/* IMAGES */
+.lore-markdown img {
+  width: 100%;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+/* CODE BLOCK */
+.lore-markdown code {
+  background: rgba(255,255,255,0.06);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.9em;
+}
+
+.lore-markdown pre {
+  background: rgba(0,0,0,0.4);
+  padding: 1rem;
+  border-radius: 12px;
+  overflow-x: auto;
+}
