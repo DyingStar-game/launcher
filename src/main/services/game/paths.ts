@@ -9,6 +9,16 @@ export function getGameRoot(installPath: string): string {
   return path.join(installPath, GAME_INSTALL_SUBDIR)
 }
 
+/** True when the platform executable (or legacy layout) is present on disk. */
+export function isGameInstalledAtPath(installPath: string): boolean {
+  if (!installPath?.trim()) return false
+  try {
+    return fs.existsSync(getExecutablePath(path.resolve(installPath)))
+  } catch {
+    return false
+  }
+}
+
 /** Resolves the platform game executable (payload dir first, then legacy install root). */
 export function getExecutablePath(installPath: string): string {
   const exe = GAME_EXECUTABLES[process.platform]

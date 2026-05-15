@@ -17,7 +17,16 @@ import { toastDurationMs } from '@lib/env'
 /** Files panel: install path, install/update progress, changelog, and cache clear. */
 export default function FilesPanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
-  const { data, setInstallPath, selectDirectory, install, update, clearCache } = useFilesStore()
+  const {
+    data,
+    setInstallPath,
+    selectDirectory,
+    install,
+    update,
+    verify,
+    clearCache,
+    syncInstalledVersions
+  } = useFilesStore()
   const { available } = useAvailabilityStore()
 
   const { installed, version, releaseDate, installing, progress, progressEvent, installPath } =
@@ -40,6 +49,10 @@ export default function FilesPanel(): React.JSX.Element {
   const [changelogLoading, setChangelogLoading] = useState(false)
   const [changelogMd, setChangelogMd] = useState<string | null>(null)
   const [cacheToast, setCacheToast] = useState<'success' | 'partial' | 'error' | null>(null)
+
+  useEffect(() => {
+    void syncInstalledVersions()
+  }, [activeEnv, syncInstalledVersions])
 
   useEffect(() => {
     if (!cacheToast) return
@@ -155,11 +168,11 @@ export default function FilesPanel(): React.JSX.Element {
           </Button>
         )}
 
-        {/* {isAvailable && installed && !gameUpdateAvailable && (
-          <Button onClick={verify} variant="secondary" disabled={installing}>
+        {isAvailable && installed && !gameUpdateAvailable && (
+          <Button onClick={() => void verify()} variant="secondary" disabled={installing}>
             {t('universe.files.verify')}
           </Button>
-        )} */}
+        )}
 
         {isAvailable && installed && (
           <Button variant="secondary" disabled={installing || !installPath} onClick={openChangelog}>

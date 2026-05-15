@@ -34,6 +34,9 @@ export async function downloadAndInstall(
     sendProgress(win, 99, { key: 'cleaning' })
     fs.unlinkSync(zipFilePath)
     const manifest = await resolveInstalledVersion(env, gameRoot)
+    if (!manifest) {
+      throw new Error('Installation finished but version.json was not found in the game folder.')
+    }
     sendProgress(win, 100, { key: 'completeInstall', version: manifest.version })
     return manifest
   } catch (err) {

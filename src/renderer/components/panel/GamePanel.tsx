@@ -16,7 +16,7 @@ import PanelMessage from '@components/ui/feedback/PanelMessage'
 export default function GamePanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data: gameData, fetchServerStatus, play, gameRunning } = useGameStore()
-  const { data: filesData } = useFilesStore()
+  const { data: filesData, syncInstalledVersions } = useFilesStore()
   const latestGameInfo = useVersionStore((s) => s.latestGameVersions[activeEnv])
   const { available } = useAvailabilityStore()
 
@@ -32,6 +32,10 @@ export default function GamePanel(): React.JSX.Element {
   const isAvailable = available[activeEnv]
 
   const { t } = useTranslation()
+
+  useEffect(() => {
+    void syncInstalledVersions()
+  }, [activeEnv, syncInstalledVersions])
 
   useEffect(() => {
     if (!isAvailable) return

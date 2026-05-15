@@ -30,12 +30,11 @@ function findVersionManifestPath(gameRoot: string): string | null {
   return null
 }
 
-/** Reads version metadata from the local `version.json` manifest. */
-function readVersionManifest(gameRoot: string): InstallResult {
+/** Reads version metadata from the local `version.json` manifest, or null if missing. */
+function readVersionManifest(gameRoot: string): InstallResult | null {
   const manifestPath = findVersionManifestPath(gameRoot)
   if (!manifestPath) {
-    console.warn('[Download] version.json not found under', gameRoot)
-    return { version: 'unknown', releaseDate: new Date().toISOString().split('T')[0] }
+    return null
   }
   try {
     const json = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as {
@@ -47,15 +46,20 @@ function readVersionManifest(gameRoot: string): InstallResult {
       releaseDate: json.releaseDate ?? new Date().toISOString().split('T')[0]
     }
   } catch {
-    return { version: 'unknown', releaseDate: new Date().toISOString().split('T')[0] }
+    return null
   }
 }
 
 /**
  * Returns installed version aligned with remote `/version` when available.
+ * Returns null when no local `version.json` is found.
  */
-export async function resolveInstalledVersion(env: Env, gameRoot: string): Promise<InstallResult> {
+export async function resolveInstalledVersion(
+  env: Env,
+  gameRoot: string
+): Promise<InstallResult | null> {
   const fromFile = readVersionManifest(gameRoot)
+  if (!fromFile) return null
   const fromApi = await fetchRemoteGameVersion(env)
   if (fromApi?.version) {
     return {
