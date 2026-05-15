@@ -1,17 +1,21 @@
 import { useEffect } from 'react'
 
-/** Agrandit la fenêtre si le contenu dépasse la taille de base (min = variables d'env). */
+/**
+ * Observes layout changes and asks the main process to resize the frameless window
+ * so content is not clipped (respects min/max dimensions from env).
+ */
 export function useFitWindowToContent(): void {
   useEffect(() => {
     let rafId = 0
 
+    /** Measures `#root` and invokes IPC resize on the next animation frame. */
     const report = (): void => {
       cancelAnimationFrame(rafId)
       rafId = requestAnimationFrame(() => {
         const root = document.getElementById('root')
         if (!root) return
         void window.api.fitWindowToContent({
-          width:  root.scrollWidth,
+          width: root.scrollWidth,
           height: root.scrollHeight
         })
       })
@@ -21,7 +25,12 @@ export function useFitWindowToContent(): void {
     ro.observe(document.body)
 
     const mo = new MutationObserver(report)
-    mo.observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true })
+    mo.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true
+    })
 
     report()
 

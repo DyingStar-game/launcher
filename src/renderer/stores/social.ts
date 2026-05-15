@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { useEnvStore, type Env } from './env'
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { SOCIAL_ERROR, SocialStoreError } from '@lib/socialErrors'
 
 export type FriendStatus = 'online' | 'offline' | 'ingame'
 
@@ -17,7 +16,8 @@ export type Orga = {
   id: string
   name: string
   members: number
-  isMember: boolean   // ← l'API indique si l'utilisateur est déjà membre
+  /** Whether the current user is already a member (from API). */
+  isMember: boolean
 }
 
 export type FriendRequest = {
@@ -34,23 +34,15 @@ type EnvSocialData = {
 
 type SocialState = {
   data: Record<Env, EnvSocialData>
-
+  /** Loads friends, orgs, and requests for the active env (mock until API wired). */
   fetchAll: () => Promise<void>
-
-  // Amis
   addFriend: (username: string) => Promise<void>
   removeFriend: (id: string) => void
-
-  // Demandes
   acceptRequest: (id: string) => Promise<void>
   declineRequest: (id: string) => Promise<void>
-
-  // Organisations
   joinOrga: (id: string) => Promise<void>
   createOrga: (name: string) => Promise<void>
 }
-
-// ─── Valeurs par défaut ───────────────────────────────────────────────────────
 
 const defaultEnvData: EnvSocialData = {
   friends: [],
@@ -60,53 +52,46 @@ const defaultEnvData: EnvSocialData = {
 }
 
 const defaultData: Record<Env, EnvSocialData> = {
-  'universe':         { ...defaultEnvData },
+  universe: { ...defaultEnvData },
   'universe-testing': { ...defaultEnvData }
 }
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
-
 type SetFn = (fn: (s: SocialState) => Partial<SocialState>) => void
 
+/** Merges partial social data for one environment. */
 function patchEnv(set: SetFn, env: Env, patch: Partial<EnvSocialData>): void {
   set((s) => ({
     data: { ...s.data, [env]: { ...s.data[env], ...patch } }
   }))
 }
 
-// ─── Store ────────────────────────────────────────────────────────────────────
-
+/**
+ * Social graph state per environment (friends, orgs, requests).
+ * Currently backed by mock data; replace with API calls when available.
+ */
 export const useSocialStore = create<SocialState>((set, get) => ({
   data: defaultData,
-
-  // ── Chargement ─────────────────────────────────────────────────────────────
 
   fetchAll: async () => {
     const env = useEnvStore.getState().activeEnv
 
-    // TODO: vrais appels API selon l'env
-    // const [friends, orgas, requests] = await Promise.all([
-    //   fetch(`${API_BASE[env]}/friends`).then(r => r.json()),
-    //   fetch(`${API_BASE[env]}/organizations`).then(r => r.json()),  // isMember inclus
-    //   fetch(`${API_BASE[env]}/friend-requests`).then(r => r.json()),
-    // ])
-
+    // TODO: replace with real API calls per env
     await new Promise((r) => setTimeout(r, 500))
 
     const mockData: Record<Env, EnvSocialData> = {
-      'universe': {
+      universe: {
         friends: [
-          { id: '1', name: 'Aurel',  status: 'online' },
-          { id: '2', name: 'Kira',   status: 'ingame', game: 'Universe' },
-          { id: '3', name: 'Noah',   status: 'offline' }
+          { id: '1', name: 'Aurel', status: 'online' },
+          { id: '2', name: 'Kira', status: 'ingame', game: 'Universe' },
+          { id: '3', name: 'Noah', status: 'offline' }
         ],
         orgas: [
-          { id: '1', name: 'Nova Corp',   members: 12, isMember: true  },
-          { id: '2', name: 'Galaxy Team', members: 5,  isMember: false },
-          { id: '3', name: 'Void Squad',  members: 8,  isMember: false }
+          { id: '1', name: 'Nova Corp', members: 12, isMember: true },
+          { id: '2', name: 'Galaxy Team', members: 5, isMember: false },
+          { id: '3', name: 'Void Squad', members: 8, isMember: false }
         ],
         requests: [
-          { id: '1', name: 'Zed'  },
+          { id: '1', name: 'Zed' },
           { id: '2', name: 'Mira' }
         ],
         loaded: true
@@ -116,9 +101,7 @@ export const useSocialStore = create<SocialState>((set, get) => ({
           { id: '1', name: 'TestUser1', status: 'online' },
           { id: '2', name: 'TestUser2', status: 'ingame', game: 'Universe Testing' }
         ],
-        orgas: [
-          { id: '1', name: 'Test Squad', members: 3, isMember: false }
-        ],
+        orgas: [{ id: '1', name: 'Test Squad', members: 3, isMember: false }],
         requests: [],
         loaded: true
       }
@@ -127,33 +110,32 @@ export const useSocialStore = create<SocialState>((set, get) => ({
     patchEnv(set, env, mockData[env])
   },
 
-  // ── Amis ───────────────────────────────────────────────────────────────────
-
   addFriend: async (username: string) => {
     const env = useEnvStore.getState().activeEnv
     const trimmed = username.trim()
     if (!trimmed) return
 
-    // TODO: appel API
-    // const res = await fetch(`${API_BASE[env]}/friend-requests`, {
-    //   method: 'POST', body: JSON.stringify({ username: trimmed })
-    // })
-    // if (!res.ok) throw new Error('Utilisateur introuvable ou demande déjà envoyée.')
+    const { friends, requests } = get().data[env]
+    const nameTaken =
+      friends.some((f) => f.name.toLowerCase() === trimmed.toLowerCase()) ||
+      requests.some((r) => r.name.toLowerCase() === trimmed.toLowerCase())
 
+    // TODO: POST friend request API
     await new Promise((r) => setTimeout(r, 600))
-    console.log(`[SocialStore] Demande envoyée à "${trimmed}" sur env: ${env}`)
+
+    if (nameTaken) {
+      throw new SocialStoreError(SOCIAL_ERROR.FRIEND_REQUEST_FAILED)
+    }
+
+    console.log(`[SocialStore] Friend request sent to "${trimmed}" on env:`, env)
   },
 
   removeFriend: (id: string) => {
     const env = useEnvStore.getState().activeEnv
     const { friends } = get().data[env]
-
-    // TODO: appel API DELETE /friends/:id
-
+    // TODO: DELETE /friends/:id
     patchEnv(set, env, { friends: friends.filter((f) => f.id !== id) })
   },
-
-  // ── Demandes d'amis ────────────────────────────────────────────────────────
 
   acceptRequest: async (id: string) => {
     const env = useEnvStore.getState().activeEnv
@@ -161,9 +143,7 @@ export const useSocialStore = create<SocialState>((set, get) => ({
     const req = requests.find((r) => r.id === id)
     if (!req) return
 
-    // TODO: appel API POST /friend-requests/:id/accept
-    // await fetch(`${API_BASE[env]}/friend-requests/${id}/accept`, { method: 'POST' })
-
+    // TODO: POST /friend-requests/:id/accept
     await new Promise((r) => setTimeout(r, 400))
 
     patchEnv(set, env, {
@@ -176,30 +156,21 @@ export const useSocialStore = create<SocialState>((set, get) => ({
     const env = useEnvStore.getState().activeEnv
     const { requests } = get().data[env]
 
-    // TODO: appel API POST /friend-requests/:id/decline
-    // await fetch(`${API_BASE[env]}/friend-requests/${id}/decline`, { method: 'POST' })
-
+    // TODO: POST /friend-requests/:id/decline
     await new Promise((r) => setTimeout(r, 300))
 
     patchEnv(set, env, { requests: requests.filter((r) => r.id !== id) })
   },
 
-  // ── Organisations ──────────────────────────────────────────────────────────
-
   joinOrga: async (id: string) => {
     const env = useEnvStore.getState().activeEnv
     const { orgas } = get().data[env]
 
-    // TODO: appel API POST /organizations/:id/join
-    // const res = await fetch(`${API_BASE[env]}/organizations/${id}/join`, { method: 'POST' })
-    // if (!res.ok) throw new Error('Impossible de rejoindre cette organisation.')
-
+    // TODO: POST /organizations/:id/join
     await new Promise((r) => setTimeout(r, 500))
 
     patchEnv(set, env, {
-      orgas: orgas.map((o) =>
-        o.id === id ? { ...o, isMember: true, members: o.members + 1 } : o
-      )
+      orgas: orgas.map((o) => (o.id === id ? { ...o, isMember: true, members: o.members + 1 } : o))
     })
   },
 
@@ -208,18 +179,11 @@ export const useSocialStore = create<SocialState>((set, get) => ({
     const trimmed = name.trim()
     if (!trimmed) return
 
-    // TODO: appel API POST /organizations
-    // const res = await fetch(`${API_BASE[env]}/organizations`, {
-    //   method: 'POST', body: JSON.stringify({ name: trimmed })
-    // })
-    // const json = await res.json()
-    // if (json === false || !json.success) throw new Error('Ce nom d\'organisation est déjà pris.')
-
+    // TODO: POST /organizations
     await new Promise((r) => setTimeout(r, 600))
 
-    // Simulation : "DyingStar" est un nom déjà pris
     if (trimmed.toLowerCase() === 'dyingstar') {
-      throw new Error('Ce nom d\'organisation est déjà pris.')
+      throw new SocialStoreError(SOCIAL_ERROR.ORGA_NAME_TAKEN)
     }
 
     const { orgas } = get().data[env]

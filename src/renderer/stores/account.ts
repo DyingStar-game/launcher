@@ -1,79 +1,75 @@
 import { create } from 'zustand'
 import { useEnvStore, type Env } from './env'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type AccountStatus = 'connected' | 'disconnected' | 'loading'
 
 type EnvAccountData = {
-  status:    AccountStatus
+  status: AccountStatus
   username?: string
-  email?:    string
+  email?: string
 }
 
 type AccountState = {
   data: Record<Env, EnvAccountData>
-
-  login:       () => Promise<void>
-  logout:      () => Promise<void>
+  /** Opens OAuth login in the browser for the active environment. */
+  login: () => Promise<void>
+  /** Logs out and clears local session for the active environment. */
+  logout: () => Promise<void>
+  /** Cancels an in-progress login attempt (resets loading state). */
   cancelLogin: () => void
 }
 
-// ─── Valeurs par défaut ───────────────────────────────────────────────────────
-
 const defaultEnvData: EnvAccountData = {
-  status:    'disconnected',
-  username:  undefined,
-  email:     undefined
+  status: 'disconnected',
+  username: undefined,
+  email: undefined
 }
 
 const defaultData: Record<Env, EnvAccountData> = {
-  'universe':         { ...defaultEnvData },
+  universe: { ...defaultEnvData },
   'universe-testing': { ...defaultEnvData }
 }
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
-
 type SetFn = (fn: (s: AccountState) => Partial<AccountState>) => void
 
+/** Merges partial account fields for one environment into the store. */
 function patchEnv(set: SetFn, env: Env, patch: Partial<EnvAccountData>): void {
   set((s) => ({
     data: { ...s.data, [env]: { ...s.data[env], ...patch } }
   }))
 }
 
-// ─── Store ────────────────────────────────────────────────────────────────────
-
+/**
+ * Per-environment Discord/Keycloak auth state and login actions.
+ */
 export const useAccountStore = create<AccountState>((set) => {
-
-  // Écoute les changements d'état auth envoyés depuis le main process.
-  // Le payload inclut maintenant l'env pour mettre à jour le bon slot.
+  // Main process pushes final auth result after OAuth callback
   window.api.onAuthStateChanged((data) => {
     if (data.status === 'connected') {
       patchEnv(set, data.env, {
-        status:   'connected',
+        status: 'connected',
         username: data.user.username,
-        email:    data.user.email
+        email: data.user.email
       })
     } else {
       console.error('[AccountStore] Auth error:', data.error)
       patchEnv(set, data.env, {
-        status:   'disconnected',
+        status: 'disconnected',
         username: undefined,
-        email:    undefined
+        email: undefined
       })
     }
   })
 
-  // Restauration de session au démarrage — pour chaque env séparément
+  // Restore persisted sessions on startup (one request per env)
   const envs: Env[] = ['universe', 'universe-testing']
   envs.forEach((env) => {
     window.api.authLoadUser(env).then((user) => {
       if (user) {
         patchEnv(set, env, {
-          status:   'connected',
+          status: 'connected',
           username: user.username,
-          email:    user.email
+          email: user.email
         })
       }
     })
@@ -87,7 +83,7 @@ export const useAccountStore = create<AccountState>((set) => {
       patchEnv(set, env, { status: 'loading' })
       try {
         await window.api.authLogin(env)
-        // La mise à jour finale arrive via onAuthStateChanged
+        // Connected state is applied via onAuthStateChanged
       } catch {
         patchEnv(set, env, { status: 'disconnected' })
       }

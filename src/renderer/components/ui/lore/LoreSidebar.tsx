@@ -1,17 +1,19 @@
+import type React from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLoreStore } from '@stores/lore'
 
-export default function LoreSidebar() {
+/** Sidebar list of lore articles from the lore store. */
+export default function LoreSidebar(): React.JSX.Element {
+  const { t } = useTranslation()
   const { articles, current, select } = useLoreStore()
 
   return (
-    <div className="w-60 shrink-0 border-r border-[var(--color-ds-border)] bg-[var(--color-ds-surface)]/30 backdrop-blur px-3 py-4 flex flex-col gap-2">
+    <div className="ds-sidebar">
       <div className="px-2 pb-2">
         <p className="text-xs font-semibold text-[var(--color-ds-muted)] uppercase tracking-widest">
-          Lore
+          {t('lore.sidebarTitle')}
         </p>
-        <p className="text-[11px] text-[var(--color-ds-muted)]">
-          Articles, chroniques, archives.
-        </p>
+        <p className="text-[11px] text-[var(--color-ds-muted)]">{t('lore.sidebarSubtitle')}</p>
       </div>
 
       {articles.map((a) => (
@@ -24,10 +26,9 @@ export default function LoreSidebar() {
               : 'text-[var(--color-ds-muted)] border-transparent hover:border-[var(--color-ds-border)] hover:bg-[var(--color-ds-surface-hover)] hover:text-[var(--color-ds-text)]'
           }`}
         >
-          {a.title}
+          {t(`lore.articles.${a.id}`, { defaultValue: a.id })}
         </button>
       ))}
-
     </div>
   )
 }

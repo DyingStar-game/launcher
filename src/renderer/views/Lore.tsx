@@ -1,9 +1,11 @@
+import type React from 'react'
 import LoreSidebar from '@components/ui/lore/LoreSidebar'
 import LoreArticle from '@components/ui/lore/LoreArticle'
 
-export default function LorePage() {
+/** Lore page: article sidebar and markdown content viewer. */
+export default function LorePage(): React.JSX.Element {
   return (
-    <div className="flex h-full bg-[var(--color-ds-bg)]">
+    <div className="ds-page">
       <LoreSidebar />
       <LoreArticle />
     </div>

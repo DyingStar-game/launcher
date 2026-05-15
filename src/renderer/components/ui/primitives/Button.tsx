@@ -34,6 +34,7 @@ const variants: Record<Variant, string> = {
     'hover:bg-[var(--color-ds-surface-hover)] hover:border-[var(--color-ds-border)] hover:text-[var(--color-ds-text)]'
 }
 
+/** Themed button with primary/secondary/danger/ghost variants. */
 export default function Button({
   variant = 'secondary',
   size = 'md',
@@ -49,4 +50,3 @@ export default function Button({
     />
   )
 }
-

@@ -1,15 +1,12 @@
 import { ipcMain, BrowserWindow } from 'electron'
+import { parsePositiveInt } from '../config/constants'
 
-function parsePositiveInt(raw: string | undefined, fallback: number): number {
-  const n = Number(raw)
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback
-}
-
-const MIN_WIDTH  = parsePositiveInt(import.meta.env.VITE_WINDOW_WIDTH, 1200)
+const MIN_WIDTH = parsePositiveInt(import.meta.env.VITE_WINDOW_WIDTH, 1200)
 const MIN_HEIGHT = parsePositiveInt(import.meta.env.VITE_WINDOW_HEIGHT, 800)
-const MAX_WIDTH  = 1920
-const MAX_HEIGHT = 1200
+const MAX_WIDTH = parsePositiveInt(import.meta.env.VITE_WINDOW_MAX_WIDTH, 1920)
+const MAX_HEIGHT = parsePositiveInt(import.meta.env.VITE_WINDOW_MAX_HEIGHT, 1200)
 
+/** Registers IPC handlers for frameless window controls and auto-resize. */
 export function registerWindowHandlers(getWindow: () => BrowserWindow | null): void {
   ipcMain.removeHandler('window:minimize')
   ipcMain.removeHandler('window:close')

@@ -1,102 +1,194 @@
-{ 
-    "navbar": {
-        "home": "Home",
-        "social": "Social",
-        "lore": "Lore",
-        "support": "Donate",
-        "openWebsite": "Open official website",
-        "openDiscord": "Open Discord",
-        "openWiki": "Open wiki",
-        "donateUnavailable": "Support link not configured",
-        "quit": "Quit application",
-        "minimize": "Minimize",
-        "close": "Close"
+{
+  "installProgress": {
+    "connecting": "Connecting to server…",
+    "checkingUpdates": "Checking for updates…",
+    "downloading": "Downloading… ({{downloaded}} / {{total}})",
+    "downloadingIndeterminate": "Downloading… ({{downloaded}})",
+    "preparing": "Preparing game folder…",
+    "extracting": "Extracting… ({{current}} / {{total}} files)",
+    "cleaning": "Cleaning up…",
+    "completeInstall": "Installation complete — v{{version}}",
+    "completeUpdate": "Update complete — v{{version}}"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "loading": "...",
+    "close": "Close",
+    "send": "Send",
+    "create": "Create"
+  },
+  "navbar": {
+    "home": "Home",
+    "social": "Social",
+    "lore": "Lore",
+    "support": "Donate",
+    "openWebsite": "Open official website",
+    "openDiscord": "Open Discord",
+    "openWiki": "Open wiki",
+    "donateUnavailable": "Support link not configured",
+    "quit": "Quit application",
+    "minimize": "Minimize",
+    "close": "Close",
+    "languageFr": "Français",
+    "languageEn": "English",
+    "switchToFrench": "Switch to French",
+    "switchToEnglish": "Switch to English",
+    "envUniverse": "Universe",
+    "envTesting": "Universe Testing",
+    "brandDiscord": "Discord",
+    "brandWiki": "Wiki"
+  },
+  "universeTesting": {
+    "banner": "Testing environment — data is not from the live server"
+  },
+  "lore": {
+    "sidebarTitle": "Lore",
+    "sidebarSubtitle": "Articles, chronicles, archives.",
+    "selectArticle": "Select a lore article",
+    "fileNotFound": "File not found: {{file}}",
+    "articles": {
+      "origins": "Origins"
+    }
+  },
+  "friendStatus": {
+    "online": "Online",
+    "offline": "Offline",
+    "ingame": "In game",
+    "ingameWithGame": "In game • {{game}}"
+  },
+  "universe": {
+    "title": "Universe",
+    "account": {
+      "title": "Account",
+      "disconnected": "Not connected",
+      "connectedAs": "Logged in as {{username}}",
+      "login": "Login with Discord",
+      "logout": "Logout",
+      "subscription": "Subscription",
+      "loading": "Connecting...",
+      "cancel": "Cancel",
+      "unavailable": "Authentication not available for this environment.",
+      "unavailableBtn": "Unavailable"
     },
-    "universeTesting": {
-        "banner": "Testing environment — data is not from the live server"
-    },
-    "universe": {
-      "title": "Universe",
-      "account": {
-        "title": "Account",
-        "disconnected": "Not connected",
-        "connectedAs": "Logged in as {{username}}",
-        "login": "Login with Discord",
-        "logout": "Logout",
-        "subscription": "Subscription",
-        "loading": "Connecting...",
-        "cancel": "Cancel",
-        "unavailable": "Authentication not available for this environment.",
-        "unavailableBtn": "Unavailable"
-      },
-      "updateAlert": {
-        "launcher": {
-          "title": "Launcher update available",
-          "discordHint": "The new version is available here:",
-          "discordLink": "Discord"
-        },
-        "game": {
-          "title": "New game version available"
-        },
-        "releaseOn": "Released {{date}}"
+    "updateAlert": {
+      "dismiss": "Dismiss alert",
+      "launcher": {
+        "title": "Launcher update available",
+        "discordHint": "The new version is available here:",
+        "discordLink": "Discord"
       },
       "game": {
-        "title": "Game",
-        "play": "Play",
-        "playDisabledMaintenance": "The server is under maintenance — launching the game is disabled.",
-        "playDisabledUpdate": "A game update is available — install it before playing.",
-        "playDisabledAuth": "Sign in to launch the game.",
-        "playDisabledAuthLoading": "Checking your session…",
-        "playDisabledRunning": "The game is already running.",
-        "notInstalled": "Game not installed",
-        "players": "{{count}} players online",
-        "status": {
-            "online": "Available",
-            "degraded": "Issues ongoing",
-            "offline": "Offline",
-            "maintenance": "Under maintenance",
-            "unknown": "Unknown",
-            "unavailable": "Unavailable"
+        "title": "New game version available"
+      },
+      "releaseOn": "Released {{date}}"
+    },
+    "game": {
+      "title": "Game",
+      "play": "Play",
+      "playDisabledMaintenance": "The server is under maintenance — launching the game is disabled.",
+      "playDisabledUpdate": "A game update is available — install it before playing.",
+      "playDisabledAuth": "Sign in to launch the game.",
+      "playDisabledAuthLoading": "Checking your session…",
+      "playDisabledRunning": "The game is already running.",
+      "notInstalled": "Game not installed",
+      "players": "{{count}} players online",
+      "status": {
+        "online": "Available",
+        "degraded": "Issues ongoing",
+        "offline": "Offline",
+        "maintenance": "Under maintenance",
+        "unknown": "Unknown",
+        "unavailable": "Unavailable"
+      },
+      "viewStatus": "View status"
+    },
+    "files": {
+      "title": "Game files",
+      "version": "Version: {{version}}",
+      "releaseDate": "Release: {{date}}",
+      "notInstalled": "Game not installed",
+      "install": "Install",
+      "update": "Update",
+      "verify": "Verify files",
+      "clearCache": "Clear cache",
+      "clearCacheToastOk": "Cache cleared.",
+      "clearCacheToastPartial": "Cache partially cleared (some folders could not be removed).",
+      "clearCacheToastError": "Could not clear the cache.",
+      "changelog": "View changelog",
+      "changelogModalTitle": "Changelog — v{{version}}",
+      "changelogLoading": "Loading changelog…",
+      "changelogMissing": "No CHANGELOG.md was found in the install folder (make sure it is included in the game archive).",
+      "installing": "Installing...",
+      "installPath": "Install folder",
+      "installPathPlaceholder": "/home/user/games/dyingstar",
+      "browse": "Browse",
+      "unavailable": "Installation not available for this environment.",
+      "unavailableBtn": "Unavailable"
+    },
+    "social": {
+      "title": "Social",
+      "noFriends": "No friends",
+      "seeAll": "See all",
+      "notifications": "{{count}} notifications"
+    },
+    "socialPage": {
+      "sidebarTitle": "Social",
+      "sidebarSubtitle": "Friends, organizations, requests.",
+      "friends": "Friends",
+      "organizations": "Organizations",
+      "requests": "Requests",
+      "addFriend": "Add friend",
+      "createOrga": "Create org",
+      "createOrgaLong": "Create organization",
+      "joinOrga": "Join",
+      "accept": "Accept",
+      "decline": "Decline",
+      "tabs": {
+        "friends": {
+          "label": "Friends",
+          "subtitle": "Manage your friends and status."
         },
-        "viewStatus": "View status"
+        "organizations": {
+          "label": "Organizations",
+          "subtitle": "Organizations, members, and invites."
+        },
+        "requests": {
+          "label": "Requests",
+          "subtitle": "Pending friend requests."
+        }
       },
-      "files": {
-        "title": "Game files",
-        "version": "Version: {{version}}",
-        "releaseDate": "Release: {{date}}",
-        "notInstalled": "Game not installed",
-        "install": "Install",
-        "update": "Update",
-        "verify": "Verify files",
-        "clearCache": "Clear cache",
-        "clearCacheToastOk": "Cache cleared.",
-        "clearCacheToastPartial": "Cache partially cleared (some folders could not be removed).",
-        "clearCacheToastError": "Could not clear the cache.",
-        "changelog": "View changelog",
-        "changelogModalTitle": "Changelog — v{{version}}",
-        "changelogLoading": "Loading changelog…",
-        "changelogMissing": "No CHANGELOG.md was found in the install folder (make sure it is included in the game archive).",
-        "installing": "Installing...",
-        "installPath": "Install folder",
-        "browse": "Browse",
-        "unavailable": "Installation not available for this environment.",
-        "unavailableBtn": "Unavailable"
+      "addFriendForm": {
+        "title": "Add a friend",
+        "usernameLabel": "Exact username",
+        "usernamePlaceholder": "Enter a username...",
+        "success": "Request sent!"
       },
-      "social": {
-        "title": "Social",
-        "noFriends": "No friends",
-        "seeAll": "See all",
-        "notifications": "{{count}} notifications"
+      "createOrgaForm": {
+        "title": "Create an organization",
+        "nameLabel": "Organization name",
+        "namePlaceholder": "Enter a unique name...",
+        "success": "Organization created!"
       },
-      "socialPage": {
-        "friends": "Friends",
-        "organizations": "Organizations",
-        "requests": "Requests",
-        "addFriend": "Add friend",
-        "createOrga": "Create organization",
-        "joinOrga": "Join organization",
-        "accept": "Accept",
-        "decline": "Decline"
+      "pendingRequests_one": "{{count}} pending request",
+      "pendingRequests_other": "{{count}} pending requests",
+      "emptyFriends": "No friends yet.",
+      "emptyOrganizations": "No organizations.",
+      "emptyRequests": "No pending requests.",
+      "orga": {
+        "members_one": "{{count}} member",
+        "members_other": "{{count}} members",
+        "memberBadge": "Member",
+        "joinAria": "Join organization {{name}}"
+      },
+      "request": {
+        "acceptAria": "Accept request from {{name}}",
+        "declineAria": "Decline request from {{name}}"
+      },
+      "errors": {
+        "friendRequestFailed": "User not found or request already sent.",
+        "orgaNameTaken": "This organization name is already taken.",
+        "joinOrgaFailed": "Could not join this organization."
       }
     }
   }
+}

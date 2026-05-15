@@ -2,20 +2,22 @@ import { create } from 'zustand'
 
 type Article = {
   id: string
-  title: string
   file: string
 }
 
 type LoreState = {
   articles: Article[]
   current?: Article
-
+  /** Selects a lore article by id for display in LoreArticle. */
   select: (id: string) => void
 }
 
+/**
+ * Lore sidebar catalog and currently selected markdown article.
+ * Article titles are resolved via i18n (`lore.articles.<id>`).
+ */
 export const useLoreStore = create<LoreState>((set, get) => ({
-  articles: [{ id: 'origins', title: 'Origines', file: 'origins.md' }],
-
+  articles: [{ id: 'origins', file: 'origins.md' }],
   current: undefined,
 
   select: (id) => {

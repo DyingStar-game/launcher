@@ -1,5 +1,6 @@
 /**
- * Affiche une date de release en jj/MM/aaaa (locale FR attendue dans l’UI).
+ * Formats a release date for display as DD/MM/YYYY (French UI locale).
+ * Accepts ISO dates, YYYYMMDDHHMMSS build ids, and parseable date strings.
  */
 export function formatReleaseDateDisplay(raw: string | null | undefined): string {
   if (raw == null || raw === '') return '—'

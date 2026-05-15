@@ -10,29 +10,31 @@ import InputField from '@components/ui/primitives/InputField'
 import UpdateAlert from '@components/ui/feedback/UpdateAlert'
 import ChangelogModal from '@components/ui/overlays/ChangelogModal'
 import { formatReleaseDateDisplay } from '@lib/formatReleaseDate'
+import { formatInstallProgress } from '@lib/formatInstallProgress'
 import { isGameUpdateAvailable } from '@lib/isGameUpdateAvailable'
+import { toastDurationMs } from '@lib/env'
 
+/** Files panel: install path, install/update progress, changelog, and cache clear. */
 export default function FilesPanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data, setInstallPath, selectDirectory, install, update, clearCache } = useFilesStore()
   const { available } = useAvailabilityStore()
 
-  const {
-    installed, version, releaseDate,
-    installing, progress, progressLabel, installPath
-  } = data[activeEnv]
+  const { installed, version, releaseDate, installing, progress, progressEvent, installPath } =
+    data[activeEnv]
 
   const isAvailable = available[activeEnv]
 
   const latestGameInfo: GameVersionInfo | undefined = useVersionStore(
     (s) => s.latestGameVersions[activeEnv]
   )
-  const latestVersion:     string | null = latestGameInfo?.version     ?? null
+  const latestVersion: string | null = latestGameInfo?.version ?? null
   const latestReleaseDate: string | null = latestGameInfo?.releaseDate ?? null
 
   const gameUpdateAvailable = isGameUpdateAvailable(installed, version, latestVersion)
 
   const { t } = useTranslation()
+  const progressText = formatInstallProgress(t, progressEvent)
 
   const [changelogOpen, setChangelogOpen] = useState(false)
   const [changelogLoading, setChangelogLoading] = useState(false)
@@ -41,7 +43,7 @@ export default function FilesPanel(): React.JSX.Element {
 
   useEffect(() => {
     if (!cacheToast) return
-    const id = window.setTimeout(() => setCacheToast(null), 3800)
+    const id = window.setTimeout(() => setCacheToast(null), toastDurationMs())
     return () => window.clearTimeout(id)
   }, [cacheToast])
 
@@ -69,12 +71,9 @@ export default function FilesPanel(): React.JSX.Element {
   }, [installPath])
 
   return (
-    <div className="relative h-full bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-7 flex flex-col gap-5 shadow-[0_12px_32px_rgba(0,0,0,0.35)] hover:border-[var(--color-ds-accent)]/40 transition-colors">
-
+    <div className="ds-panel ds-panel-padded relative h-full flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <h2 className="text-[11px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.24em]">
-          {t('universe.files.title')}
-        </h2>
+        <h2 className="ds-section-label">{t('universe.files.title')}</h2>
         <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
       </div>
 
@@ -93,22 +92,20 @@ export default function FilesPanel(): React.JSX.Element {
         label={t('universe.files.installPath')}
         value={installPath}
         onChange={setInstallPath}
-        placeholder="/home/user/games/dyingstar"
+        placeholder={t('universe.files.installPathPlaceholder')}
         disabled={installing || !isAvailable}
         readOnly
-        action={isAvailable ? { label: t('universe.files.browse'), onClick: selectDirectory } : undefined}
+        action={
+          isAvailable ? { label: t('universe.files.browse'), onClick: selectDirectory } : undefined
+        }
       />
 
       {!isAvailable && (
-        <p className="text-[var(--color-ds-muted)] text-sm">
-          {t('universe.files.unavailable')}
-        </p>
+        <p className="text-[var(--color-ds-muted)] text-sm">{t('universe.files.unavailable')}</p>
       )}
 
       {isAvailable && !installed && (
-        <p className="text-[var(--color-ds-muted)] text-sm">
-          {t('universe.files.notInstalled')}
-        </p>
+        <p className="text-[var(--color-ds-muted)] text-sm">{t('universe.files.notInstalled')}</p>
       )}
 
       {installed && (
@@ -126,7 +123,7 @@ export default function FilesPanel(): React.JSX.Element {
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center">
             <p className="text-sm text-[var(--color-ds-muted)]">
-              {progressLabel || t('universe.files.installing')}
+              {progressText || t('universe.files.installing')}
             </p>
             <span className="text-xs text-[var(--color-ds-muted)] tabular-nums">{progress}%</span>
           </div>
@@ -165,11 +162,7 @@ export default function FilesPanel(): React.JSX.Element {
         )} */}
 
         {isAvailable && installed && (
-          <Button
-            variant="secondary"
-            disabled={installing || !installPath}
-            onClick={openChangelog}
-          >
+          <Button variant="secondary" disabled={installing || !installPath} onClick={openChangelog}>
             {t('universe.files.changelog')}
           </Button>
         )}
