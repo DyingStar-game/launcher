@@ -5,7 +5,7 @@ import { downloadAndInstall } from '../download'
 import { resolveInstalledVersion } from '../download/manifest'
 import { clearDyingStarGodotCaches } from '../godotUserdataCache'
 import type { Env } from '@shared/types/env'
-import { findChangelogPath, getGameRoot } from './paths'
+import { findChangelogPath, getGameRoot, isGameInstalledAtPath } from './paths'
 import { launchGame } from './launch'
 import { isGameRunning, setLauncherWindow } from './processWatch'
 import { getInstallDialogStrings } from '../../l10n/dialogs'
@@ -64,7 +64,9 @@ export function registerFilesHandlers(win: BrowserWindow): void {
       installPath: string
     ): Promise<{ version: string; releaseDate: string } | null> => {
       if (!installPath || typeof installPath !== 'string') return null
-      const gameRoot = getGameRoot(path.resolve(installPath))
+      const resolvedPath = path.resolve(installPath)
+      if (!isGameInstalledAtPath(resolvedPath)) return null
+      const gameRoot = getGameRoot(resolvedPath)
       if (!fs.existsSync(gameRoot)) return null
       return resolveInstalledVersion(env, gameRoot)
     }

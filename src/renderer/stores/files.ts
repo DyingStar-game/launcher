@@ -28,7 +28,10 @@ type FilesState = {
   update: () => Promise<void>
   verify: () => Promise<void>
   clearCache: () => Promise<ClearGodotCacheOutcome>
-  /** Aligns local version with remote API after rehydrate or manual refresh. */
+  /**
+   * Reconciles persisted install flags with files on disk (startup, env switch, verify).
+   * Clears install state when the game folder or executable was removed manually.
+   */
   syncInstalledVersions: () => Promise<void>
 }
 
@@ -152,9 +155,7 @@ export const useFilesStore = create<FilesState>()(
       },
 
       verify: async () => {
-        const env = useEnvStore.getState().activeEnv
-        const { installPath } = get().data[env]
-        console.log('[FilesStore] Verify install path:', installPath, 'env:', env)
+        await get().syncInstalledVersions()
       },
 
       clearCache: async (): Promise<ClearGodotCacheOutcome> => {
@@ -179,17 +180,42 @@ export const useFilesStore = create<FilesState>()(
         const envs: Env[] = ['universe', 'universe-testing']
         await Promise.all(
           envs.map(async (env) => {
-            const { installed, installPath } = get().data[env]
-            if (!installed || !installPath) return
+            const { installPath } = get().data[env]
+            if (!installPath) {
+              if (get().data[env].installed) {
+                patchEnv(set, env, {
+                  installed: false,
+                  version: null,
+                  releaseDate: null,
+                  needsUpdate: false
+                })
+              }
+              return
+            }
             try {
               const resolved = await window.api.resolveInstalledVersion(env, installPath)
-              if (!resolved?.version) return
+              if (!resolved?.version) {
+                patchEnv(set, env, {
+                  installed: false,
+                  version: null,
+                  releaseDate: null,
+                  needsUpdate: false
+                })
+                return
+              }
               patchEnv(set, env, {
+                installed: true,
                 version: resolved.version,
                 releaseDate: resolved.releaseDate
               })
             } catch (err) {
               console.warn('[FilesStore] Sync installed version:', env, err)
+              patchEnv(set, env, {
+                installed: false,
+                version: null,
+                releaseDate: null,
+                needsUpdate: false
+              })
             }
           })
         )
