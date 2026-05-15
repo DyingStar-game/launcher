@@ -3,7 +3,11 @@ type Props = {
   title?: string
 }
 
-export default function DiscordIcon({ className = 'w-4.5 h-4.5', title = 'Discord' }: Props): React.JSX.Element {
+/** Discord logo SVG for login and navbar links. */
+export default function DiscordIcon({
+  className = 'w-4.5 h-4.5',
+  title = 'Discord'
+}: Props): React.JSX.Element {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" className={`fill-current ${className}`}>
       <title>{title}</title>

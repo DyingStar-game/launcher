@@ -3,29 +3,26 @@ import { existsSync } from 'fs'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 
-/** Nom du fichier icône selon la plateforme. */
+/** Icon file name for the current platform. */
 function iconFileName(): string {
   if (process.platform === 'win32') return 'icon.ico'
   if (process.platform === 'darwin') return 'icon.icns'
   return 'icon.png'
 }
 
-/** Chemins candidats (dev electron-vite, preview, build packagé). */
+/** Candidate icon paths (dev, preview, packaged build). */
 function candidateIconPaths(): string[] {
   const name = iconFileName()
   const paths: string[] = []
 
-  // Dev / preview : `out/main` → `../../resources`
   paths.push(join(__dirname, '../../resources', name))
 
-  // Racine du projet (app.getAppPath() en dev)
   try {
     paths.push(join(app.getAppPath(), 'resources', name))
   } catch {
-    /* app pas encore prêt */
+    /* app not ready yet */
   }
 
-  // Binaire packagé (extraResources)
   if (process.resourcesPath) {
     paths.push(join(process.resourcesPath, name))
   }
@@ -33,7 +30,7 @@ function candidateIconPaths(): string[] {
   return paths
 }
 
-/** Chemin absolu vers l’icône du launcher, ou null si introuvable. */
+/** Absolute path to the launcher icon, or null when not found. */
 export function resolveAppIconPath(): string | null {
   for (const p of candidateIconPaths()) {
     if (existsSync(p)) return p
@@ -41,11 +38,12 @@ export function resolveAppIconPath(): string | null {
   return null
 }
 
+/** Loads the native image for BrowserWindow / tray use. */
 export function loadAppIcon(): Electron.NativeImage | undefined {
   const iconPath = resolveAppIconPath()
   if (!iconPath) {
     if (is.dev) {
-      console.warn('[Icon] Fichier icône introuvable — barre des tâches Electron par défaut.')
+      console.warn('[Icon] Icon file not found — using default Electron taskbar icon.')
     }
     return undefined
   }
@@ -53,7 +51,7 @@ export function loadAppIcon(): Electron.NativeImage | undefined {
   return image.isEmpty() ? undefined : image
 }
 
-/** Icône dock macOS + cohérence globale. */
+/** Applies the icon to the macOS dock when available. */
 export function applyAppIcon(): void {
   const image = loadAppIcon()
   if (!image) return

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSocialStore } from '@stores/social'
 import { useEnvStore } from '@stores/env'
 import SocialSidebar from '@components/ui/social/SocialSidebar'
@@ -7,10 +8,12 @@ import InputField from '@components/ui/primitives/InputField'
 import { FriendRow } from '@components/ui/social/FriendRow'
 import { OrgaRow } from '@components/ui/social/OrgaRow'
 import { RequestRow } from '@components/ui/social/RequestRow'
+import { socialPanelAutoCloseMs } from '@lib/env'
+import { getSocialErrorMessage } from '@lib/socialErrors'
 
-// ─── Formulaire : ajouter un ami ──────────────────────────────────────────────
-
+/** Inline form to send a friend request by username. */
 function AddFriendForm({ onClose }: { onClose: () => void }): React.JSX.Element {
+  const { t } = useTranslation()
   const { addFriend } = useSocialStore()
   const [username, setUsername] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -24,45 +27,46 @@ function AddFriendForm({ onClose }: { onClose: () => void }): React.JSX.Element 
       await addFriend(username)
       setStatus('success')
       setUsername('')
-      setTimeout(onClose, 1200)
+      setTimeout(onClose, socialPanelAutoCloseMs())
     } catch (err) {
       setStatus('error')
-      setErrorMsg(err instanceof Error ? err.message : 'Utilisateur introuvable ou demande déjà envoyée.')
+      setErrorMsg(getSocialErrorMessage(err, t, 'universe.socialPage.errors.friendRequestFailed'))
     }
   }
 
   return (
-    <div className="flex flex-col gap-3 p-4 rounded-xl border border-[var(--color-ds-border)] bg-[var(--color-ds-surface)] shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+    <div className="ds-card flex flex-col gap-3 p-4">
       <p className="text-[10px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.2em]">
-        Ajouter un ami
+        {t('universe.socialPage.addFriendForm.title')}
       </p>
       <InputField
-        label="Pseudo exact"
+        label={t('universe.socialPage.addFriendForm.usernameLabel')}
         value={username}
         onChange={setUsername}
-        placeholder="Entrez un pseudo..."
+        placeholder={t('universe.socialPage.addFriendForm.usernamePlaceholder')}
         disabled={status === 'loading'}
-        action={{ label: status === 'loading' ? '...' : 'Envoyer', onClick: handleSubmit }}
+        action={{
+          label: status === 'loading' ? t('common.loading') : t('common.send'),
+          onClick: handleSubmit
+        }}
       />
       {status === 'success' && (
-        <p className="text-xs text-emerald-400">Demande envoyée !</p>
+        <p className="text-xs text-emerald-400">{t('universe.socialPage.addFriendForm.success')}</p>
       )}
-      {status === 'error' && (
-        <p className="text-xs text-red-400">{errorMsg}</p>
-      )}
+      {status === 'error' && <p className="text-xs text-red-400">{errorMsg}</p>}
       <button
         onClick={onClose}
         className="text-xs text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors text-left"
       >
-        Annuler
+        {t('common.cancel')}
       </button>
     </div>
   )
 }
 
-// ─── Formulaire : créer une organisation ──────────────────────────────────────
-
+/** Inline form to create a new organization. */
 function CreateOrgaForm({ onClose }: { onClose: () => void }): React.JSX.Element {
+  const { t } = useTranslation()
   const { createOrga } = useSocialStore()
   const [name, setName] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -76,64 +80,50 @@ function CreateOrgaForm({ onClose }: { onClose: () => void }): React.JSX.Element
       await createOrga(name)
       setStatus('success')
       setName('')
-      setTimeout(onClose, 1200)
+      setTimeout(onClose, socialPanelAutoCloseMs())
     } catch (err) {
       setStatus('error')
-      setErrorMsg(err instanceof Error ? err.message : 'Ce nom d\'organisation est déjà pris.')
+      setErrorMsg(getSocialErrorMessage(err, t))
     }
   }
 
   return (
-    <div className="flex flex-col gap-3 p-4 rounded-xl border border-[var(--color-ds-border)] bg-[var(--color-ds-surface)] shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+    <div className="ds-card flex flex-col gap-3 p-4">
       <p className="text-[10px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.2em]">
-        Créer une organisation
+        {t('universe.socialPage.createOrgaForm.title')}
       </p>
       <InputField
-        label="Nom de l'organisation"
+        label={t('universe.socialPage.createOrgaForm.nameLabel')}
         value={name}
         onChange={setName}
-        placeholder="Entrez un nom unique..."
+        placeholder={t('universe.socialPage.createOrgaForm.namePlaceholder')}
         disabled={status === 'loading'}
-        action={{ label: status === 'loading' ? '...' : 'Créer', onClick: handleSubmit }}
+        action={{
+          label: status === 'loading' ? t('common.loading') : t('common.create'),
+          onClick: handleSubmit
+        }}
       />
       {status === 'success' && (
-        <p className="text-xs text-emerald-400">Organisation créée !</p>
+        <p className="text-xs text-emerald-400">
+          {t('universe.socialPage.createOrgaForm.success')}
+        </p>
       )}
-      {status === 'error' && (
-        <p className="text-xs text-red-400">{errorMsg}</p>
-      )}
+      {status === 'error' && <p className="text-xs text-red-400">{errorMsg}</p>}
       <button
         onClick={onClose}
         className="text-xs text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors text-left"
       >
-        Annuler
+        {t('common.cancel')}
       </button>
     </div>
   )
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type Tab = 'friends' | 'organizations' | 'requests'
 
-const TAB_META: Record<Tab, { label: string; subtitle: string }> = {
-  friends: {
-    label: 'Amis',
-    subtitle: 'Gère ta liste d\'amis et ton statut.'
-  },
-  organizations: {
-    label: 'Organisations',
-    subtitle: 'Organisations, membres et invitations.'
-  },
-  requests: {
-    label: 'Demandes',
-    subtitle: 'Demandes d\'amis en attente.'
-  }
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
+/** Full social page: friends, organizations, and friend requests. */
 export default function SocialPage(): React.JSX.Element {
+  const { t } = useTranslation()
   const { activeEnv } = useEnvStore()
   const { data, fetchAll, acceptRequest, declineRequest, joinOrga } = useSocialStore()
   const { friends, orgas, requests } = data[activeEnv]
@@ -143,8 +133,8 @@ export default function SocialPage(): React.JSX.Element {
   const [showCreateOrga, setShowCreateOrga] = useState(false)
 
   useEffect(() => {
-    fetchAll()
-  }, [activeEnv])
+    void fetchAll()
+  }, [activeEnv, fetchAll])
 
   const handleTabChange = (next: string): void => {
     setTab(next as Tab)
@@ -152,47 +142,46 @@ export default function SocialPage(): React.JSX.Element {
     setShowCreateOrga(false)
   }
 
-  const meta = TAB_META[tab]
+  const tabLabel = t(`universe.socialPage.tabs.${tab}.label`)
+  const tabSubtitle = t(`universe.socialPage.tabs.${tab}.subtitle`)
 
   return (
-    <div className="flex h-full bg-[var(--color-ds-bg)]">
-
+    <div className="ds-page">
       <SocialSidebar current={tab} setCurrent={handleTabChange} />
 
-      <div className="flex-1 min-w-0 p-6 flex flex-col gap-4">
-
-        {/* Header */}
+      <div className="flex min-h-0 flex-1 flex-col gap-4 min-w-0 p-6">
         <div className="flex justify-between items-start">
           <div className="flex flex-col">
-            <h1 className="text-xl font-bold text-[var(--color-ds-text)]">
-              {meta.label}
-            </h1>
-            <p className="text-xs text-[var(--color-ds-muted)]">
-              {meta.subtitle}
-            </p>
+            <h1 className="text-xl font-bold text-[var(--color-ds-text)]">{tabLabel}</h1>
+            <p className="text-xs text-[var(--color-ds-muted)]">{tabSubtitle}</p>
           </div>
 
           <div className="flex gap-2">
             {tab === 'friends' && (
               <Button
                 variant="primary"
-                onClick={() => { setShowAddFriend((v) => !v); setShowCreateOrga(false) }}
+                onClick={() => {
+                  setShowAddFriend((v) => !v)
+                  setShowCreateOrga(false)
+                }}
               >
-                {showAddFriend ? 'Annuler' : 'Ajouter un ami'}
+                {showAddFriend ? t('common.cancel') : t('universe.socialPage.addFriend')}
               </Button>
             )}
             {tab === 'organizations' && (
               <Button
                 variant="primary"
-                onClick={() => { setShowCreateOrga((v) => !v); setShowAddFriend(false) }}
+                onClick={() => {
+                  setShowCreateOrga((v) => !v)
+                  setShowAddFriend(false)
+                }}
               >
-                {showCreateOrga ? 'Annuler' : 'Créer une orga'}
+                {showCreateOrga ? t('common.cancel') : t('universe.socialPage.createOrga')}
               </Button>
             )}
           </div>
         </div>
 
-        {/* Formulaires contextuels */}
         {showAddFriend && tab === 'friends' && (
           <AddFriendForm onClose={() => setShowAddFriend(false)} />
         )}
@@ -200,22 +189,19 @@ export default function SocialPage(): React.JSX.Element {
           <CreateOrgaForm onClose={() => setShowCreateOrga(false)} />
         )}
 
-        {/* Compteur requêtes */}
         {tab === 'requests' && requests.length > 0 && (
           <p className="text-xs text-[var(--color-ds-muted)]">
-            {requests.length} demande{requests.length > 1 ? 's' : ''} en attente
+            {t('universe.socialPage.pendingRequests', { count: requests.length })}
           </p>
         )}
 
-        {/* Contenu */}
-        <div className="flex-1 min-h-0 overflow-hidden rounded-xl border border-[var(--color-ds-border)] bg-[var(--color-ds-surface)] shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
+        <div className="ds-panel flex-1 min-h-0 overflow-hidden">
           <div className="h-full overflow-y-auto p-3 flex flex-col gap-2">
-
             {tab === 'friends' && (
               <>
                 {friends.length === 0 && (
                   <p className="text-sm text-[var(--color-ds-muted)] p-2">
-                    Aucun ami pour le moment.
+                    {t('universe.socialPage.emptyFriends')}
                   </p>
                 )}
                 {friends.map((f) => (
@@ -228,7 +214,7 @@ export default function SocialPage(): React.JSX.Element {
               <>
                 {orgas.length === 0 && (
                   <p className="text-sm text-[var(--color-ds-muted)] p-2">
-                    Aucune organisation.
+                    {t('universe.socialPage.emptyOrganizations')}
                   </p>
                 )}
                 {orgas.map((o) => (
@@ -241,7 +227,7 @@ export default function SocialPage(): React.JSX.Element {
               <>
                 {requests.length === 0 && (
                   <p className="text-sm text-[var(--color-ds-muted)] p-2">
-                    Aucune demande en attente.
+                    {t('universe.socialPage.emptyRequests')}
                   </p>
                 )}
                 {requests.map((r) => (
@@ -254,10 +240,8 @@ export default function SocialPage(): React.JSX.Element {
                 ))}
               </>
             )}
-
           </div>
         </div>
-
       </div>
     </div>
   )

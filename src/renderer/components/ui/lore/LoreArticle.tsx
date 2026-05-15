@@ -1,4 +1,6 @@
+import type React from 'react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLoreStore } from '@stores/lore'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -10,50 +12,50 @@ const loreMarkdownFiles = import.meta.glob('../../../content/lore/*.md', {
   import: 'default'
 }) as Record<string, () => Promise<string>>
 
-export default function LoreArticle() {
+/** Loads and renders the selected lore markdown article via Vite glob imports. */
+export default function LoreArticle(): React.JSX.Element {
+  const { t } = useTranslation()
   const { current } = useLoreStore()
   const [content, setContent] = useState('')
 
+  const articleKey = current ? `../../../content/lore/${current.file}` : null
+  const loader = articleKey ? loreMarkdownFiles[articleKey] : undefined
+  const missingFile = Boolean(current && articleKey && !loader)
+
   useEffect(() => {
-    if (!current) return
+    if (!current || !loader) return
 
-    const key = `../../../content/lore/${current.file}`
-    const loader = loreMarkdownFiles[key]
-
-    if (!loader) {
-      setContent(`⚠️ Fichier introuvable: ${current.file}`)
-      return
+    let cancelled = false
+    void loader().then((markdown) => {
+      if (!cancelled) setContent(markdown)
+    })
+    return () => {
+      cancelled = true
     }
-
-    loader().then(setContent)
-  }, [current])
+  }, [current, loader])
 
   if (!current) {
     return (
-      <div className="flex-1 min-w-0 p-6">
-        <div className="h-full rounded-xl border border-[var(--color-ds-border)] bg-[var(--color-ds-surface)] shadow-[0_12px_32px_rgba(0,0,0,0.35)] flex items-center justify-center text-[var(--color-ds-muted)]">
-          Sélectionne un article du lore
+      <div className="flex min-h-0 flex-1 flex-col min-w-0 p-6">
+        <div className="ds-panel flex h-full flex-1 items-center justify-center text-[var(--color-ds-muted)]">
+          {t('lore.selectArticle')}
         </div>
       </div>
     )
   }
 
+  const title = t(`lore.articles.${current.id}`, { defaultValue: current.id })
+  const body = missingFile ? t('lore.fileNotFound', { file: current.file }) : content
+
   return (
-    <div className="flex-1 min-w-0 p-6">
-      <div className="h-full overflow-hidden rounded-xl border border-[var(--color-ds-border)] bg-[var(--color-ds-surface)] shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
+    <div className="flex min-h-0 flex-1 flex-col min-w-0 p-6">
+      <div className="ds-panel flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="h-full overflow-y-auto px-10 py-8">
           <article className="lore-markdown">
-
-            {/* TITLE (optionnel override) */}
-            <h1 className="mb-6">{current.title}</h1>
-
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw, rehypeSanitize]}
-            >
-              {content}
+            <h1 className="mb-6">{title}</h1>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
+              {body}
             </ReactMarkdown>
-
           </article>
         </div>
       </div>

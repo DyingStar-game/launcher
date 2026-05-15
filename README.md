@@ -4,14 +4,14 @@ Launcher desktop open source pour le jeu **Dying Star**, basé sur [Electron](ht
 
 ## Stack
 
-| Couche | Technologie |
-|--------|-------------|
-| Shell desktop | Electron 38 |
-| Build | electron-vite, Vite 7 |
-| UI | React 19, Tailwind CSS v4 |
-| État | Zustand |
-| i18n | i18next / react-i18next |
-| Packaging | electron-builder |
+| Couche        | Technologie               |
+| ------------- | ------------------------- |
+| Shell desktop | Electron 38               |
+| Build         | electron-vite, Vite 7     |
+| UI            | React 19, Tailwind CSS v4 |
+| État          | Zustand                   |
+| i18n          | i18next / react-i18next   |
+| Packaging     | electron-builder          |
 
 ## Structure du projet
 
@@ -21,6 +21,7 @@ src/
 ├── preload/        # Pont sécurisé contextBridge → window.api
 ├── renderer/       # Application React (composants, vues, stores, i18n)
 └── shared/         # Types TypeScript partagés (main, preload, renderer)
+docs/               # Documentation contributeur (en/ et fr/)
 resources/          # Icônes et entitlements macOS (versionnés)
 ```
 
@@ -29,31 +30,33 @@ Alias TypeScript / Vite : `@shared`, `@components`, `@views`, `@stores`, `@hooks
 ## Prérequis
 
 - Node.js 20+
-- npm ou pnpm
+- [pnpm](https://pnpm.io/) (gestionnaire de paquets du dépôt)
 
 ## Installation
 
 ```bash
 git clone https://github.com/DyingStar-game/launcher.git
 cd launcher
-npm install
+git checkout develop
+pnpm install
 cp .env.example .env
 # Éditer .env selon l’environnement (API, ZIP de test, etc.)
 ```
 
 ## Scripts
 
-| Commande | Description |
-|----------|-------------|
-| `npm run dev` | Développement avec rechargement à chaud |
-| `npm run build` | Vérification TypeScript + build de production (`out/`) |
-| `npm run start` | Prévisualiser le build packagé |
-| `npm run typecheck` | Contrôle TypeScript (main + renderer) |
-| `npm run lint` | ESLint |
-| `npm run format` | Prettier |
-| `npm run build:win` | Installateur Windows (NSIS) |
-| `npm run build:mac` | Application macOS |
-| `npm run build:linux` | AppImage / deb / rpm |
+| Commande               | Description                                            |
+| ---------------------- | ------------------------------------------------------ |
+| `pnpm run dev`         | Développement avec rechargement à chaud                |
+| `pnpm run build`       | Vérification TypeScript + build de production (`out/`) |
+| `pnpm run start`       | Prévisualiser le build packagé                         |
+| `pnpm run typecheck`   | Contrôle TypeScript (main + renderer)                  |
+| `pnpm run lint`        | ESLint                                                 |
+| `pnpm run lint:fix`    | ESLint avec corrections automatiques                   |
+| `pnpm run format`      | Prettier                                               |
+| `pnpm run build:win`   | Installateur Windows (NSIS)                            |
+| `pnpm run build:mac`   | Application macOS                                      |
+| `pnpm run build:linux` | AppImage / deb / rpm                                   |
 
 Les artefacts de distribution sont générés dans `release/`.
 
@@ -63,10 +66,16 @@ Copier `.env.example` vers `.env`. Les variables exposées au code utilisent le 
 
 ## Contribution
 
-1. Créer une branche depuis `develop`
-2. `npm run typecheck && npm run lint` avant toute PR
-3. Respecter la structure `src/main`, `src/preload`, `src/renderer`, `src/shared`
+**Branche de développement par défaut : `develop`** (ne pas partir de `main` pour le dev quotidien).
+
+Documentation bilingue :
+
+- Index : [docs/README.md](docs/README.md)
+- Onboarding : [English](docs/en/ONBOARDING.md) · [Français](docs/fr/ONBOARDING.md)
+- Contributing : [English](docs/en/CONTRIBUTING.md) · [Français](docs/fr/CONTRIBUTING.md)
+
+Avant une PR : `pnpm run typecheck && pnpm run lint`
 
 ## Licence
 
-Voir le dépôt GitHub du projet pour les conditions de licence.
+[MIT License](LICENSE) — Copyright (c) Dying Star

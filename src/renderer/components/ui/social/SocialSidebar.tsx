@@ -1,28 +1,28 @@
+import { useTranslation } from 'react-i18next'
+
 type Props = {
   current: string
   setCurrent: (v: string) => void
 }
 
-export default function SocialSidebar({
-  current,
-  setCurrent
-}: Props) {
-  const items = ['friends', 'organizations', 'requests']
+const TAB_KEYS = ['friends', 'organizations', 'requests'] as const
+
+/** Tab sidebar for the social page (friends / orgs / requests). */
+export default function SocialSidebar({ current, setCurrent }: Props): React.JSX.Element {
+  const { t } = useTranslation()
 
   return (
-    <div className="w-60 shrink-0 border-r border-[var(--color-ds-border)] bg-[var(--color-ds-surface)]/30 backdrop-blur px-3 py-4 flex flex-col gap-2">
-
+    <div className="ds-sidebar">
       <div className="px-2 pb-2">
         <p className="text-xs font-semibold text-[var(--color-ds-muted)] uppercase tracking-widest">
-          Social
+          {t('universe.socialPage.sidebarTitle')}
         </p>
-
         <p className="text-[11px] text-[var(--color-ds-muted)]">
-          Amis, organisations, demandes.
+          {t('universe.socialPage.sidebarSubtitle')}
         </p>
       </div>
 
-      {items.map((item) => (
+      {TAB_KEYS.map((item) => (
         <button
           key={item}
           onClick={() => setCurrent(item)}
@@ -33,7 +33,6 @@ export default function SocialSidebar({
             rounded-xl
             text-sm
             border
-            capitalize
             transition-colors
             cursor-pointer
             ${
@@ -53,7 +52,7 @@ export default function SocialSidebar({
             }
           `}
         >
-          {item}
+          {t(`universe.socialPage.tabs.${item}.label`)}
         </button>
       ))}
     </div>

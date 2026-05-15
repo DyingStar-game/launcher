@@ -9,11 +9,12 @@ type Props = {
 }
 
 const STYLES: Record<Variant, string> = {
-  info:    'border-sky-500/35 bg-sky-500/12 text-sky-100',
+  info: 'border-sky-500/35 bg-sky-500/12 text-sky-100',
   warning: 'border-amber-500/35 bg-amber-500/12 text-amber-100',
-  error:   'border-red-500/35 bg-red-500/12 text-red-200'
+  error: 'border-red-500/35 bg-red-500/12 text-red-200'
 }
 
+/** Inline info/warning/error message box used inside universe panels. */
 export default function PanelMessage({
   variant,
   children,

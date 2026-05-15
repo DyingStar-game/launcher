@@ -2,8 +2,9 @@ import { useEffect } from 'react'
 import { useGameStore } from '@stores/game'
 import { useFilesStore } from '@stores/files'
 import { useVersionStore } from '@stores/version'
-import { useEnvStore, type Env } from '@stores/env'
+import { useEnvStore } from '@stores/env'
 import { isGameUpdateAvailable } from '@lib/isGameUpdateAvailable'
+import { pollIntervalMinutes, statusPageUrlForEnv } from '@lib/env'
 import { useAvailabilityStore } from '@stores/availability'
 import { useAccountStore } from '@stores/account'
 import { useTranslation } from 'react-i18next'
@@ -11,23 +12,7 @@ import ServerStatus from '@components/ui/feedback/ServerStatus'
 import Button from '@components/ui/primitives/Button'
 import PanelMessage from '@components/ui/feedback/PanelMessage'
 
-function statusPageUrlForEnv(env: Env): string {
-  const raw =
-    env === 'universe'
-      ? import.meta.env.VITE_STATUS_PAGE_UNIVERSE
-      : import.meta.env.VITE_STATUS_PAGE_TESTING
-  return (raw ?? '').trim()
-}
-
-/** Minutes entre deux appels statut + joueurs ; borne pour éviter valeurs absurdes. */
-function pollIntervalMinutes(): number {
-  const raw = import.meta.env.VITE_SERVER_STATUS_POLL_MINUTES ?? '5'
-  let n = Number.parseFloat(String(raw).trim())
-  if (!Number.isFinite(n) || n < 1) n = 5
-  if (n > 24 * 60) n = 24 * 60
-  return n
-}
-
+/** Game panel: server status, player count, play button, and status page link. */
 export default function GamePanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data: gameData, fetchServerStatus, play, gameRunning } = useGameStore()
@@ -61,7 +46,7 @@ export default function GamePanel(): React.JSX.Element {
     return () => window.clearInterval(id)
   }, [activeEnv, isAvailable, fetchServerStatus])
 
-  /** Opérationnel, à jour, connecté — sinon bouton désactivé. */
+  /** Play is enabled when server is up, game installed, authenticated, and not already running. */
   const canPlay =
     installed &&
     isAvailable &&
@@ -74,16 +59,13 @@ export default function GamePanel(): React.JSX.Element {
   const canOpenStatusPage = Boolean(statusPageUrl)
 
   return (
-    <div className="h-full bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-7 flex flex-col gap-5 shadow-[0_12px_32px_rgba(0,0,0,0.35)] hover:border-[var(--color-ds-accent)]/40 transition-colors">
-
+    <div className="ds-panel ds-panel-padded h-full flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <h2 className="text-[11px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.24em]">
-          {t('universe.game.title')}
-        </h2>
+        <h2 className="ds-section-label">{t('universe.game.title')}</h2>
         <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
       </div>
 
-      {/* Statut serveur */}
+      {/* Server status */}
       <div className="flex items-center gap-2">
         <ServerStatus status={isAvailable ? status : 'unavailable'} />
         <span className="text-sm text-[var(--color-ds-text)]">
@@ -91,19 +73,15 @@ export default function GamePanel(): React.JSX.Element {
         </span>
       </div>
 
-      {/* Joueurs connectés */}
+      {/* Connected players */}
       {isAvailable && (
         <p className="text-[var(--color-ds-muted)] text-sm">
           {t('universe.game.players', { count: players })}
         </p>
       )}
 
-      {/* Jeu non installé */}
-      {!installed && (
-        <PanelMessage variant="error">
-          {t('universe.game.notInstalled')}
-        </PanelMessage>
-      )}
+      {/* Game not installed */}
+      {!installed && <PanelMessage variant="error">{t('universe.game.notInstalled')}</PanelMessage>}
 
       {/* Actions */}
       <div className="flex flex-col gap-2 mt-auto">
@@ -114,35 +92,22 @@ export default function GamePanel(): React.JSX.Element {
         )}
 
         {installed && gameUpdateAvailable && (
-          <PanelMessage variant="info">
-            {t('universe.game.playDisabledUpdate')}
-          </PanelMessage>
+          <PanelMessage variant="info">{t('universe.game.playDisabledUpdate')}</PanelMessage>
         )}
 
         {installed && gameRunning && (
-          <PanelMessage variant="info">
-            {t('universe.game.playDisabledRunning')}
-          </PanelMessage>
+          <PanelMessage variant="info">{t('universe.game.playDisabledRunning')}</PanelMessage>
         )}
 
         {installed && isAvailable && accountStatus === 'loading' && (
-          <PanelMessage variant="info">
-            {t('universe.game.playDisabledAuthLoading')}
-          </PanelMessage>
+          <PanelMessage variant="info">{t('universe.game.playDisabledAuthLoading')}</PanelMessage>
         )}
 
         {installed && isAvailable && accountStatus === 'disconnected' && (
-          <PanelMessage variant="warning">
-            {t('universe.game.playDisabledAuth')}
-          </PanelMessage>
+          <PanelMessage variant="warning">{t('universe.game.playDisabledAuth')}</PanelMessage>
         )}
 
-        <Button
-          onClick={play}
-          disabled={!canPlay}
-          variant="primary"
-          className="w-full"
-        >
+        <Button onClick={play} disabled={!canPlay} variant="primary" className="w-full">
           {t('universe.game.play')}
         </Button>
 
@@ -150,9 +115,7 @@ export default function GamePanel(): React.JSX.Element {
           variant="secondary"
           className="w-full"
           disabled={!canOpenStatusPage}
-          onClick={() =>
-            canOpenStatusPage ? window.open(statusPageUrl, '_blank') : undefined
-          }
+          onClick={() => (canOpenStatusPage ? window.open(statusPageUrl, '_blank') : undefined)}
         >
           {t('universe.game.viewStatus')}
         </Button>

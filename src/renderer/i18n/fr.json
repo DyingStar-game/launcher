@@ -1,102 +1,194 @@
 {
-    "navbar": {
-        "home": "Accueil",
-        "social": "Social",
-        "lore": "Lore",
-        "support": "Faire un don",
-        "openWebsite": "Ouvrir le site officiel",
-        "openDiscord": "Ouvrir Discord",
-        "openWiki": "Ouvrir le wiki",
-        "donateUnavailable": "Lien de soutien non configuré",
-        "quit": "Quitter l'application",
-        "minimize": "Réduire",
-        "close": "Fermer"
+  "installProgress": {
+    "connecting": "Connexion au serveur…",
+    "checkingUpdates": "Recherche de mises à jour…",
+    "downloading": "Téléchargement… ({{downloaded}} / {{total}})",
+    "downloadingIndeterminate": "Téléchargement… ({{downloaded}})",
+    "preparing": "Préparation du dossier du jeu…",
+    "extracting": "Extraction… ({{current}} / {{total}} fichiers)",
+    "cleaning": "Nettoyage…",
+    "completeInstall": "Installation terminée — v{{version}}",
+    "completeUpdate": "Mise à jour terminée — v{{version}}"
+  },
+  "common": {
+    "cancel": "Annuler",
+    "loading": "...",
+    "close": "Fermer",
+    "send": "Envoyer",
+    "create": "Créer"
+  },
+  "navbar": {
+    "home": "Accueil",
+    "social": "Social",
+    "lore": "Lore",
+    "support": "Faire un don",
+    "openWebsite": "Ouvrir le site officiel",
+    "openDiscord": "Ouvrir Discord",
+    "openWiki": "Ouvrir le wiki",
+    "donateUnavailable": "Lien de soutien non configuré",
+    "quit": "Quitter l'application",
+    "minimize": "Réduire",
+    "close": "Fermer",
+    "languageFr": "Français",
+    "languageEn": "English",
+    "switchToFrench": "Passer en français",
+    "switchToEnglish": "Switch to English",
+    "envUniverse": "Universe",
+    "envTesting": "Universe Testing",
+    "brandDiscord": "Discord",
+    "brandWiki": "Wiki"
+  },
+  "universeTesting": {
+    "banner": "Environnement de test — les données ne sont pas celles du serveur live"
+  },
+  "lore": {
+    "sidebarTitle": "Lore",
+    "sidebarSubtitle": "Articles, chroniques, archives.",
+    "selectArticle": "Sélectionne un article du lore",
+    "fileNotFound": "Fichier introuvable : {{file}}",
+    "articles": {
+      "origins": "Origines"
+    }
+  },
+  "friendStatus": {
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "ingame": "En jeu",
+    "ingameWithGame": "En jeu • {{game}}"
+  },
+  "universe": {
+    "title": "Universe",
+    "account": {
+      "title": "Compte",
+      "disconnected": "Non connecté",
+      "connectedAs": "Connecté en tant que {{username}}",
+      "login": "Se connecter avec Discord",
+      "logout": "Se déconnecter",
+      "subscription": "Abonnement",
+      "loading": "Connexion en cours...",
+      "cancel": "Annuler",
+      "unavailable": "Authentification non disponible pour cet environnement.",
+      "unavailableBtn": "Indisponible"
     },
-    "universeTesting": {
-        "banner": "Environnement de test — les données ne sont pas celles du serveur live"
-    },
-    "universe": {
-      "title": "Universe",
-      "account": {
-        "title": "Compte",
-        "disconnected": "Non connecté",
-        "connectedAs": "Connecté en tant que {{username}}",
-        "login": "Se connecter avec Discord",
-        "logout": "Se déconnecter",
-        "subscription": "Abonnement",
-        "loading": "Connexion en cours...",
-        "cancel": "Annuler",
-        "unavailable": "Authentification non disponible pour cet environnement.",
-        "unavailableBtn": "Indisponible"
-      },
-      "updateAlert": {
-        "launcher": {
-          "title": "Mise à jour du launcher disponible",
-          "discordHint": "La nouvelle version est disponible ici :",
-          "discordLink": "Discord"
-        },
-        "game": {
-          "title": "Nouvelle version du jeu disponible"
-        },
-        "releaseOn": "Sortie le {{date}}"
+    "updateAlert": {
+      "dismiss": "Fermer l'alerte",
+      "launcher": {
+        "title": "Mise à jour du launcher disponible",
+        "discordHint": "La nouvelle version est disponible ici :",
+        "discordLink": "Discord"
       },
       "game": {
-        "title": "Jeu",
-        "play": "Jouer",
-        "playDisabledMaintenance": "Le serveur est en maintenance — le lancement du jeu est désactivé.",
-        "playDisabledUpdate": "Une mise à jour du jeu est disponible — installez-la avant de jouer.",
-        "playDisabledAuth": "Connectez-vous pour lancer le jeu.",
-        "playDisabledAuthLoading": "Vérification de la session…",
-        "playDisabledRunning": "Le jeu est déjà lancé.",
-        "notInstalled": "Jeu non installé",
-        "players": "{{count}} joueurs en ligne",
-        "status": {
-          "online": "Opérationnel",
-          "degraded": "Dégradé",
-          "offline": "Hors ligne",
-          "maintenance": "En maintenance",
-          "unknown": "Inconnu",
-          "unavailable": "Non disponible"
+        "title": "Nouvelle version du jeu disponible"
+      },
+      "releaseOn": "Sortie le {{date}}"
+    },
+    "game": {
+      "title": "Jeu",
+      "play": "Jouer",
+      "playDisabledMaintenance": "Le serveur est en maintenance — le lancement du jeu est désactivé.",
+      "playDisabledUpdate": "Une mise à jour du jeu est disponible — installez-la avant de jouer.",
+      "playDisabledAuth": "Connectez-vous pour lancer le jeu.",
+      "playDisabledAuthLoading": "Vérification de la session…",
+      "playDisabledRunning": "Le jeu est déjà lancé.",
+      "notInstalled": "Jeu non installé",
+      "players": "{{count}} joueurs en ligne",
+      "status": {
+        "online": "Opérationnel",
+        "degraded": "Dégradé",
+        "offline": "Hors ligne",
+        "maintenance": "En maintenance",
+        "unknown": "Inconnu",
+        "unavailable": "Non disponible"
+      },
+      "viewStatus": "Voir le statut"
+    },
+    "files": {
+      "title": "Fichiers du jeu",
+      "version": "Version : {{version}}",
+      "releaseDate": "Release : {{date}}",
+      "notInstalled": "Jeu non installé",
+      "install": "Installer",
+      "update": "Mettre à jour",
+      "verify": "Vérifier les fichiers",
+      "clearCache": "Vider le cache",
+      "clearCacheToastOk": "Cache vidé.",
+      "clearCacheToastPartial": "Cache partiellement vidé (certains dossiers n'ont pas pu être supprimés).",
+      "clearCacheToastError": "Impossible de vider le cache.",
+      "changelog": "Voir le changelog",
+      "changelogModalTitle": "Changelog — v{{version}}",
+      "changelogLoading": "Chargement du changelog…",
+      "changelogMissing": "Aucun fichier CHANGELOG.md n'a été trouvé dans l'installation (vérifie qu'il est bien inclus dans l'archive du jeu).",
+      "installing": "Installation en cours...",
+      "installPath": "Répertoire d'installation",
+      "installPathPlaceholder": "/home/utilisateur/jeux/dyingstar",
+      "browse": "Parcourir",
+      "unavailable": "Installation non disponible pour cet environnement.",
+      "unavailableBtn": "Indisponible"
+    },
+    "social": {
+      "title": "Social",
+      "noFriends": "Aucun ami",
+      "seeAll": "Voir tout",
+      "notifications": "{{count}} notifications"
+    },
+    "socialPage": {
+      "sidebarTitle": "Social",
+      "sidebarSubtitle": "Amis, organisations, demandes.",
+      "friends": "Amis",
+      "organizations": "Organisations",
+      "requests": "Demandes",
+      "addFriend": "Ajouter un ami",
+      "createOrga": "Créer une orga",
+      "createOrgaLong": "Créer une organisation",
+      "joinOrga": "Rejoindre",
+      "accept": "Accepter",
+      "decline": "Refuser",
+      "tabs": {
+        "friends": {
+          "label": "Amis",
+          "subtitle": "Gère ta liste d'amis et ton statut."
         },
-        "viewStatus": "Voir le statut"
+        "organizations": {
+          "label": "Organisations",
+          "subtitle": "Organisations, membres et invitations."
+        },
+        "requests": {
+          "label": "Demandes",
+          "subtitle": "Demandes d'amis en attente."
+        }
       },
-      "files": {
-        "title": "Fichiers du jeu",
-        "version": "Version : {{version}}",
-        "releaseDate": "Release : {{date}}",
-        "notInstalled": "Jeu non installé",
-        "install": "Installer",
-        "update": "Mettre à jour",
-        "verify": "Vérifier les fichiers",
-        "clearCache": "Vider le cache",
-        "clearCacheToastOk": "Cache vidé.",
-        "clearCacheToastPartial": "Cache partiellement vidé (certains dossiers n’ont pas pu être supprimés).",
-        "clearCacheToastError": "Impossible de vider le cache.",
-        "changelog": "Voir le changelog",
-        "changelogModalTitle": "Changelog — v{{version}}",
-        "changelogLoading": "Chargement du changelog…",
-        "changelogMissing": "Aucun fichier CHANGELOG.md n’a été trouvé dans l’installation (vérifie qu’il est bien inclus dans l’archive du jeu).",
-        "installing": "Installation en cours...",
-        "installPath": "Répertoire d'installation",
-        "browse": "Parcourir",
-        "unavailable": "Installation non disponible pour cet environnement.",
-        "unavailableBtn": "Indisponible"
+      "addFriendForm": {
+        "title": "Ajouter un ami",
+        "usernameLabel": "Pseudo exact",
+        "usernamePlaceholder": "Entrez un pseudo...",
+        "success": "Demande envoyée !"
       },
-      "social": {
-        "title": "Social",
-        "noFriends": "Aucun ami",
-        "seeAll": "Voir tout",
-        "notifications": "{{count}} notifications"
+      "createOrgaForm": {
+        "title": "Créer une organisation",
+        "nameLabel": "Nom de l'organisation",
+        "namePlaceholder": "Entrez un nom unique...",
+        "success": "Organisation créée !"
       },
-      "socialPage": {
-        "friends": "Amis",
-        "organizations": "Organisations",
-        "requests": "Requêtes",
-        "addFriend": "Ajouter un ami",
-        "createOrga": "Créer une organisation",
-        "joinOrga": "Rejoindre",
-        "accept": "Accepter",
-        "decline": "Refuser"
+      "pendingRequests_one": "{{count}} demande en attente",
+      "pendingRequests_other": "{{count}} demandes en attente",
+      "emptyFriends": "Aucun ami pour le moment.",
+      "emptyOrganizations": "Aucune organisation.",
+      "emptyRequests": "Aucune demande en attente.",
+      "orga": {
+        "members_one": "{{count}} membre",
+        "members_other": "{{count}} membres",
+        "memberBadge": "Membre",
+        "joinAria": "Rejoindre l'organisation {{name}}"
+      },
+      "request": {
+        "acceptAria": "Accepter la demande de {{name}}",
+        "declineAria": "Refuser la demande de {{name}}"
+      },
+      "errors": {
+        "friendRequestFailed": "Utilisateur introuvable ou demande déjà envoyée.",
+        "orgaNameTaken": "Ce nom d'organisation est déjà pris.",
+        "joinOrgaFailed": "Erreur lors de la tentative."
       }
     }
   }
+}

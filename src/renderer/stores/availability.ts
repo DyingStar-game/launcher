@@ -1,19 +1,20 @@
-// Disponibilité runtime de chaque env — remplace envCapabilities.ts statique.
-// Déterminée au démarrage en pingant ${API_BASE}/version pour chaque env.
-
 import { create } from 'zustand'
 import type { Env } from './env'
 
 type AvailabilityState = {
+  /** Whether each env API responded successfully to `/version` at startup. */
   available: Record<Env, boolean>
-  checked:   boolean
-
+  checked: boolean
+  /** Pings remote APIs and updates availability flags. */
   checkAvailability: () => Promise<void>
 }
 
+/**
+ * Runtime availability of prod vs testing API bases (determined at app startup).
+ */
 export const useAvailabilityStore = create<AvailabilityState>((set) => ({
   available: {
-    'universe':         false,
+    universe: false,
     'universe-testing': false
   },
   checked: false,
@@ -23,7 +24,8 @@ export const useAvailabilityStore = create<AvailabilityState>((set) => ({
       const result = await window.api.checkEnvAvailability()
       set({ available: result, checked: true })
     } catch {
-      set({ checked: true }) // en cas d'erreur, tout reste false
+      // On failure, leave all envs as unavailable
+      set({ checked: true })
     }
   }
 }))

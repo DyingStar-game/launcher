@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/primitives/Button'
 import DiscordIcon from '@components/ui/primitives/icons/DiscordIcon'
 
+/** Account panel: Discord login/logout and session display per environment. */
 export default function AccountPanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data, login, logout, cancelLogin } = useAccountStore()
@@ -15,31 +16,22 @@ export default function AccountPanel(): React.JSX.Element {
   const { t } = useTranslation()
 
   return (
-    <div className="border-box h-full bg-[var(--color-ds-surface)] border border-[var(--color-ds-border)] rounded-xl p-7 flex flex-col gap-5 shadow-[0_12px_32px_rgba(0,0,0,0.35)] hover:border-[var(--color-ds-accent)]/40 transition-colors">
-
+    <div className="ds-panel ds-panel-padded border-box h-full flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <h2 className="text-[11px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.24em]">
-          {t('universe.account.title')}
-        </h2>
+        <h2 className="ds-section-label">{t('universe.account.title')}</h2>
         <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
       </div>
 
       {!isAvailable && (
-        <p className="text-[var(--color-ds-muted)] text-sm">
-          {t('universe.account.unavailable')}
-        </p>
+        <p className="text-[var(--color-ds-muted)] text-sm">{t('universe.account.unavailable')}</p>
       )}
 
       {isAvailable && status === 'disconnected' && (
-        <p className="text-[var(--color-ds-muted)] text-sm">
-          {t('universe.account.disconnected')}
-        </p>
+        <p className="text-[var(--color-ds-muted)] text-sm">{t('universe.account.disconnected')}</p>
       )}
 
       {isAvailable && status === 'loading' && (
-        <p className="text-[var(--color-ds-muted)] text-sm">
-          {t('universe.account.loading')}
-        </p>
+        <p className="text-[var(--color-ds-muted)] text-sm">{t('universe.account.loading')}</p>
       )}
 
       {isAvailable && status === 'connected' && (
@@ -49,7 +41,6 @@ export default function AccountPanel(): React.JSX.Element {
       )}
 
       <div className="flex flex-col gap-2 mt-auto">
-
         {!isAvailable && (
           <Button variant="secondary" className="w-full" disabled>
             {t('universe.account.unavailableBtn')}

@@ -15,6 +15,7 @@ type InputFieldProps = {
   readOnly?: boolean
 }
 
+/** Labeled text input with optional action button (used in social forms). */
 export default function InputField({
   label,
   value,

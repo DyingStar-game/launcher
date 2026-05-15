@@ -1,4 +1,6 @@
-/** True si une version distante du jeu est strictement plus récente que la locale. */
+/**
+ * Returns true when a remote game version is strictly newer than the locally installed one.
+ */
 export function isGameUpdateAvailable(
   installed: boolean,
   localVersion: string | null,
@@ -8,6 +10,9 @@ export function isGameUpdateAvailable(
     installed &&
     latestRemoteVersion !== null &&
     localVersion !== null &&
-    latestRemoteVersion.localeCompare(localVersion, undefined, { numeric: true, sensitivity: 'base' }) > 0
+    latestRemoteVersion.localeCompare(localVersion, undefined, {
+      numeric: true,
+      sensitivity: 'base'
+    }) > 0
   )
 }

@@ -3,28 +3,30 @@ import { useEnvStore, type Env } from './env'
 import { useFilesStore } from './files'
 import type { ServerStatusValue } from '@shared/types/game'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export type { ServerStatusValue }
 
 type EnvGameData = {
-  status:  ServerStatusValue
+  status: ServerStatusValue
   players: number
 }
 
 type GameState = {
   data: Record<Env, EnvGameData>
+  /** True while a game process launched by the launcher is running. */
   gameRunning: boolean
-
+  /** Refreshes server status and player count for the active environment. */
   fetchServerStatus: () => Promise<void>
+  /** Syncs running state from the main process (e.g. after failed launch). */
   syncGameRunning: () => Promise<void>
+  /** Launches the game executable with a fresh auth token. */
   play: () => Promise<void>
 }
 
 const defaultEnvData: EnvGameData = { status: 'unknown', players: 0 }
 
-// ─── Store ────────────────────────────────────────────────────────────────────
-
+/**
+ * Server status, player count, and game launch state per environment.
+ */
 export const useGameStore = create<GameState>((set, get) => {
   window.api.onGameRunningChanged((running) => {
     set({ gameRunning: running })
@@ -36,7 +38,7 @@ export const useGameStore = create<GameState>((set, get) => {
 
   return {
     data: {
-      'universe':         { ...defaultEnvData },
+      universe: { ...defaultEnvData },
       'universe-testing': { ...defaultEnvData }
     },
     gameRunning: false,
@@ -71,7 +73,7 @@ export const useGameStore = create<GameState>((set, get) => {
       const { installPath } = useFilesStore.getState().data[env]
 
       if (!installPath) {
-        console.warn('[GameStore] Aucun répertoire d\'installation pour env :', env)
+        console.warn('[GameStore] No install path for env:', env)
         return
       }
 
@@ -79,7 +81,7 @@ export const useGameStore = create<GameState>((set, get) => {
         await window.api.launchGame(env, installPath)
         set({ gameRunning: true })
       } catch (err) {
-        console.error('[GameStore] Échec du lancement :', err)
+        console.error('[GameStore] Launch failed:', err)
         await get().syncGameRunning()
       }
     }
