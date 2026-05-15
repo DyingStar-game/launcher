@@ -8,9 +8,9 @@ import {
   getUniverseZipUrlForPlatform,
   getTestingZipUrlForPlatform,
   ENDPOINTS
-} from '../config/env'
+} from '../config/api'
 import { fetchRemoteGameVersion } from './version'
-import type { Env } from '../../renderer/store/env'
+import type { Env } from '@shared/types/env'
 
 /** Sous-dossier d’installation du payload du jeu (ZIP extrait ici, pas à la racine du chemin choisi). */
 export const GAME_INSTALL_SUBDIR = 'DyingStar'

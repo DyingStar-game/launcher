@@ -5,7 +5,7 @@ import * as fs from 'fs'
 import { downloadAndInstall, GAME_INSTALL_SUBDIR, resolveInstalledVersion } from './downloader'
 import { loadFreshGameToken } from './auth'
 import { clearDyingStarGodotCaches } from './godotUserdataCache'
-import type { Env } from '../../renderer/store/env'
+import type { Env } from '@shared/types/env'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

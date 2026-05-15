@@ -4,7 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import { execSync } from 'child_process'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+import { applyAppIcon, loadAppIcon } from './icon'
 import { registerFilesHandlers } from './services/game'
 import { registerVersionHandlers } from './services/version'
 import { registerGameStatusHandlers } from './services/gameStatus'
@@ -101,6 +101,8 @@ if (!gotLock) {
 }
 
 function createWindow(): void {
+  const appIcon = loadAppIcon()
+
   mainWindow = new BrowserWindow({
     width:  parsePositiveInt(import.meta.env.VITE_WINDOW_WIDTH, 1200),
     height: parsePositiveInt(import.meta.env.VITE_WINDOW_HEIGHT, 800),
@@ -111,7 +113,7 @@ function createWindow(): void {
     title: app.getName(),
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    ...(appIcon ? { icon: appIcon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -142,15 +144,15 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.dyingstar.launcher')
+
+  applyAppIcon()
 
   registerLinuxProtocol()
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
-
-  ipcMain.on('ping', () => console.log('pong'))
 
   ipcMain.removeHandler('app:quit')
   ipcMain.handle('app:quit', () => {

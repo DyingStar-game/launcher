@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import type { Env } from '../renderer/store/env'
-import type { UserInfo } from '../main/services/auth'
-import type { ServerStatusValue } from '../main/services/gameStatus'
+import type { Env } from '@shared/types/env'
+import type { UserInfo } from '@shared/types/auth'
+import type { ServerStatusValue } from '@shared/types/game'
 
 const api = {
   // ── Fichiers / Installation ────────────────────────────────────────────────

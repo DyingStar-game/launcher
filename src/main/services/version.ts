@@ -1,35 +1,23 @@
 import { ipcMain, app } from 'electron'
-import { getApiBase, ENDPOINTS } from '../config/env'
-import type { Env } from '../../renderer/store/env'
+import { getApiBase, ENDPOINTS } from '../config/api'
+import type { Env } from '@shared/types/env'
+import type { GameVersionInfo, VersionCheckResult } from '@shared/types/version'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types internes (API distantes) ───────────────────────────────────────────
 
 interface RemoteVersionPayload {
-  version:     string   // YYYYMMDDHHMMSS ex: "20260510092919"
-  releaseDate: string   // YYYY-MM-DD     ex: "2026-05-10"
+  version: string
+  releaseDate: string
 }
 
 interface GitHubLatestReleasePayload {
-  tag_name:      string
+  tag_name: string
   published_at?: string
 }
 
-interface GameVersionInfo {
-  version:     string | null
-  releaseDate: string | null
-}
-
 interface LauncherReleaseInfo {
-  version:     string
+  version: string
   releaseDate: string | null
-}
-
-interface VersionCheckResult {
-  currentLauncherVersion:    string
-  latestLauncherVersion:     string | null
-  latestLauncherReleaseDate: string | null
-  launcherUpdateAvailable:   boolean
-  latestGameVersions:        Record<Env, GameVersionInfo>
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
