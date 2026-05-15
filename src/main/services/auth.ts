@@ -3,8 +3,11 @@ import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
 import { URL } from 'url'
-import { getApiBase, ENDPOINTS } from '../config/env'
-import type { Env } from '../../renderer/store/env'
+import { getApiBase, ENDPOINTS } from '../config/api'
+import type { Env } from '@shared/types/env'
+import type { UserInfo } from '@shared/types/auth'
+
+export type { UserInfo } from '@shared/types/auth'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -14,12 +17,6 @@ interface TokenSet {
   id_token:      string
   expires_in:    number
   token_type:    string
-}
-
-export interface UserInfo {
-  sub:      string
-  username: string
-  email:    string
 }
 
 interface PKCESession {

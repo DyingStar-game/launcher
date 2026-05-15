@@ -1,17 +1,9 @@
 import { ipcMain } from 'electron'
-import { getApiBase, ENDPOINTS, getStatusComponentId, getStatusMetricId } from '../config/env'
-import type { Env } from '../../renderer/store/env'
+import { getApiBase, ENDPOINTS, getStatusComponentId, getStatusMetricId } from '../config/api'
+import type { Env } from '@shared/types/env'
+import type { GameStatusResult, ServerStatusValue } from '@shared/types/game'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export type ServerStatusValue = 'online' | 'degraded' | 'offline' | 'maintenance' | 'unknown' | 'unavailable'
-
-export interface GameStatusResult {
-  status:        ServerStatusValue
-  statusLabel:   string            // label brut de l'API (pour debug/log)
-  players:       number
-  available:     boolean           // false si l'env n'est pas configuré
-}
+export type { GameStatusResult, ServerStatusValue } from '@shared/types/game'
 
 // Mapping value → type interne
 // 1: Operational, 2: Performance Issues, 3: Partial Outage,
