@@ -7,8 +7,9 @@ import { registerFilesHandlers } from './services/game'
 import { registerVersionHandlers } from './services/version'
 import { registerGameStatusHandlers } from './services/gameStatus'
 import { registerAuthHandlers, handleOAuthCallback } from './services/auth'
-import { registerWindowHandlers, MIN_WIDTH, MIN_HEIGHT } from './services/window'
-import { APP_PROTOCOL, parsePositiveInt } from './config/constants'
+import { registerWindowHandlers } from './services/window'
+import { WINDOW_BOUNDS } from './config/window'
+import { APP_PROTOCOL } from './config/constants'
 import { registerLinuxProtocolHandler } from './protocol/linuxDesktop'
 import log from 'electron-log'
 
@@ -50,10 +51,13 @@ function createWindow(): void {
   const appIcon = loadAppIcon()
 
   mainWindow = new BrowserWindow({
-    width: parsePositiveInt(import.meta.env.VITE_WINDOW_WIDTH, 1200),
-    height: parsePositiveInt(import.meta.env.VITE_WINDOW_HEIGHT, 800),
-    minWidth: MIN_WIDTH,
-    minHeight: MIN_HEIGHT,
+    width: WINDOW_BOUNDS.width,
+    height: WINDOW_BOUNDS.height,
+    minWidth: WINDOW_BOUNDS.minWidth,
+    minHeight: WINDOW_BOUNDS.minHeight,
+    maxWidth: WINDOW_BOUNDS.maxWidth,
+    maxHeight: WINDOW_BOUNDS.maxHeight,
+    resizable: true,
     frame: false,
     backgroundColor: '#0d0d14',
     title: app.getName(),

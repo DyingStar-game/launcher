@@ -78,10 +78,6 @@ const api = {
   /** Closes the main window. */
   closeWindow: (): Promise<void> => ipcRenderer.invoke('window:close'),
 
-  /** Resizes the window to fit renderer content within min/max bounds. */
-  fitWindowToContent: (size: { width: number; height: number }): Promise<void> =>
-    ipcRenderer.invoke('window:fit-content', size),
-
   /** Compares launcher and game versions against remote sources. */
   checkVersions: (): Promise<{
     currentLauncherVersion: string

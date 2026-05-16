@@ -42,7 +42,6 @@ declare global {
       quitApp: () => Promise<void>
       minimizeWindow: () => Promise<void>
       closeWindow: () => Promise<void>
-      fitWindowToContent: (size: { width: number; height: number }) => Promise<void>
       checkVersions: () => Promise<VersionCheckResult>
       authLogin: (env: Env) => Promise<void>
       authLogout: (env: Env) => Promise<void>

@@ -52,7 +52,7 @@ export default function UniverseView({
         </div>
       )}
 
-      <div className="grid min-h-0 min-h-[640px] flex-1 grid-cols-2 grid-rows-2 gap-4 p-4">
+      <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-4 p-4">
         <AccountPanel />
         <SocialPanel />
         <GamePanel />
