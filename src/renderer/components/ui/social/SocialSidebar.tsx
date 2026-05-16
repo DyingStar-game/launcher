@@ -1,0 +1,60 @@
+import { useTranslation } from 'react-i18next'
+
+type Props = {
+  current: string
+  setCurrent: (v: string) => void
+}
+
+const TAB_KEYS = ['friends', 'organizations', 'requests'] as const
+
+/** Tab sidebar for the social page (friends / orgs / requests). */
+export default function SocialSidebar({ current, setCurrent }: Props): React.JSX.Element {
+  const { t } = useTranslation()
+
+  return (
+    <div className="ds-sidebar">
+      <div className="px-2 pb-2">
+        <p className="text-xs font-semibold text-[var(--color-ds-muted)] uppercase tracking-widest">
+          {t('universe.socialPage.sidebarTitle')}
+        </p>
+        <p className="text-[11px] text-[var(--color-ds-muted)]">
+          {t('universe.socialPage.sidebarSubtitle')}
+        </p>
+      </div>
+
+      {TAB_KEYS.map((item) => (
+        <button
+          key={item}
+          onClick={() => setCurrent(item)}
+          className={`
+            text-left
+            px-3
+            py-2.5
+            rounded-xl
+            text-sm
+            border
+            transition-colors
+            cursor-pointer
+            ${
+              current === item
+                ? `
+                  bg-[var(--color-ds-surface)]
+                  text-[var(--color-ds-text)]
+                  border-[var(--color-ds-accent)]/40
+                `
+                : `
+                  text-[var(--color-ds-muted)]
+                  border-transparent
+                  hover:border-[var(--color-ds-border)]
+                  hover:bg-[var(--color-ds-surface-hover)]
+                  hover:text-[var(--color-ds-text)]
+                `
+            }
+          `}
+        >
+          {t(`universe.socialPage.tabs.${item}.label`)}
+        </button>
+      ))}
+    </div>
+  )
+}

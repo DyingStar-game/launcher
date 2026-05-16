@@ -1,118 +1,55 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import type { Env } from '../renderer/store/env'
+import type { Env } from '@shared/types/env'
+import type { UserInfo } from '@shared/types/auth'
+import type { InstallResult } from '@shared/types/install'
+import type { VersionCheckResult } from '@shared/types/version'
+import type { ServerStatusValue } from '@shared/types/game'
+import type { InstallProgressLabel } from '@shared/types/installProgress'
 
-type ServerStatusValue = 'online' | 'degraded' | 'offline' | 'maintenance' | 'unknown' | 'unavailable'
-
+/** Server status payload returned by `getServerStatus`. */
 interface ServerStatusResult {
-  status:    ServerStatusValue
-  players:   number
+  status: ServerStatusValue
+  players: number
   available: boolean
 }
 
-interface InstallResult {
-  version:     string
-  releaseDate: string
-}
-
-// Ajout du type manquant (référencé dans VersionCheckResult)
-interface GameVersionInfo {
-  version:     string | null
-  releaseDate: string | null
-}
-
-interface VersionCheckResult {
-  currentLauncherVersion:    string
-  latestLauncherVersion:     string | null
-  latestLauncherReleaseDate: string | null
-  launcherUpdateAvailable:   boolean
-  latestGameVersions:        Record<Env, GameVersionInfo>
-}
-
-interface UserInfo {
-  sub:      string
-  username: string
-  email:    string
-}
-
+/** Auth event pushed from main after OAuth callback or error. */
 type AuthStateChangedPayload =
   | { env: Env; status: 'connected'; user: UserInfo }
-  | { env: Env; status: 'error';     error: string }
+  | { env: Env; status: 'error'; error: string }
 
 declare global {
   interface Window {
     electron: ElectronAPI
+    /** Typed bridge to main-process IPC handlers (see `preload/index.ts`). */
     api: {
-      // ── Fichiers / Installation ──────────────────────────────────────────
-
-      /** Ouvre un dialogue natif de sélection de répertoire. */
       selectDirectory: () => Promise<string | null>
-
-      /** Lance le téléchargement et l'installation du jeu. */
       installGame: (env: Env, installPath: string) => Promise<InstallResult>
-
-      /** S'abonne aux événements de progression de l'installation (0–100). */
-      onInstallProgress: (callback: (progress: number, label: string) => void) => void
-
-      /** Lit CHANGELOG.md dans le dossier d’installation (après extraction du ZIP). */
+      onInstallProgress: (callback: (progress: number, label: InstallProgressLabel) => void) => void
       readChangelog: (installPath: string) => Promise<string | null>
-
-      /** Relit la version installée (API /version + version.json). */
-      resolveInstalledVersion: (
-        env: Env,
-        installPath: string
-      ) => Promise<InstallResult | null>
-
-      /** Supprime shader_cache et chunk_cache dans le userdata Godot DyingStar. */
+      resolveInstalledVersion: (env: Env, installPath: string) => Promise<InstallResult | null>
       clearGodotGameCache: () => Promise<{
         root: string
         removed: string[]
         skipped: string[]
         errors: { path: string; message: string }[]
       }>
-
-      // ── Jeu ─────────────────────────────────────────────────────────────
-
-      /** Lance l'exécutable du jeu (détaché du launcher). */
       launchGame: (env: Env, installPath: string) => Promise<void>
-
-      /** True si un processus jeu lancé par le launcher est encore actif. */
       isGameRunning: () => Promise<boolean>
-
-      /** Écoute les changements d'état « jeu en cours ». */
       onGameRunningChanged: (callback: (running: boolean) => void) => void
-
-      /** Récupère le statut du serveur et le nombre de joueurs connectés. */
       getServerStatus: (env: Env) => Promise<ServerStatusResult>
-
-      // ── Disponibilité ─────────────────────────────────────────────────────
-      checkEnvAvailability:  () => Promise<Record<Env, boolean>>
-
-      /** Ferme complètement le launcher. */
+      checkEnvAvailability: () => Promise<Record<Env, boolean>>
       quitApp: () => Promise<void>
-
       minimizeWindow: () => Promise<void>
-
       closeWindow: () => Promise<void>
-
       fitWindowToContent: (size: { width: number; height: number }) => Promise<void>
-
-      // ── Versions ─────────────────────────────────────────────────────────
-
       checkVersions: () => Promise<VersionCheckResult>
-
-      // ── Auth ─────────────────────────────────────────────────────────────
-
-      /** Ouvre le navigateur sur la page Discord/Keycloak pour l'env donné. */
       authLogin: (env: Env) => Promise<void>
-
-      /** Efface les tokens de l'env donné et ouvre la page de déconnexion Keycloak. */
       authLogout: (env: Env) => Promise<void>
-
-      /** Recharge la session depuis le stockage chiffré pour l'env donné. */
       authLoadUser: (env: Env) => Promise<UserInfo | null>
-
-      /** S'abonne aux changements d'état auth — payload inclut l'env concerné. */
       onAuthStateChanged: (callback: (data: AuthStateChangedPayload) => void) => void
     }
   }
 }
+
+export {}

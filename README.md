@@ -1,323 +1,81 @@
-# 🌟 Dying Star Launcher
+# Dying Star Launcher
 
-Un lanceur de jeu moderne et élégant construit avec Next.js et Electron.
+Launcher desktop open source pour le jeu **Dying Star**, basé sur [Electron](https://www.electronjs.org/) + [electron-vite](https://electron-vite.org/), avec une interface **React 19** et **Tailwind CSS v4**.
 
-## 🛠️ Technologies utilisées
+## Stack
 
-- **Next.js 14** - Framework React pour l'interface utilisateur
-- **Electron 38** - Framework pour créer des applications desktop
-- **React 18** - Bibliothèque JavaScript pour l'UI
-- **Node.js** - Environnement d'exécution JavaScript
-- **Nodemon** - Rechargement automatique en développement
-- **Concurrently** - Exécution simultanée de processus
-- **dotenv** - Gestion des variables d'environnement
+| Couche        | Technologie               |
+| ------------- | ------------------------- |
+| Shell desktop | Electron 38               |
+| Build         | electron-vite, Vite 7     |
+| UI            | React 19, Tailwind CSS v4 |
+| État          | Zustand                   |
+| i18n          | i18next / react-i18next   |
+| Packaging     | electron-builder          |
 
-## 📦 Installation
+## Structure du projet
 
-### Prérequis
-- **Node.js** (version 18 ou supérieure)
-- **npm** ou **yarn**
+```
+src/
+├── main/           # Process principal Electron (IPC, auth, téléchargement, jeu)
+├── preload/        # Pont sécurisé contextBridge → window.api
+├── renderer/       # Application React (composants, vues, stores, i18n)
+└── shared/         # Types TypeScript partagés (main, preload, renderer)
+docs/               # Documentation contributeur (en/ et fr/)
+resources/          # Icônes et entitlements macOS (versionnés)
+```
 
-### Installation automatique
+Alias TypeScript / Vite : `@shared`, `@components`, `@views`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+
+## Prérequis
+
+- Node.js 20+
+- [pnpm](https://pnpm.io/) (gestionnaire de paquets du dépôt)
+
+## Installation
 
 ```bash
-# Clonez le repository
 git clone https://github.com/DyingStar-game/launcher.git
 cd launcher
-
-# Installation complète avec configuration
-npm run setup
+git checkout develop
+pnpm install
+cp .env.example .env
+# Éditer .env selon l’environnement (API, ZIP de test, etc.)
 ```
 
-### Installation manuelle
+## Scripts
 
-```bash
-# 1. Clonez le repository
-git clone https://github.com/DyingStar-game/launcher.git
-cd launcher
+| Commande               | Description                                            |
+| ---------------------- | ------------------------------------------------------ |
+| `pnpm run dev`         | Développement avec rechargement à chaud                |
+| `pnpm run build`       | Vérification TypeScript + build de production (`out/`) |
+| `pnpm run start`       | Prévisualiser le build packagé                         |
+| `pnpm run typecheck`   | Contrôle TypeScript (main + renderer)                  |
+| `pnpm run lint`        | ESLint                                                 |
+| `pnpm run lint:fix`    | ESLint avec corrections automatiques                   |
+| `pnpm run format`      | Prettier                                               |
+| `pnpm run build:win`   | Installateur Windows (NSIS)                            |
+| `pnpm run build:mac`   | Application macOS                                      |
+| `pnpm run build:linux` | AppImage / deb / rpm                                   |
 
-# 2. Installez les dépendances
-npm install
+Les artefacts de distribution sont générés dans `release/`.
 
-# 3. Copiez la configuration d'environnement
-cp .env.example .env.local
+## Variables d’environnement
 
-# 4. Lancez en mode développement
-npm run electron-dev
-```
+Copier `.env.example` vers `.env`. Les variables exposées au code utilisent le préfixe `VITE_` (voir le fichier d’exemple pour les URLs d’API, archives de jeu, navigation, statut serveur, etc.).
 
-## 🎮 Scripts disponibles
+## Contribution
 
-### Développement
-- `npm run dev` - Lance Next.js en mode développement
-- `npm run electron-dev` - 🚀 **Recommandé** - Lance Next.js + Electron (logs propres)
-- `npm run electron-dev-verbose` - Lance avec logs détaillés de nodemon
-- `npm run electron` - Lance Electron seul
+**Branche de développement par défaut : `develop`** (ne pas partir de `main` pour le dev quotidien).
 
-### Production
-- `npm run build` - Build l'application Next.js
-- `npm run electron-pack` - Build l'application Electron pour la production
-- `npm run export` - Export statique Next.js
+Documentation bilingue :
 
-### Utilitaires
-- `npm run clean` - Nettoie les dossiers de build
-- `npm run setup` - Installation complète automatique
+- Index : [docs/README.md](docs/README.md)
+- Onboarding : [English](docs/en/ONBOARDING.md) · [Français](docs/fr/ONBOARDING.md)
+- Contributing : [English](docs/en/CONTRIBUTING.md) · [Français](docs/fr/CONTRIBUTING.md)
 
-## ⚙️ Configuration environnement
+Avant une PR : `pnpm run typecheck && pnpm run lint`
 
-Le projet utilise des variables d'environnement pour une configuration flexible.
+## Licence
 
-### Fichiers de configuration
-
-- **`.env.example`** - Template avec toutes les variables disponibles
-- **`.env.local`** - Configuration locale (ignorée par git)
-
-### Variables principales
-
-```bash
-# Mode de développement
-NODE_ENV=development
-
-# Configuration Electron
-ELECTRON_DISABLE_SECURITY_WARNINGS=true
-WINDOW_WIDTH=1200
-WINDOW_HEIGHT=800
-ENABLE_DEVTOOLS=true
-
-# Configuration Next.js
-NEXT_DEV_URL=http://localhost:3000
-
-# Debug
-DEBUG_ELECTRON=false
-NODEMON_VERBOSE=false
-```
-
-### Personnalisation
-
-Modifiez `.env.local` pour adapter le launcher à vos préférences :
-
-```bash
-# Fenêtre plus grande
-WINDOW_WIDTH=1600
-WINDOW_HEIGHT=1000
-
-# Désactiver les DevTools
-ENABLE_DEVTOOLS=false
-
-# Activer le debug complet
-DEBUG_ELECTRON=true
-NODEMON_VERBOSE=true
-```
-
-## 📁 Structure du projet
-
-```
-dying-star-launcher/
-├── electron/           # Fichiers Electron
-│   ├── main.js        # Point d'entrée Electron (avec config env)
-│   └── preload.js     # Script de préchargement (optionnel)
-├── pages/             # Pages Next.js
-│   ├── index.js       # Page d'accueil
-│   └── _app.js        # App wrapper
-├── public/            # Ressources statiques
-├── styles/            # Fichiers CSS
-├── .env.example       # Template de configuration
-├── .env.local         # Configuration locale (à créer)
-├── nodemon.json       # Configuration nodemon
-├── package.json       # Configuration npm
-├── next.config.js     # Configuration Next.js
-└── README.md          # Documentation
-```
-
-## 🔧 Développement
-
-### Mode développement recommandé
-
-```bash
-npm run electron-dev
-```
-
-Cette commande lance simultanément :
-- 🌐 **Next.js** sur `http://localhost:3000` avec hot-reload
-- ⚡ **Electron** avec rechargement automatique via nodemon
-
-### Logs propres
-
-Les logs sont maintenant formatés avec des préfixes colorés :
-```
-🌐 Next.js | ✓ Ready in 1141ms
-⚡ Electron | ✅ Electron window ready
-⚡ Electron | [nodemon] restarting due to changes...
-```
-
-### Debug avancé
-
-Pour plus de détails pendant le développement :
-
-```bash
-# Mode verbose avec tous les logs
-npm run electron-dev-verbose
-
-# Ou modifiez .env.local
-DEBUG_ELECTRON=true
-NODEMON_VERBOSE=true
-```
-
-### Build pour production
-
-```bash
-# Build complet
-npm run preelectron-pack
-npm run electron-pack
-
-# Ou séparément
-npm run build
-npm run electron-pack
-```
-
-Les exécutables seront générés dans le dossier `dist/`.
-
-## 🎯 Fonctionnalités
-
-### ✅ Implémenté
-- ✅ Interface Next.js moderne
-- ✅ Application Electron native
-- ✅ Hot-reload en développement
-- ✅ Configuration par variables d'environnement
-- ✅ Logs propres et colorés
-- ✅ Rechargement automatique avec nodemon
-- ✅ Build de production
-- ✅ Gestion des erreurs
-
-### 🚧 En développement
-- 🚧 Interface utilisateur du launcher
-- 🚧 Gestion des jeux installés
-- 🚧 Système de mise à jour
-- 🚧 Thèmes personnalisables
-
-### 📋 Roadmap
-- [ ] Intégration Steam/Epic Games
-- [ ] Chat intégré
-- [ ] Store de mods
-- [ ] Système d'achievements
-- [ ] Profils utilisateur
-
-## 🛠️ Problèmes courants
-
-### Erreurs Electron
-
-Si vous rencontrez des erreurs `Autofill.enable` :
-```bash
-# Dans .env.local
-ELECTRON_DISABLE_SECURITY_WARNINGS=true
-```
-
-### Port déjà utilisé
-
-Si le port 3000 est occupé :
-```bash
-# Dans .env.local
-NEXT_DEV_URL=http://localhost:3001
-```
-
-Puis lancez Next.js sur le nouveau port :
-```bash
-npx next dev -p 3001
-```
-
-### Problèmes de performance
-
-Pour optimiser les performances :
-```bash
-# Dans .env.local
-ENABLE_DEVTOOLS=false
-DEBUG_ELECTRON=false
-```
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! Voici comment procéder :
-
-### Setup développeur
-
-```bash
-# Fork et clone
-git clone https://github.com/VOTRE-USERNAME/launcher.git
-cd launcher
-
-# Installation
-npm run setup
-
-# Créer une branche
-git checkout -b feature/ma-fonctionnalite
-```
-
-### Workflow de contribution
-
-1. **Fork** le projet
-2. **Créer** une branche pour votre fonctionnalité (`git checkout -b feature/AmazingFeature`)
-3. **Commit** vos changements (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** vers la branche (`git push origin feature/AmazingFeature`)
-5. **Ouvrir** une Pull Request
-
-### Standards de code
-
-- Utilisez les variables d'environnement pour la configuration
-- Ajoutez des logs avec les préfixes appropriés
-- Testez en mode développement ET production
-- Documentez les nouvelles variables d'environnement
-
-## 📝 License
-
-Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.
-
-## 📞 Support
-
-Pour toute question ou problème :
-
-- 🐛 **Bugs** : [Ouvrir une issue](https://github.com/DyingStar-game/launcher/issues)
-- 💡 **Suggestions** : [Discussions](https://github.com/DyingStar-game/launcher/discussions)
-- 📧 **Contact** : Contactez l'équipe de développement
-
-## 🏆 Contributeurs
-
-Merci à tous les contributeurs qui ont participé à ce projet !
-
----
-
-*Développé avec ❤️ par l'équipe DyingStar*
-
-# README GENERATED BY ELECTRON
-
-An Electron application with React and TypeScript
-
-## Recommended IDE Setup
-
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-
-## Project Setup
-
-### Install
-
-```bash
-$ npm install
-```
-
-### Development
-
-```bash
-$ npm run dev
-```
-
-### Build
-
-```bash
-# For windows
-$ npm run build:win
-
-# For macOS
-$ npm run build:mac
-
-# For Linux
-$ npm run build:linux
-```
+[MIT License](LICENSE) — Copyright (c) Dying Star

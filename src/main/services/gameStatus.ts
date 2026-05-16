@@ -1,21 +1,11 @@
 import { ipcMain } from 'electron'
-import { getApiBase, ENDPOINTS, getStatusComponentId, getStatusMetricId } from '../config/env'
-import type { Env } from '../../renderer/store/env'
+import { getApiBase, ENDPOINTS, getStatusComponentId, getStatusMetricId } from '../config/api'
+import { HTTP_TIMEOUT_MS } from '../config/constants'
+import type { Env } from '@shared/types/env'
+import type { GameStatusResult, ServerStatusValue } from '@shared/types/game'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+export type { GameStatusResult, ServerStatusValue } from '@shared/types/game'
 
-export type ServerStatusValue = 'online' | 'degraded' | 'offline' | 'maintenance' | 'unknown' | 'unavailable'
-
-export interface GameStatusResult {
-  status:        ServerStatusValue
-  statusLabel:   string            // label brut de l'API (pour debug/log)
-  players:       number
-  available:     boolean           // false si l'env n'est pas configuré
-}
-
-// Mapping value → type interne
-// 1: Operational, 2: Performance Issues, 3: Partial Outage,
-// 4: Major Outage, 5: Unknown, 6: Under Maintenance
 const STATUS_MAP: Record<number, ServerStatusValue> = {
   1: 'online',
   2: 'degraded',
@@ -25,15 +15,15 @@ const STATUS_MAP: Record<number, ServerStatusValue> = {
   6: 'maintenance'
 }
 
-// ─── Fetch helpers ────────────────────────────────────────────────────────────
-
-async function fetchWithTimeout(url: string, timeoutMs = 8_000): Promise<Response> {
+/** Performs a fetch with an abort timeout. */
+async function fetchWithTimeout(url: string, timeoutMs = HTTP_TIMEOUT_MS.api): Promise<Response> {
   return fetch(url, {
     signal: AbortSignal.timeout(timeoutMs),
-    headers: { 'Cache-Control': 'no-cache', 'Accept': 'application/json' }
+    headers: { 'Cache-Control': 'no-cache', Accept: 'application/json' }
   })
 }
 
+/** Parses Cachet component status JSON into a numeric value and label. */
 function parseCachetComponentStatus(json: unknown): { value: number | undefined; label: string } {
   if (!json || typeof json !== 'object') return { value: undefined, label: 'invalid_json' }
   const root = json as Record<string, unknown>
@@ -50,6 +40,7 @@ function parseCachetComponentStatus(json: unknown): { value: number | undefined;
   }
 }
 
+/** Fetches server operational status from the status API. */
 async function fetchStatus(
   apiBase: string,
   componentId: number
@@ -63,22 +54,23 @@ async function fetchStatus(
     const { value, label } = parseCachetComponentStatus(json)
 
     if (value === undefined) {
-      console.warn('[GameStatus] Statut composant illisible', { url, label })
+      console.warn('[GameStatus] Unreadable component status', { url, label })
       return { status: 'unknown', label: label || 'parse_error' }
     }
 
     const mapped = STATUS_MAP[value]
     if (!mapped) {
-      console.warn('[GameStatus] Valeur status inconnue', { url, value, label })
+      console.warn('[GameStatus] Unknown status value', { url, value, label })
       return { status: 'unknown', label }
     }
     return { status: mapped, label }
   } catch (err) {
-    console.warn('[GameStatus] fetch status échoué', err)
+    console.warn('[GameStatus] Status fetch failed', err)
     return { status: 'unknown', label: 'fetch_error' }
   }
 }
 
+/** Parses connected player count from Cachet metrics API response. */
 function parseMetricPoints(json: unknown): number {
   if (!json || typeof json !== 'object') return 0
   const root = json as { data?: unknown }
@@ -91,6 +83,7 @@ function parseMetricPoints(json: unknown): number {
   return Number.isFinite(n) ? n : 0
 }
 
+/** Fetches the current player count metric. */
 async function fetchPlayers(apiBase: string, metricId: number): Promise<number> {
   try {
     const url = ENDPOINTS.metrics(apiBase, metricId)
@@ -100,27 +93,23 @@ async function fetchPlayers(apiBase: string, metricId: number): Promise<number> 
     const json: unknown = await res.json()
     return parseMetricPoints(json)
   } catch (err) {
-    console.warn('[GameStatus] fetch metrics échoué', err)
+    console.warn('[GameStatus] Metrics fetch failed', err)
     return 0
   }
 }
 
-// ─── Disponibilité : ping /version ───────────────────────────────────────────
-
+/** Returns true when the `/version` endpoint responds successfully. */
 async function pingAvailability(apiBase: string): Promise<boolean> {
   try {
-    const res = await fetchWithTimeout(ENDPOINTS.version(apiBase), 5_000)
+    const res = await fetchWithTimeout(ENDPOINTS.version(apiBase), HTTP_TIMEOUT_MS.versionPing)
     return res.ok
   } catch {
     return false
   }
 }
 
-// ─── IPC Handlers ─────────────────────────────────────────────────────────────
-
+/** Registers IPC handlers for env availability and server status. */
 export function registerGameStatusHandlers(): void {
-
-  // ── Vérification de disponibilité au démarrage ─────────────────────────────
   ipcMain.removeHandler('env:check-availability')
   ipcMain.handle('env:check-availability', async (): Promise<Record<Env, boolean>> => {
     const envs: Env[] = ['universe', 'universe-testing']
@@ -128,18 +117,17 @@ export function registerGameStatusHandlers(): void {
     const results = await Promise.all(
       envs.map(async (env) => {
         const base = getApiBase(env)
-        if (!base) return false         // var vide → indisponible immédiatement
+        if (!base) return false
         return pingAvailability(base)
       })
     )
 
     return {
-      'universe':         results[0],
+      universe: results[0],
       'universe-testing': results[1]
     }
   })
 
-  // ── Statut serveur + joueurs pour un env ───────────────────────────────────
   ipcMain.removeHandler('game:get-server-status')
   ipcMain.handle('game:get-server-status', async (_event, env: Env): Promise<GameStatusResult> => {
     const base = getApiBase(env)
@@ -151,7 +139,6 @@ export function registerGameStatusHandlers(): void {
     const componentId = getStatusComponentId(env)
     const metricId = getStatusMetricId(env)
 
-    // Fetch status + players en parallèle
     const [{ status, label }, players] = await Promise.all([
       fetchStatus(base, componentId),
       fetchPlayers(base, metricId)
