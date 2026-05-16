@@ -119,7 +119,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/dying_star_launcher-${{ steps.version.outputs.version }}-windows.exe
-            artifacts/dying_star_launcher-${{ steps.version.outputs.version }}-linux.AppImage
-            artifacts/dying_star_launcher-${{ steps.version.outputs.version }}-linux.rpm
-            artifacts/dying_star_launcher-${{ steps.version.outputs.version }}-linux.deb
+            "artifacts/Dying_Star_Launcher Setup ${{ steps.version.outputs.version }}.exe"
+            artifacts/Dying_Star_Launcher-${{ steps.version.outputs.version }}.AppImage
+            artifacts/dying-star-launcher-${{ steps.version.outputs.version }}.x86_64.rpm
+            artifacts/dying-star-launcher-${{ steps.version.outputs.version }}_amd64.deb
