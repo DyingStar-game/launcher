@@ -3,6 +3,7 @@ name: Build & Deploy Launcher
 on:
   push:
     branches:
+      - main
       - develop
     tags:
       - 'v*'
