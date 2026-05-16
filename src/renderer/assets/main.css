@@ -87,6 +87,8 @@ body {
     border-radius: var(--radius-ds-panel);
     box-shadow: var(--shadow-ds-panel);
     transition: border-color 0.15s ease;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   .ds-panel:hover {
