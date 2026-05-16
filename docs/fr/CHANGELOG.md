@@ -7,11 +7,14 @@ versionnage [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+## [0.2.0] - 2026-05-16
+
 ### Ajouté
 
 - Documentation contributeur bilingue dans `docs/en/` et `docs/fr/` (onboarding, contribution, sécurité, code de conduite)
 - Libellés de progression d’installation structurés et i18n UI (`installProgress.*`)
 - Détection de la langue navigateur et persistance (`ds-language`)
+- github actions pour build le launcher
 
 ### Modifié
 

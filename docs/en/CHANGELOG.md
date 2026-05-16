@@ -7,11 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-16
+
 ### Added
 
 - Bilingual contributor docs under `docs/en/` and `docs/fr/` (onboarding, contributing, security, code of conduct)
 - Structured install progress labels with full UI i18n (`installProgress.*`)
 - Browser language detection and persisted UI language (`ds-language`)
+- github actions for build the launcher
 
 ### Changed
 
