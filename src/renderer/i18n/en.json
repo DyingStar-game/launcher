@@ -74,8 +74,8 @@
       "dismiss": "Dismiss alert",
       "launcher": {
         "title": "Launcher update available",
-        "discordHint": "The new version is available here:",
-        "discordLink": "Discord"
+        "downloadHint": "Download the new version:",
+        "downloadLink": "Download"
       },
       "game": {
         "title": "New game version available"
