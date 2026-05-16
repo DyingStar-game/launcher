@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { launcherReleaseTagUrl } from '@lib/launcherRelease'
 
 type Variant = 'launcher' | 'game'
 
@@ -89,7 +90,11 @@ export default function UpdateAlert({
       ? t('universe.updateAlert.launcher.title')
       : t('universe.updateAlert.game.title')
 
-  const discordLauncherUrl = (import.meta.env.VITE_LAUNCHER_RELEASE_DISCORD_URL ?? '').trim()
+  const githubRepoUrl = (import.meta.env.VITE_LAUNCHER_GITHUB_REPO_URL ?? '').trim()
+  const launcherDownloadUrl =
+    variant === 'launcher' && githubRepoUrl
+      ? launcherReleaseTagUrl(githubRepoUrl, latestVersion)
+      : ''
 
   return (
     <div
@@ -119,16 +124,16 @@ export default function UpdateAlert({
               </span>
             )}
           </div>
-          {variant === 'launcher' && discordLauncherUrl && (
+          {variant === 'launcher' && launcherDownloadUrl && (
             <p className="text-[11px] leading-snug">
-              {t('universe.updateAlert.launcher.discordHint')}{' '}
+              {t('universe.updateAlert.launcher.downloadHint')}{' '}
               <a
-                href={discordLauncherUrl}
+                href={launcherDownloadUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium underline underline-offset-2 decoration-[var(--color-ds-accent)]/60 hover:decoration-[var(--color-ds-accent)] text-[var(--color-ds-accent)]"
               >
-                {t('universe.updateAlert.launcher.discordLink')}
+                {t('universe.updateAlert.launcher.downloadLink')}
               </a>
             </p>
           )}

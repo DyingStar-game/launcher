@@ -74,8 +74,8 @@
       "dismiss": "Fermer l'alerte",
       "launcher": {
         "title": "Mise à jour du launcher disponible",
-        "discordHint": "La nouvelle version est disponible ici :",
-        "discordLink": "Discord"
+        "downloadHint": "Télécharger la nouvelle version :",
+        "downloadLink": "Télécharger"
       },
       "game": {
         "title": "Nouvelle version du jeu disponible"
