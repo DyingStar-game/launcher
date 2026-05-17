@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-05-17
+
+### Fixed
+
+- size of launcher, in some case expands on its own at startup
+- link to download the new version of the launcher
+
 ## [0.2.0] - 2026-05-16
 
 ### Added

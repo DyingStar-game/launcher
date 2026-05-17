@@ -7,6 +7,13 @@ versionnage [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+## [0.2.1] - 2026-05-17
+
+### Corrigé
+
+- taille du launcher, dans certains cas ça s'agrandi tout seul au démarrage
+- lien pour télécharger la nouvelle version du launcher
+
 ## [0.2.0] - 2026-05-16
 
 ### Ajouté
