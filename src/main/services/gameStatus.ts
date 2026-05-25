@@ -70,15 +70,42 @@ async function fetchStatus(
   }
 }
 
-/** Parses connected player count from Cachet metrics API response. */
+/** Resolves numeric id from a Cachet metric point entry (`id` or `attributes.id`). */
+function metricPointId(entry: Record<string, unknown>): number {
+  const attrs = entry.attributes as Record<string, unknown> | undefined
+  const fromAttrs = attrs?.id
+  const fromRoot = entry.id
+  const raw = fromAttrs ?? fromRoot
+  const n = typeof raw === 'number' ? raw : Number(raw)
+  return Number.isFinite(n) ? n : -1
+}
+
+/**
+ * Parses player count from Cachet `/api/metrics/:id/points`.
+ * Uses `attributes.value` on the point with the highest id (latest sample).
+ */
 function parseMetricPoints(json: unknown): number {
   if (!json || typeof json !== 'object') return 0
   const root = json as { data?: unknown }
   const arr = root.data
   if (!Array.isArray(arr) || arr.length === 0) return 0
-  const first = arr[0] as Record<string, unknown> | undefined
-  const attrs = first?.attributes as Record<string, unknown> | undefined
-  const raw = attrs?.calculated_value ?? attrs?.value
+
+  let latest: Record<string, unknown> | undefined
+  let latestId = -1
+
+  for (const item of arr) {
+    if (!item || typeof item !== 'object') continue
+    const entry = item as Record<string, unknown>
+    const id = metricPointId(entry)
+    if (id > latestId) {
+      latestId = id
+      latest = entry
+    }
+  }
+
+  if (!latest) return 0
+  const attrs = latest.attributes as Record<string, unknown> | undefined
+  const raw = attrs?.value
   const n = typeof raw === 'number' ? raw : Number(raw)
   return Number.isFinite(n) ? n : 0
 }
