@@ -23,6 +23,7 @@ export default function GamePanel(): React.JSX.Element {
   const { status, players } = gameData[activeEnv]
   const { installed, version: localGameVersion } = filesData[activeEnv]
   const accountStatus = useAccountStore((s) => s.data[activeEnv].status)
+  const sessionExpired = useAccountStore((s) => s.data[activeEnv].sessionExpired)
   const isAuthenticated = accountStatus === 'connected'
   const gameUpdateAvailable = isGameUpdateAvailable(
     installed,
@@ -107,7 +108,11 @@ export default function GamePanel(): React.JSX.Element {
           <PanelMessage variant="info">{t('universe.game.playDisabledAuthLoading')}</PanelMessage>
         )}
 
-        {installed && isAvailable && accountStatus === 'disconnected' && (
+        {installed && isAvailable && sessionExpired && (
+          <PanelMessage variant="warning">{t('universe.game.sessionExpired')}</PanelMessage>
+        )}
+
+        {installed && isAvailable && accountStatus === 'disconnected' && !sessionExpired && (
           <PanelMessage variant="warning">{t('universe.game.playDisabledAuth')}</PanelMessage>
         )}
 

@@ -253,7 +253,7 @@ export const useFilesStore = create<FilesState>()(
           }
         }
       },
-      /** After disk rehydrate, refresh versions from API/manifest. */
+      /** After disk rehydrate, refresh installed version from local `version.json`. */
       onRehydrateStorage: () => (state) => {
         if (state) void state.syncInstalledVersions()
       }
