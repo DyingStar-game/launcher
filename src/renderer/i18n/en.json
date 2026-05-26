@@ -89,6 +89,7 @@
       "playDisabledUpdate": "A game update is available — install it before playing.",
       "playDisabledAuth": "Sign in to launch the game.",
       "playDisabledAuthLoading": "Checking your session…",
+      "sessionExpired": "Your session has expired. Sign in again from the Account panel to play.",
       "playDisabledRunning": "The game is already running.",
       "notInstalled": "Game not installed",
       "players": "{{count}} players online",

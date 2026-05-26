@@ -111,15 +111,30 @@ export async function handleOAuthCallback(rawUrl: string): Promise<void> {
   }
 }
 
+/** Clears stored tokens and notifies the renderer (e.g. session expired). */
+export function invalidateSession(env: Env): void {
+  clearStoredTokens(env)
+  eventSender?.send('auth:state-changed', {
+    env,
+    status: 'disconnected',
+    reason: 'session_expired'
+  })
+}
+
 /** Returns a fresh id_token suitable for game launch, refreshing if needed. */
 export async function loadFreshGameToken(env: Env): Promise<string | null> {
   const kcBase = getKeycloakBase(env)
+  if (!kcBase) return null
+
   const tokens = loadTokens(env)
-  if (!kcBase || !tokens) return null
+  if (!tokens) {
+    invalidateSession(env)
+    return null
+  }
 
   const refreshed = await refreshToken(kcBase, tokens.refresh_token)
   if (!refreshed) {
-    clearStoredTokens(env)
+    invalidateSession(env)
     return null
   }
 
@@ -128,6 +143,8 @@ export async function loadFreshGameToken(env: Env): Promise<string | null> {
   const launchToken = pickGameLaunchToken(merged)
   if (!launchToken) {
     console.error('[Auth] Invalid game token:', describeGameTokenIssue(merged))
+    invalidateSession(env)
+    return null
   }
   return launchToken
 }
@@ -140,7 +157,7 @@ export async function loadUserProfile(env: Env): Promise<UserInfo | null> {
 
   const refreshed = await refreshToken(kcBase, tokens.refresh_token)
   if (!refreshed) {
-    clearStoredTokens(env)
+    invalidateSession(env)
     return null
   }
 

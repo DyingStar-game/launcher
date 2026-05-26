@@ -16,6 +16,7 @@ interface ServerStatusResult {
 /** Auth event pushed from main after OAuth callback or error. */
 type AuthStateChangedPayload =
   | { env: Env; status: 'connected'; user: UserInfo }
+  | { env: Env; status: 'disconnected'; reason?: 'session_expired' }
   | { env: Env; status: 'error'; error: string }
 
 declare global {

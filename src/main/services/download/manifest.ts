@@ -1,6 +1,5 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { fetchRemoteGameVersion } from '../version'
 import type { Env } from '@shared/types/env'
 import type { InstallResult } from '@shared/types/install'
 
@@ -51,21 +50,13 @@ function readVersionManifest(gameRoot: string): InstallResult | null {
 }
 
 /**
- * Returns installed version aligned with remote `/version` when available.
- * Returns null when no local `version.json` is found.
+ * Returns the version read from the local `version.json` on disk only.
+ * Remote `/version` is fetched separately via `checkVersions` for update comparison.
+ * Returns null when no manifest is found.
  */
 export async function resolveInstalledVersion(
-  env: Env,
+  _env: Env,
   gameRoot: string
 ): Promise<InstallResult | null> {
-  const fromFile = readVersionManifest(gameRoot)
-  if (!fromFile) return null
-  const fromApi = await fetchRemoteGameVersion(env)
-  if (fromApi?.version) {
-    return {
-      version: fromApi.version,
-      releaseDate: fromApi.releaseDate ?? fromFile.releaseDate
-    }
-  }
-  return fromFile
+  return readVersionManifest(gameRoot)
 }
