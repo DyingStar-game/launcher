@@ -15,9 +15,7 @@ export async function launchGame(
 
   const token = await loadFreshGameToken(env)
   if (!token) {
-    throw new Error(
-      'Invalid session or incomplete token (missing id or username). Sign in again and retry.'
-    )
+    throw new Error('SESSION_EXPIRED')
   }
 
   const exePath = getExecutablePath(installPath)

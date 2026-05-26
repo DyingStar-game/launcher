@@ -101,6 +101,7 @@ const api = {
     callback: (
       data:
         | { env: Env; status: 'connected'; user: UserInfo }
+        | { env: Env; status: 'disconnected'; reason?: 'session_expired' }
         | { env: Env; status: 'error'; error: string }
     ) => void
   ): void => {

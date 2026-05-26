@@ -7,6 +7,8 @@ type EnvAccountData = {
   status: AccountStatus
   username?: string
   email?: string
+  /** True after refresh failed — user must sign in again from Account panel. */
+  sessionExpired?: boolean
 }
 
 type AccountState = {
@@ -49,14 +51,23 @@ export const useAccountStore = create<AccountState>((set) => {
       patchEnv(set, data.env, {
         status: 'connected',
         username: data.user.username,
-        email: data.user.email
+        email: data.user.email,
+        sessionExpired: false
+      })
+    } else if (data.status === 'disconnected') {
+      patchEnv(set, data.env, {
+        status: 'disconnected',
+        username: undefined,
+        email: undefined,
+        sessionExpired: data.reason === 'session_expired'
       })
     } else {
       console.error('[AccountStore] Auth error:', data.error)
       patchEnv(set, data.env, {
         status: 'disconnected',
         username: undefined,
-        email: undefined
+        email: undefined,
+        sessionExpired: data.error === 'session_expired'
       })
     }
   })
@@ -69,7 +80,8 @@ export const useAccountStore = create<AccountState>((set) => {
         patchEnv(set, env, {
           status: 'connected',
           username: user.username,
-          email: user.email
+          email: user.email,
+          sessionExpired: false
         })
       }
     })
@@ -92,7 +104,12 @@ export const useAccountStore = create<AccountState>((set) => {
     logout: async () => {
       const env = useEnvStore.getState().activeEnv
       await window.api.authLogout(env)
-      patchEnv(set, env, { status: 'disconnected', username: undefined, email: undefined })
+      patchEnv(set, env, {
+        status: 'disconnected',
+        username: undefined,
+        email: undefined,
+        sessionExpired: false
+      })
     },
 
     cancelLogin: () => {
