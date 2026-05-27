@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix player count on game panel
 - fix expiration authentication
 - fix game version update
+- fix `ERROR:crashpad_client_win.cc` on Windows by initialising `crashReporter` in the main process before any window is created
 
 ## [0.2.1] - 2026-05-17
 

@@ -12,6 +12,7 @@ versionnage [Semantic Versioning](https://semver.org/lang/fr/).
 - correction du nombre de joueur sur le panel game
 - correction expiration authentification
 - correction de la mise a jour d'une nouvelle version du jeu
+- correction de l'erreur `ERROR:crashpad_client_win.cc` sur Windows en initialisant `crashReporter` dans le processus principal avant la création de fenêtre
 
 ## [0.2.1] - 2026-05-17
 

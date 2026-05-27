@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, crashReporter } from 'electron'
 import { join } from 'path'
 import path from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -16,6 +16,11 @@ import log from 'electron-log'
 if (import.meta.env.VITE_ELECTRON_ENABLE_LOGGING === 'true') {
   log.transports.file.level = 'debug'
 }
+
+// Initialise Crashpad before any window is created to avoid
+// ERROR:crashpad_client_win.cc on Windows when the handler cannot be
+// started lazily by a renderer process.
+crashReporter.start({ submitURL: '', uploadToServer: false })
 
 /** Register custom protocol before app ready (dev needs script path in argv). */
 if (process.defaultApp && process.argv.length >= 2) {
