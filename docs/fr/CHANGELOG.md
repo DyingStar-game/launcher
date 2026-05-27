@@ -7,6 +7,12 @@ versionnage [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+## [0.2.2] - 2026-05-27
+
+- correction du nombre de joueur sur le panel game
+- correction expiration authentification
+- correction de la mise a jour d'une nouvelle version du jeu
+
 ## [0.2.1] - 2026-05-17
 
 ### Corrigé
