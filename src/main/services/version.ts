@@ -1,6 +1,7 @@
 import { ipcMain, app } from 'electron'
 import { getApiBase, ENDPOINTS } from '../config/api'
 import { HTTP_TIMEOUT_MS } from '../config/constants'
+import { normalizeGameVersion } from '@shared/gameVersion'
 import type { Env } from '@shared/types/env'
 import type { GameVersionInfo, VersionCheckResult } from '@shared/types/version'
 
@@ -104,7 +105,7 @@ export function registerVersionHandlers(): void {
     const payloads = await Promise.all(envs.map((env) => fetchRemoteGameVersion(env)))
 
     const toInfo = (p: RemoteVersionPayload | null): GameVersionInfo => ({
-      version: p?.version ?? null,
+      version: p?.version ? normalizeGameVersion(p.version) : null,
       releaseDate: p?.releaseDate ?? null
     })
 

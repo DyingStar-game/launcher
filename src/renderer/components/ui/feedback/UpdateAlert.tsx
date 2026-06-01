@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { formatGameVersionDisplay } from '@shared/gameVersion'
 import { launcherReleaseTagUrl } from '@lib/launcherRelease'
 
 type Variant = 'launcher' | 'game'
@@ -61,18 +62,6 @@ const COLOR_CLASSES = {
   }
 }
 
-/**
- * Formats YYYYMMDDHHMMSS build ids as "DD/MM/YYYY HH:mm"; passes through semver as-is.
- */
-function formatVersion(v: string): string {
-  if (v.length === 14 && /^\d+$/.test(v)) {
-    const date = `${v.slice(6, 8)}/${v.slice(4, 6)}/${v.slice(0, 4)}`
-    const time = `${v.slice(8, 10)}:${v.slice(10, 12)}`
-    return `${date} ${time}`
-  }
-  return v
-}
-
 /** Banner when a newer launcher or game build is available remotely. */
 export default function UpdateAlert({
   variant,
@@ -110,13 +99,13 @@ export default function UpdateAlert({
         <div className={`flex flex-col gap-1 text-[11px] ${cls.text}`}>
           <div className="flex flex-wrap items-center gap-1.5">
             {currentVersion && (
-              <span className="font-mono opacity-60">{formatVersion(currentVersion)}</span>
+              <span className="font-mono opacity-60">{formatGameVersionDisplay(currentVersion)}</span>
             )}
             {currentVersion && <span>→</span>}
             <span
               className={`inline-flex items-center px-1.5 py-0.5 rounded border font-mono font-semibold text-[10px] ${cls.badge}`}
             >
-              {formatVersion(latestVersion)}
+              {formatGameVersionDisplay(latestVersion)}
             </span>
             {latestReleaseDate && (
               <span className="opacity-60">
