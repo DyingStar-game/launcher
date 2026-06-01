@@ -53,6 +53,9 @@ const defaultData: Record<Env, EnvFilesData> = {
 
 type SetFn = (fn: (s: FilesState) => Partial<FilesState>) => void
 
+/** Ignores stale `syncInstalledVersions` results after a new install/update starts. */
+let installedVersionSyncGeneration = 0
+
 /** Merges partial file/install fields for one environment. */
 function patchEnv(set: SetFn, env: Env, patch: Partial<EnvFilesData>): void {
   set((s) => ({
@@ -90,6 +93,7 @@ export const useFilesStore = create<FilesState>()(
           return
         }
 
+        installedVersionSyncGeneration += 1
         patchEnv(set, env, { installing: true, progress: 0, progressEvent: { key: 'connecting' } })
 
         window.api.onInstallProgress((progress, label) => {
@@ -108,6 +112,7 @@ export const useFilesStore = create<FilesState>()(
             progress: 100,
             progressEvent: { key: 'completeInstall', version }
           })
+          await get().syncInstalledVersions()
           void useVersionStore.getState().checkVersions()
         } catch (err) {
           console.error('[FilesStore] Install failed:', err)
@@ -120,6 +125,7 @@ export const useFilesStore = create<FilesState>()(
         const { installPath } = get().data[env]
         if (!installPath) return
 
+        installedVersionSyncGeneration += 1
         patchEnv(set, env, {
           installing: true,
           progress: 0,
@@ -147,6 +153,7 @@ export const useFilesStore = create<FilesState>()(
             progress: 100,
             progressEvent: { key: 'completeUpdate', version }
           })
+          await get().syncInstalledVersions()
           void useVersionStore.getState().checkVersions()
         } catch (err) {
           console.error('[FilesStore] Update failed:', err)
@@ -177,17 +184,23 @@ export const useFilesStore = create<FilesState>()(
       },
 
       syncInstalledVersions: async () => {
+        const generation = ++installedVersionSyncGeneration
         const envs: Env[] = ['universe', 'universe-testing']
+        const patches: Array<{ env: Env; patch: Partial<EnvFilesData> }> = []
+
         await Promise.all(
           envs.map(async (env) => {
             const { installPath } = get().data[env]
             if (!installPath) {
               if (get().data[env].installed) {
-                patchEnv(set, env, {
-                  installed: false,
-                  version: null,
-                  releaseDate: null,
-                  needsUpdate: false
+                patches.push({
+                  env,
+                  patch: {
+                    installed: false,
+                    version: null,
+                    releaseDate: null,
+                    needsUpdate: false
+                  }
                 })
               }
               return
@@ -195,30 +208,44 @@ export const useFilesStore = create<FilesState>()(
             try {
               const resolved = await window.api.resolveInstalledVersion(env, installPath)
               if (!resolved?.version) {
-                patchEnv(set, env, {
+                patches.push({
+                  env,
+                  patch: {
+                    installed: false,
+                    version: null,
+                    releaseDate: null,
+                    needsUpdate: false
+                  }
+                })
+                return
+              }
+              patches.push({
+                env,
+                patch: {
+                  installed: true,
+                  version: resolved.version,
+                  releaseDate: resolved.releaseDate
+                }
+              })
+            } catch (err) {
+              console.warn('[FilesStore] Sync installed version:', env, err)
+              patches.push({
+                env,
+                patch: {
                   installed: false,
                   version: null,
                   releaseDate: null,
                   needsUpdate: false
-                })
-                return
-              }
-              patchEnv(set, env, {
-                installed: true,
-                version: resolved.version,
-                releaseDate: resolved.releaseDate
-              })
-            } catch (err) {
-              console.warn('[FilesStore] Sync installed version:', env, err)
-              patchEnv(set, env, {
-                installed: false,
-                version: null,
-                releaseDate: null,
-                needsUpdate: false
+                }
               })
             }
           })
         )
+
+        if (generation !== installedVersionSyncGeneration) return
+        for (const { env, patch } of patches) {
+          patchEnv(set, env, patch)
+        }
       }
     }),
     {
