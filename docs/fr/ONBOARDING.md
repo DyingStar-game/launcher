@@ -157,7 +157,7 @@ Le sélecteur de la navbar change `useEnvStore().activeEnv` ; la plupart des sto
 1. Partir de **`develop`**
 2. `pnpm run typecheck && pnpm run lint`
 3. PR focalisée, style cohérent avec le dépôt
-4. Mettre à jour `docs/en/CHANGELOG.md` et `docs/fr/CHANGELOG.md` si changement visible utilisateur (section Unreleased)
+4. Pour un changement visible utilisateur, remplir les sections `<!-- CHANGELOG_EN -->` et `<!-- CHANGELOG_FR -->` dans la description de la PR — les entrées sont enregistrées automatiquement à la fusion
 5. Lire [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Aide

@@ -157,7 +157,7 @@ The navbar env switcher changes `useEnvStore().activeEnv`; most stores are keyed
 1. Branch from **`develop`**
 2. Run `pnpm run typecheck && pnpm run lint`
 3. Keep changes focused; match existing code style
-4. Update `docs/en/CHANGELOG.md` and `docs/fr/CHANGELOG.md` for user-visible changes (Unreleased section)
+4. For user-visible changes, fill in the `<!-- CHANGELOG_EN -->` and `<!-- CHANGELOG_FR -->` sections in the PR description — entries are recorded automatically on merge
 5. Read [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Getting help
