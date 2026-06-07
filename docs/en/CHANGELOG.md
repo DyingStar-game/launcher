@@ -1,8 +1,9 @@
 # Changelog
 
-All notable changes to this project are documented here.
+The launcher changelog has moved to the centralised changelog repository.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+Read it at: <https://github.com/DyingStar-game/changelog/blob/main/launcher/CHANGELOG.md>
+
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
