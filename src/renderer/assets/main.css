@@ -232,3 +232,38 @@ body {
   border-radius: 12px;
   overflow-x: auto;
 }
+
+.changelog-list {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0;
+  text-align: left;
+}
+
+.changelog-list-item {
+  margin: 0.75rem 0;
+  text-align: left;
+  color: var(--color-ds-text);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.changelog-list-item > :first-child {
+  display: inline;
+}
+
+.changelog-list-item a {
+  color: var(--color-ds-accent);
+  text-decoration: underline;
+}
+
+.changelog-list-item strong {
+  font-weight: 600;
+}
+
+.changelog-list-item code {
+  background: var(--color-ds-surface-hover);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.9em;
+}

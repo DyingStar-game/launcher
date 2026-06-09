@@ -4,6 +4,7 @@ import type { Env } from '@shared/types/env'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type { UserInfo } from '@shared/types/auth'
 import type { ServerStatusValue } from '@shared/types/game'
+import type { GlobalChangelog } from '@shared/types/changelog'
 
 /**
  * Renderer-facing API exposed as `window.api`.
@@ -25,9 +26,8 @@ const api = {
     })
   },
 
-  /** Reads CHANGELOG.md from the install directory, if present. */
-  readChangelog: (installPath: string): Promise<string | null> =>
-    ipcRenderer.invoke('files:read-changelog', installPath),
+  /** Fetches the centralised changelog JSON. */
+  fetchChangelog: (): Promise<GlobalChangelog | null> => ipcRenderer.invoke('changelog:fetch'),
 
   /** Re-resolves installed version from disk and remote API after install or on demand. */
   resolveInstalledVersion: (

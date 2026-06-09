@@ -5,12 +5,12 @@ import { downloadAndInstall } from '../download'
 import { resolveInstalledVersion } from '../download/manifest'
 import { clearDyingStarGodotCaches } from '../godotUserdataCache'
 import type { Env } from '@shared/types/env'
-import { findChangelogPath, getGameRoot, isGameInstalledAtPath } from './paths'
+import { getGameRoot, isGameInstalledAtPath } from './paths'
 import { launchGame } from './launch'
 import { isGameRunning, setLauncherWindow } from './processWatch'
 import { getInstallDialogStrings } from '../../l10n/dialogs'
 
-/** Registers IPC handlers for install paths, changelog, cache, and game launch. */
+/** Registers IPC handlers for install paths, cache, and game launch. */
 export function registerFilesHandlers(win: BrowserWindow): void {
   setLauncherWindow(win)
 
@@ -39,22 +39,7 @@ export function registerFilesHandlers(win: BrowserWindow): void {
   ipcMain.removeHandler('files:clear-godot-cache')
   ipcMain.handle('files:clear-godot-cache', async () => clearDyingStarGodotCaches())
 
-  ipcMain.removeHandler('files:read-changelog')
   ipcMain.removeHandler('files:resolve-installed-version')
-
-  ipcMain.handle(
-    'files:read-changelog',
-    async (_event, installPath: string): Promise<string | null> => {
-      if (!installPath || typeof installPath !== 'string') return null
-      const changelogFile = findChangelogPath(path.resolve(installPath))
-      if (!changelogFile) return null
-      try {
-        return fs.readFileSync(changelogFile, 'utf-8')
-      } catch {
-        return null
-      }
-    }
-  )
 
   ipcMain.handle(
     'files:resolve-installed-version',

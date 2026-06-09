@@ -5,6 +5,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { applyAppIcon, loadAppIcon } from './icon'
 import { registerFilesHandlers } from './services/game'
 import { registerVersionHandlers } from './services/version'
+import { registerChangelogHandlers } from './services/changelog'
 import { registerGameStatusHandlers } from './services/gameStatus'
 import { registerAuthHandlers, handleOAuthCallback } from './services/auth'
 import { registerWindowHandlers } from './services/window'
@@ -109,6 +110,7 @@ app.whenReady().then(() => {
   })
 
   registerVersionHandlers()
+  registerChangelogHandlers()
   registerGameStatusHandlers()
   createWindow()
 

@@ -4,6 +4,7 @@ import type { UserInfo } from '@shared/types/auth'
 import type { InstallResult } from '@shared/types/install'
 import type { VersionCheckResult } from '@shared/types/version'
 import type { ServerStatusValue } from '@shared/types/game'
+import type { GlobalChangelog } from '@shared/types/changelog'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 
 /** Server status payload returned by `getServerStatus`. */
@@ -27,7 +28,7 @@ declare global {
       selectDirectory: () => Promise<string | null>
       installGame: (env: Env, installPath: string) => Promise<InstallResult>
       onInstallProgress: (callback: (progress: number, label: InstallProgressLabel) => void) => void
-      readChangelog: (installPath: string) => Promise<string | null>
+      fetchChangelog: () => Promise<GlobalChangelog | null>
       resolveInstalledVersion: (env: Env, installPath: string) => Promise<InstallResult | null>
       clearGodotGameCache: () => Promise<{
         root: string

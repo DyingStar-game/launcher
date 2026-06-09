@@ -3,6 +3,7 @@ import { useNavigationStore } from '@stores/navigation'
 import UniverseView from '@views/UniverseView'
 import Social from '@views/Social'
 import Lore from '@views/Lore'
+import Changelog from '@views/Changelog'
 
 /** Application shell: navbar and routed main content */
 export default function Shell(): React.JSX.Element {
@@ -19,6 +20,8 @@ export default function Shell(): React.JSX.Element {
         return <Social />
       case 'lore':
         return <Lore />
+      case 'changelog':
+        return <Changelog />
       default:
         return <UniverseView />
     }

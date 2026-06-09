@@ -36,7 +36,8 @@
     "envUniverse": "Universe",
     "envTesting": "Universe Testing",
     "brandDiscord": "Discord",
-    "brandWiki": "Wiki"
+    "brandWiki": "Wiki",
+    "changelog": "Changelog"
   },
   "universeTesting": {
     "banner": "Testing environment — data is not from the live server"
@@ -48,6 +49,28 @@
     "fileNotFound": "File not found: {{file}}",
     "articles": {
       "origins": "Origins"
+    }
+  },
+  "changelog": {
+    "sidebarTitle": "Changelog",
+    "sidebarSubtitle": "Release notes by version.",
+    "sidebarSubtitleTesting": "Upcoming changes in testing.",
+    "selectVersion": "Select a version",
+    "loading": "Loading changelog…",
+    "unavailable": "Changelog is not available (URL not configured or fetch failed).",
+    "empty": "No release notes yet.",
+    "noEntries": "No entries for this version.",
+    "unreleased": "Upcoming",
+    "versionLabel": "v{{version}}",
+    "pageTitleUnreleased": "{{component}} — Upcoming",
+    "pageTitleRelease": "{{component}} — v{{version}}",
+    "components": {
+      "DyingStar": "Dying Star",
+      "launcher": "Launcher",
+      "horizonserver": "Horizon Server",
+      "services/monitoring": "Monitoring",
+      "services/persistence": "Persistence",
+      "services/resourcesDynamic": "Dynamic resources"
     }
   },
   "friendStatus": {
@@ -115,10 +138,6 @@
       "clearCacheToastOk": "Cache cleared.",
       "clearCacheToastPartial": "Cache partially cleared (some folders could not be removed).",
       "clearCacheToastError": "Could not clear the cache.",
-      "changelog": "View changelog",
-      "changelogModalTitle": "Changelog — v{{version}}",
-      "changelogLoading": "Loading changelog…",
-      "changelogMissing": "No CHANGELOG.md was found in the install folder (make sure it is included in the game archive).",
       "installing": "Installing...",
       "installPath": "Install folder",
       "installPathPlaceholder": "/home/user/games/dyingstar",

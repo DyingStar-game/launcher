@@ -8,13 +8,12 @@ import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/primitives/Button'
 import InputField from '@components/ui/primitives/InputField'
 import UpdateAlert from '@components/ui/feedback/UpdateAlert'
-import ChangelogModal from '@components/ui/overlays/ChangelogModal'
 import { formatReleaseDateDisplay } from '@lib/formatReleaseDate'
 import { formatInstallProgress } from '@lib/formatInstallProgress'
 import { isGameUpdateAvailable } from '@lib/isGameUpdateAvailable'
 import { toastDurationMs } from '@lib/env'
 
-/** Files panel: install path, install/update progress, changelog, and cache clear. */
+/** Files panel: install path, install/update progress, and cache clear. */
 export default function FilesPanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const {
@@ -45,9 +44,6 @@ export default function FilesPanel(): React.JSX.Element {
   const { t } = useTranslation()
   const progressText = formatInstallProgress(t, progressEvent)
 
-  const [changelogOpen, setChangelogOpen] = useState(false)
-  const [changelogLoading, setChangelogLoading] = useState(false)
-  const [changelogMd, setChangelogMd] = useState<string | null>(null)
   const [cacheToast, setCacheToast] = useState<'success' | 'partial' | 'error' | null>(null)
 
   useEffect(() => {
@@ -66,22 +62,6 @@ export default function FilesPanel(): React.JSX.Element {
   }, [clearCache])
 
   const displayReleaseDate = formatReleaseDateDisplay(releaseDate)
-
-  const openChangelog = useCallback(async () => {
-    if (!installPath) return
-    setChangelogMd(null)
-    setChangelogOpen(true)
-    setChangelogLoading(true)
-    try {
-      const text = await window.api.readChangelog(installPath)
-      setChangelogMd(text)
-    } catch (err) {
-      console.error('[FilesPanel] Changelog :', err)
-      setChangelogMd(null)
-    } finally {
-      setChangelogLoading(false)
-    }
-  }, [installPath])
 
   return (
     <div className="ds-panel ds-panel-padded relative h-full flex flex-col gap-5">
@@ -175,12 +155,6 @@ export default function FilesPanel(): React.JSX.Element {
         )}
 
         {isAvailable && installed && (
-          <Button variant="secondary" disabled={installing || !installPath} onClick={openChangelog}>
-            {t('universe.files.changelog')}
-          </Button>
-        )}
-
-        {isAvailable && installed && (
           <Button onClick={handleClearCache} variant="danger" disabled={installing}>
             {t('universe.files.clearCache')}
           </Button>
@@ -206,16 +180,6 @@ export default function FilesPanel(): React.JSX.Element {
           {cacheToast === 'error' && t('universe.files.clearCacheToastError')}
         </div>
       )}
-
-      <ChangelogModal
-        open={changelogOpen}
-        onClose={() => setChangelogOpen(false)}
-        title={t('universe.files.changelogModalTitle', { version: version ?? '—' })}
-        loading={changelogLoading}
-        loadingLabel={t('universe.files.changelogLoading')}
-        markdown={changelogMd}
-        emptyLabel={t('universe.files.changelogMissing')}
-      />
     </div>
   )
 }
