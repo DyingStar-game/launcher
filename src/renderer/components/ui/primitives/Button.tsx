@@ -1,4 +1,7 @@
 import type React from 'react'
+import { UiSoundProfile } from '@shared/types/sounds'
+import type { UiSoundProfile as UiSoundProfileType } from '@shared/types/sounds'
+import { mergeSoundHandlers, useUiSound } from '@hooks/useUiSound'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
 type Size = 'sm' | 'md'
@@ -6,6 +9,8 @@ type Size = 'sm' | 'md'
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant
   size?: Size
+  /** Hover/click SFX profile (`none` disables sounds for this button). */
+  soundProfile?: UiSoundProfileType
 }
 
 const base =
@@ -34,18 +39,30 @@ const variants: Record<Variant, string> = {
     'hover:bg-[var(--color-ds-surface-hover)] hover:border-[var(--color-ds-border)] hover:text-[var(--color-ds-text)]'
 }
 
-/** Themed button with primary/secondary/danger/ghost variants. */
+/** Themed button with primary/secondary/danger/ghost variants and optional UI sounds. */
 export default function Button({
   variant = 'secondary',
   size = 'md',
+  soundProfile = UiSoundProfile.Default,
   className = '',
   type = 'button',
+  disabled,
+  onMouseEnter,
+  onMouseLeave,
+  onClick,
   ...props
 }: Props): React.JSX.Element {
+  const soundHandlers = useUiSound(soundProfile, { disabled: Boolean(disabled) })
+  const merged = mergeSoundHandlers(soundHandlers, { onMouseEnter, onMouseLeave, onClick })
+
   return (
     <button
       type={type}
+      disabled={disabled}
       className={[base, sizes[size], variants[variant], className].join(' ')}
+      onMouseEnter={merged.onMouseEnter}
+      onMouseLeave={merged.onMouseLeave}
+      onClick={merged.onClick}
       {...props}
     />
   )

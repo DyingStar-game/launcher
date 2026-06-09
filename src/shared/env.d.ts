@@ -20,6 +20,8 @@ interface ImportMetaEnv {
   readonly VITE_WINDOW_MAX_HEIGHT: string
   readonly VITE_ENABLE_DEVTOOLS: string
   readonly VITE_ELECTRON_ENABLE_LOGGING: string
+  /** Linux: disable GPU / accelerated decode (default on). Set to `false` to opt out. */
+  readonly VITE_ELECTRON_DISABLE_GPU_LINUX: string
   readonly VITE_STATUS_COMPONENT_ID_UNIVERSE: string
   readonly VITE_STATUS_COMPONENT_ID_TESTING: string
   readonly VITE_STATUS_METRIC_ID_UNIVERSE: string

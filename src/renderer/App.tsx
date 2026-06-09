@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useVersionStore } from '@stores/version'
 import { useAvailabilityStore } from '@stores/availability'
 import { useChangelogStore } from '@stores/changelog'
+import { useBackgroundMusic } from '@hooks/useBackgroundMusic'
 
 /**
  * Runs one-time startup checks: API availability, version comparison, and changelog.
@@ -25,6 +26,7 @@ function useAppStartup(): void {
 /** Root React tree: shell layout and startup side effects. */
 function App(): React.JSX.Element {
   useAppStartup()
+  useBackgroundMusic()
   return <Shell />
 }
 

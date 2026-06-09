@@ -37,7 +37,11 @@
     "envTesting": "Universe Testing",
     "brandDiscord": "Discord",
     "brandWiki": "Wiki",
-    "changelog": "Changelog"
+    "changelog": "Changelog",
+    "soundEnabled": "Sons activés",
+    "soundDisabled": "Sons désactivés",
+    "toggleSound": "Activer / désactiver les sons",
+    "soundVolume": "Volume"
   },
   "universeTesting": {
     "banner": "Environnement de test — les données ne sont pas celles du serveur live"
@@ -142,6 +146,7 @@
       "installPath": "Répertoire d'installation",
       "installPathPlaceholder": "/home/utilisateur/jeux/dyingstar",
       "browse": "Parcourir",
+      "selectInstallPath": "Sélectionnez un répertoire d'installation",
       "unavailable": "Installation non disponible pour cet environnement.",
       "unavailableBtn": "Indisponible"
     },

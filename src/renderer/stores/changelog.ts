@@ -15,6 +15,8 @@ type ChangelogState = {
   unreleasedSeenAt: Record<string, string>
   fetch: () => Promise<void>
   select: (id: string) => void
+  /** Marks an entry as read without changing selection (e.g. when it is displayed). */
+  markViewed: (id: string, env: Env) => void
   syncSelectionForEnv: (env: Env) => void
   getEntries: (env: Env) => ChangelogEntryRef[]
   getCurrentId: (env: Env) => string | null
@@ -25,6 +27,20 @@ type ChangelogState = {
 function entriesForEnv(data: GlobalChangelog | null, env: Env): ChangelogEntryRef[] {
   if (!data) return []
   return buildChangelogEntryRefs(data, env)
+}
+
+function viewedPatchForEntry(
+  state: { data: GlobalChangelog | null; viewedIds: string[]; unreleasedSeenAt: Record<string, string> },
+  entry: ChangelogEntryRef,
+  env: Env,
+  id: string
+): Pick<ChangelogState, 'viewedIds' | 'unreleasedSeenAt'> {
+  const viewedIds = state.viewedIds.includes(id) ? state.viewedIds : [...state.viewedIds, id]
+  const unreleasedSeenAt =
+    entry.kind === 'unreleased' && state.data
+      ? { ...state.unreleasedSeenAt, [`${env}:${entry.componentId}`]: state.data.generated_at }
+      : state.unreleasedSeenAt
+  return { viewedIds, unreleasedSeenAt }
 }
 
 /**
@@ -79,18 +95,17 @@ export const useChangelogStore = create<ChangelogState>()(
         const entry = entriesForEnv(get().data, env).find((e) => e.id === id)
         if (!entry) return
 
-        set((s) => {
-          const viewedIds = s.viewedIds.includes(id) ? s.viewedIds : [...s.viewedIds, id]
-          const unreleasedSeenAt =
-            entry.kind === 'unreleased' && s.data
-              ? { ...s.unreleasedSeenAt, [`${env}:${entry.componentId}`]: s.data.generated_at }
-              : s.unreleasedSeenAt
-          return {
-            currentByEnv: { ...s.currentByEnv, [env]: id },
-            viewedIds,
-            unreleasedSeenAt
-          }
-        })
+        set((s) => ({
+          ...viewedPatchForEntry(s, entry, env, id),
+          currentByEnv: { ...s.currentByEnv, [env]: id }
+        }))
+      },
+
+      markViewed: (id, env) => {
+        const entry = entriesForEnv(get().data, env).find((e) => e.id === id)
+        if (!entry) return
+
+        set((s) => viewedPatchForEntry(s, entry, env, id))
       },
 
       isUnread: (id) => {

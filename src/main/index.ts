@@ -12,7 +12,10 @@ import { registerWindowHandlers } from './services/window'
 import { WINDOW_BOUNDS } from './config/window'
 import { APP_PROTOCOL } from './config/constants'
 import { registerLinuxProtocolHandler } from './protocol/linuxDesktop'
+import { applyPlatformDisplayFlags } from './config/display'
 import log from 'electron-log'
+
+applyPlatformDisplayFlags()
 
 if (import.meta.env.VITE_ELECTRON_ENABLE_LOGGING === 'true') {
   log.transports.file.level = 'debug'

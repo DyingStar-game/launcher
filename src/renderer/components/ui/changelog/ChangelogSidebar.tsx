@@ -3,8 +3,7 @@ import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
-import ChangelogEntryItem from '@components/ui/changelog/ChangelogEntryItem'
-import { resolveChangelogEntries } from '@lib/changelogEntries'
+import SidebarItemButton from '@components/ui/primitives/SidebarItemButton'
 
 function BellBadge(): React.JSX.Element {
   return (
@@ -67,14 +66,10 @@ export default function ChangelogSidebar(): React.JSX.Element {
                 {t(`changelog.components.${entry.componentId}`, { defaultValue: entry.componentId })}
               </p>
             )}
-            <button
-              type="button"
+            <SidebarItemButton
+              active={currentId === entry.id}
               onClick={() => select(entry.id)}
-              className={`relative text-left px-3 py-2.5 rounded-xl text-sm border transition-colors cursor-pointer w-full ${
-                currentId === entry.id
-                  ? 'bg-[var(--color-ds-surface)] text-[var(--color-ds-text)] border-[var(--color-ds-accent)]/40'
-                  : 'text-[var(--color-ds-muted)] border-transparent hover:border-[var(--color-ds-border)] hover:bg-[var(--color-ds-surface-hover)] hover:text-[var(--color-ds-text)]'
-              }`}
+              className="relative w-full"
             >
               <span className="flex flex-col gap-0.5 pr-2">
                 <span>{label}</span>
@@ -84,8 +79,8 @@ export default function ChangelogSidebar(): React.JSX.Element {
                   </span>
                 )}
               </span>
-              {isUnread(entry.id) && <BellBadge />}
-            </button>
+              {isUnread(entry.id) && currentId !== entry.id && <BellBadge />}
+            </SidebarItemButton>
           </div>
         )
       })}

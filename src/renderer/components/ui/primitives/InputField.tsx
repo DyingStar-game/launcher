@@ -1,4 +1,6 @@
 import React from 'react'
+import { UiSoundProfile } from '@shared/types/sounds'
+import { mergeSoundHandlers, useUiSound } from '@hooks/useUiSound'
 
 type InputFieldAction = {
   label: string
@@ -25,6 +27,13 @@ export default function InputField({
   disabled = false,
   readOnly = false
 }: InputFieldProps): React.JSX.Element {
+  const actionSound = useUiSound(UiSoundProfile.Default, { disabled })
+  const actionHandlers = action
+    ? mergeSoundHandlers(actionSound, {
+        onClick: () => action.onClick()
+      })
+    : null
+
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-[10px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.2em]">
@@ -51,10 +60,11 @@ export default function InputField({
             read-only:cursor-default
           "
         />
-        {action && (
+        {action && actionHandlers && (
           <button
             type="button"
-            onClick={action.onClick}
+            onClick={actionHandlers.onClick}
+            onMouseEnter={actionHandlers.onMouseEnter}
             disabled={disabled}
             className="
               shrink-0 px-3 py-2
@@ -65,7 +75,7 @@ export default function InputField({
               hover:border-[var(--color-ds-accent)]/60
               hover:text-[var(--color-ds-text)]
               transition-colors duration-150
-              disabled:opacity-40 disabled:cursor-not-allowed
+              disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none
               whitespace-nowrap
             "
           >
