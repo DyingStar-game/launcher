@@ -11,6 +11,7 @@ interface ImportMetaEnv {
   readonly VITE_GAME_ZIP_TESTING_LINUX: string
   readonly VITE_GAME_ZIP_TESTING_DARWIN: string
   readonly VITE_LAUNCHER_GITHUB_REPO_URL: string
+  readonly VITE_CHANGELOG_JSON_URL: string
   readonly VITE_WINDOW_DESIGN_WIDTH: string
   readonly VITE_WINDOW_DESIGN_HEIGHT: string
   readonly VITE_WINDOW_MIN_WIDTH: string

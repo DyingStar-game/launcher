@@ -4,6 +4,7 @@ import i18n from '@i18n'
 import { useEnvStore } from '@stores/env'
 import { useNavigationStore } from '@stores/navigation'
 import type { View } from '@stores/navigation'
+import { useChangelogStore } from '@stores/changelog'
 import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/primitives/Button'
 import DiscordIcon from '@components/ui/primitives/icons/DiscordIcon'
@@ -102,6 +103,7 @@ function HeartDonateIcon(): React.JSX.Element {
 export default function Navbar(): React.JSX.Element {
   const { activeEnv, setEnv } = useEnvStore()
   const { currentView, navigate } = useNavigationStore()
+  const hasUnreadChangelog = useChangelogStore((s) => s.hasUnread(activeEnv))
   const { t } = useTranslation()
 
   const { website: navWebsite, discord: navDiscord, wiki: navWiki, donate: navDonate } = navUrls()
@@ -112,9 +114,10 @@ export default function Navbar(): React.JSX.Element {
     navigate(env)
   }
 
-  const navLinks: { label: string; view: View }[] = [
+  const navLinks: { label: string; view: View; badge?: boolean }[] = [
     { label: t('navbar.social'), view: 'social' },
-    { label: t('navbar.lore'), view: 'lore' }
+    { label: t('navbar.lore'), view: 'lore' },
+    { label: t('navbar.changelog'), view: 'changelog', badge: hasUnreadChangelog }
   ]
 
   return (
@@ -246,18 +249,25 @@ export default function Navbar(): React.JSX.Element {
 
         {/* Liens vues secondaires */}
         <div className="flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
-          {navLinks.map(({ label, view }) => (
+          {navLinks.map(({ label, view, badge }) => (
             <button
               key={view}
               onClick={() => navigate(view)}
               className={[
-                'px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer',
+                'relative px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer',
                 currentView === view
                   ? 'text-[var(--color-ds-text)] bg-white/10'
                   : 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
               ].join(' ')}
             >
               {label}
+              {badge && (
+                <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm">
+                  <svg viewBox="0 0 24 24" className="h-2.5 w-2.5 fill-current" aria-hidden="true">
+                    <path d="M12 22a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22zm6-6V11a6 6 0 00-5-5.91V4a1 1 0 10-2 0v1.09A6 6 0 006 11v5l-2 2v1h16v-1l-2-2z" />
+                  </svg>
+                </span>
+              )}
             </button>
           ))}
         </div>

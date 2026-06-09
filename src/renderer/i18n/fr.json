@@ -36,7 +36,8 @@
     "envUniverse": "Universe",
     "envTesting": "Universe Testing",
     "brandDiscord": "Discord",
-    "brandWiki": "Wiki"
+    "brandWiki": "Wiki",
+    "changelog": "Changelog"
   },
   "universeTesting": {
     "banner": "Environnement de test — les données ne sont pas celles du serveur live"
@@ -48,6 +49,28 @@
     "fileNotFound": "Fichier introuvable : {{file}}",
     "articles": {
       "origins": "Origines"
+    }
+  },
+  "changelog": {
+    "sidebarTitle": "Changelog",
+    "sidebarSubtitle": "Notes de version.",
+    "sidebarSubtitleTesting": "Changements à venir en test.",
+    "selectVersion": "Sélectionne une version",
+    "loading": "Chargement du changelog…",
+    "unavailable": "Changelog indisponible (URL non configurée ou échec du téléchargement).",
+    "empty": "Aucune note de version pour l'instant.",
+    "noEntries": "Aucune entrée pour cette version.",
+    "unreleased": "À venir",
+    "versionLabel": "v{{version}}",
+    "pageTitleUnreleased": "{{component}} — À venir",
+    "pageTitleRelease": "{{component}} — v{{version}}",
+    "components": {
+      "DyingStar": "Dying Star",
+      "launcher": "Launcher",
+      "horizonserver": "Horizon Server",
+      "services/monitoring": "Monitoring",
+      "services/persistence": "Persistence",
+      "services/resourcesDynamic": "Ressources dynamiques"
     }
   },
   "friendStatus": {
@@ -115,10 +138,6 @@
       "clearCacheToastOk": "Cache vidé.",
       "clearCacheToastPartial": "Cache partiellement vidé (certains dossiers n'ont pas pu être supprimés).",
       "clearCacheToastError": "Impossible de vider le cache.",
-      "changelog": "Voir le changelog",
-      "changelogModalTitle": "Changelog — v{{version}}",
-      "changelogLoading": "Chargement du changelog…",
-      "changelogMissing": "Aucun fichier CHANGELOG.md n'a été trouvé dans l'installation (vérifie qu'il est bien inclus dans l'archive du jeu).",
       "installing": "Installation en cours...",
       "installPath": "Répertoire d'installation",
       "installPathPlaceholder": "/home/utilisateur/jeux/dyingstar",

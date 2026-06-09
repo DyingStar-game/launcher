@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 import { useEnvStore, type Env } from './env'
 import { useVersionStore } from './version'
+import { useChangelogStore } from './changelog'
 
 export type EnvFilesData = {
   /** Persisted: game payload is installed under installPath/DyingStar */
@@ -114,6 +115,7 @@ export const useFilesStore = create<FilesState>()(
           })
           await get().syncInstalledVersions()
           void useVersionStore.getState().checkVersions()
+          void useChangelogStore.getState().fetch()
         } catch (err) {
           console.error('[FilesStore] Install failed:', err)
           patchEnv(set, env, { installing: false, progress: 0, progressEvent: null })
@@ -155,6 +157,7 @@ export const useFilesStore = create<FilesState>()(
           })
           await get().syncInstalledVersions()
           void useVersionStore.getState().checkVersions()
+          void useChangelogStore.getState().fetch()
         } catch (err) {
           console.error('[FilesStore] Update failed:', err)
           patchEnv(set, env, { installing: false, progress: 0, progressEvent: null })

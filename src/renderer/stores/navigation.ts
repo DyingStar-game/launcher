@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
-/** Main shell views: universe panels, social page, or lore page. */
-export type View = 'universe' | 'universe-testing' | 'social' | 'lore'
+/** Main shell views: universe panels, social, lore, or changelog page. */
+export type View = 'universe' | 'universe-testing' | 'social' | 'lore' | 'changelog'
 
 interface NavigationState {
   currentView: View
