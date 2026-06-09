@@ -267,3 +267,46 @@ body {
   border-radius: 6px;
   font-size: 0.9em;
 }
+
+.sound-volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 0.35rem;
+  border-radius: 9999px;
+  background: var(--color-ds-border);
+  cursor: pointer;
+}
+
+.sound-volume-slider:focus {
+  outline: none;
+}
+
+.sound-volume-slider:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-ds-accent) 35%, transparent);
+}
+
+.sound-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 9999px;
+  background: var(--color-ds-accent);
+  border: 1px solid color-mix(in srgb, var(--color-ds-accent) 60%, black);
+  cursor: pointer;
+}
+
+.sound-volume-slider::-moz-range-thumb {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 9999px;
+  background: var(--color-ds-accent);
+  border: 1px solid color-mix(in srgb, var(--color-ds-accent) 60%, black);
+  cursor: pointer;
+}
+
+.sound-volume-slider::-moz-range-track {
+  height: 0.35rem;
+  border-radius: 9999px;
+  background: var(--color-ds-border);
+}

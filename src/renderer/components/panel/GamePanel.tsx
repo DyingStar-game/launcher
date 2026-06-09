@@ -10,6 +10,7 @@ import { useAccountStore } from '@stores/account'
 import { useTranslation } from 'react-i18next'
 import ServerStatus from '@components/ui/feedback/ServerStatus'
 import Button from '@components/ui/primitives/Button'
+import { UiSoundProfile } from '@shared/types/sounds'
 import PanelMessage from '@components/ui/feedback/PanelMessage'
 
 /** Game panel: server status, player count, play button, and status page link. */
@@ -116,7 +117,13 @@ export default function GamePanel(): React.JSX.Element {
           <PanelMessage variant="warning">{t('universe.game.playDisabledAuth')}</PanelMessage>
         )}
 
-        <Button onClick={play} disabled={!canPlay} variant="primary" className="w-full">
+        <Button
+          onClick={play}
+          disabled={!canPlay}
+          variant="primary"
+          className="w-full"
+          soundProfile={UiSoundProfile.PlayGame}
+        >
           {t('universe.game.play')}
         </Button>
 

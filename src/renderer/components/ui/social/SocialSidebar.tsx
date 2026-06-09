@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import SidebarItemButton from '@components/ui/primitives/SidebarItemButton'
 
 type Props = {
   current: string
@@ -23,37 +24,13 @@ export default function SocialSidebar({ current, setCurrent }: Props): React.JSX
       </div>
 
       {TAB_KEYS.map((item) => (
-        <button
+        <SidebarItemButton
           key={item}
+          active={current === item}
           onClick={() => setCurrent(item)}
-          className={`
-            text-left
-            px-3
-            py-2.5
-            rounded-xl
-            text-sm
-            border
-            transition-colors
-            cursor-pointer
-            ${
-              current === item
-                ? `
-                  bg-[var(--color-ds-surface)]
-                  text-[var(--color-ds-text)]
-                  border-[var(--color-ds-accent)]/40
-                `
-                : `
-                  text-[var(--color-ds-muted)]
-                  border-transparent
-                  hover:border-[var(--color-ds-border)]
-                  hover:bg-[var(--color-ds-surface-hover)]
-                  hover:text-[var(--color-ds-text)]
-                `
-            }
-          `}
         >
           {t(`universe.socialPage.tabs.${item}.label`)}
-        </button>
+        </SidebarItemButton>
       ))}
     </div>
   )

@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/primitives/Button'
 import InputField from '@components/ui/primitives/InputField'
 import UpdateAlert from '@components/ui/feedback/UpdateAlert'
+import PanelMessage from '@components/ui/feedback/PanelMessage'
 import { formatReleaseDateDisplay } from '@lib/formatReleaseDate'
 import { formatInstallProgress } from '@lib/formatInstallProgress'
 import { isGameUpdateAvailable } from '@lib/isGameUpdateAvailable'
@@ -62,6 +63,7 @@ export default function FilesPanel(): React.JSX.Element {
   }, [clearCache])
 
   const displayReleaseDate = formatReleaseDateDisplay(releaseDate)
+  const hasInstallPath = Boolean(installPath.trim())
 
   return (
     <div className="ds-panel ds-panel-padded relative h-full flex flex-col gap-5">
@@ -97,7 +99,11 @@ export default function FilesPanel(): React.JSX.Element {
         <p className="text-[var(--color-ds-muted)] text-sm">{t('universe.files.unavailable')}</p>
       )}
 
-      {isAvailable && !installed && (
+      {isAvailable && !hasInstallPath && (
+        <PanelMessage variant="error">{t('universe.files.selectInstallPath')}</PanelMessage>
+      )}
+
+      {isAvailable && hasInstallPath && !installed && (
         <p className="text-[var(--color-ds-muted)] text-sm">{t('universe.files.notInstalled')}</p>
       )}
 
