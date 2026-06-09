@@ -1,4 +1,4 @@
-import { shell } from 'electron'
+import { shell, type BrowserWindow } from 'electron'
 import { URL, URLSearchParams } from 'url'
 import {
   AUTH_CLIENT_ID,
@@ -15,6 +15,7 @@ import { generatePKCE, generateState } from './pkce'
 import { describeGameTokenIssue, extractUser, pickGameLaunchToken } from './jwt'
 import { exchangeCode, getKeycloakBase, mergeTokenSet, refreshToken } from './keycloakClient'
 import { clearStoredTokens, loadTokens, storeTokens } from './tokenStorage'
+import { closeAuthWindow, openAuthWindow } from './authWindow'
 
 let pkceSession: PKCESession | null = null
 
@@ -29,15 +30,7 @@ export function setAuthEventSender(sender: AuthEventSender): void {
   eventSender = sender
 }
 
-/** Opens the system browser on the Keycloak authorization URL (PKCE). */
-export async function startLogin(env: Env): Promise<void> {
-  const kcBase = getKeycloakBase(env)
-  if (!kcBase) throw new Error(`Auth unavailable for env: ${env}`)
-
-  const { verifier, challenge } = generatePKCE()
-  const state = generateState()
-  pkceSession = { env, verifier, state }
-
+function buildAuthorizationUrl(kcBase: string, challenge: string, state: string): string {
   const params = new URLSearchParams({
     client_id: AUTH_CLIENT_ID,
     redirect_uri: AUTH_REDIRECT_URI,
@@ -49,7 +42,43 @@ export async function startLogin(env: Env): Promise<void> {
     state
   })
 
-  await shell.openExternal(`${kcBase}/realms/${AUTH_REALM}/protocol/openid-connect/auth?${params}`)
+  return `${kcBase}/realms/${AUTH_REALM}/protocol/openid-connect/auth?${params}`
+}
+
+/** Opens the in-app OAuth window on the Keycloak authorization URL (PKCE). */
+export async function startLogin(env: Env, parentWindow: BrowserWindow | null): Promise<void> {
+  const kcBase = getKeycloakBase(env)
+  if (!kcBase) throw new Error(`Auth unavailable for env: ${env}`)
+
+  const { verifier, challenge } = generatePKCE()
+  const state = generateState()
+  pkceSession = { env, verifier, state }
+
+  const authUrl = buildAuthorizationUrl(kcBase, challenge, state)
+
+  return new Promise<void>((resolve) => {
+    openAuthWindow(parentWindow, authUrl, {
+      onCallback: (callbackUrl) => {
+        void handleOAuthCallback(callbackUrl).finally(resolve)
+      },
+      onAbort: () => {
+        if (pkceSession?.env === env) pkceSession = null
+        eventSender?.send('auth:state-changed', { env, status: 'disconnected' })
+        resolve()
+      },
+      onLoadFailed: (error) => {
+        if (pkceSession?.env === env) pkceSession = null
+        eventSender?.send('auth:state-changed', { env, status: 'error', error })
+        resolve()
+      }
+    })
+  })
+}
+
+/** Closes the OAuth window and clears any in-flight PKCE session. */
+export function cancelLogin(env: Env): void {
+  closeAuthWindow()
+  if (pkceSession?.env === env) pkceSession = null
 }
 
 /** Handles `dyingstar://auth/callback` deep links after OAuth redirect. */

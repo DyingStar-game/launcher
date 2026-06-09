@@ -46,6 +46,7 @@ declare global {
       closeWindow: () => Promise<void>
       checkVersions: () => Promise<VersionCheckResult>
       authLogin: (env: Env) => Promise<void>
+      authCancelLogin: (env: Env) => Promise<void>
       authLogout: (env: Env) => Promise<void>
       authLoadUser: (env: Env) => Promise<UserInfo | null>
       onAuthStateChanged: (callback: (data: AuthStateChangedPayload) => void) => void

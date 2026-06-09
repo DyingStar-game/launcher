@@ -1,7 +1,7 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import type { Env } from '@shared/types/env'
 import type { UserInfo } from '@shared/types/auth'
-import { loadUserProfile, logout, setAuthEventSender, startLogin } from './flow'
+import { cancelLogin, loadUserProfile, logout, setAuthEventSender, startLogin } from './flow'
 
 /** Registers IPC handlers for authentication (login, logout, load user). */
 export function registerAuthHandlers(win: BrowserWindow): void {
@@ -9,15 +9,19 @@ export function registerAuthHandlers(win: BrowserWindow): void {
 
   ipcMain.handle('auth:login', async (_event, env: Env) => {
     try {
-      await startLogin(env)
+      await startLogin(env, win)
     } catch (err) {
-      console.error('[Auth] Failed to open browser:', err)
+      console.error('[Auth] Failed to open auth window:', err)
       win.webContents.send('auth:state-changed', {
         env,
         status: 'error',
-        error: 'browser_open_failed'
+        error: 'auth_window_failed'
       })
     }
+  })
+
+  ipcMain.handle('auth:cancel-login', (_event, env: Env) => {
+    cancelLogin(env)
   })
 
   ipcMain.handle('auth:logout', (_event, env: Env) => {
