@@ -87,8 +87,11 @@ const api = {
     latestGameVersions: Record<Env, { version: string | null; releaseDate: string | null }>
   }> => ipcRenderer.invoke('version:check'),
 
-  /** Opens the system browser on the Keycloak Discord login page. */
+  /** Opens the in-app OAuth window on the Keycloak Discord login page. */
   authLogin: (env: Env): Promise<void> => ipcRenderer.invoke('auth:login', env),
+
+  /** Closes the OAuth window and cancels an in-flight login attempt. */
+  authCancelLogin: (env: Env): Promise<void> => ipcRenderer.invoke('auth:cancel-login', env),
 
   /** Clears stored tokens and opens Keycloak logout. */
   authLogout: (env: Env): Promise<void> => ipcRenderer.invoke('auth:logout', env),

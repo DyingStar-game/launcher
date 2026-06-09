@@ -17,3 +17,11 @@ export const AUTH_SCOPES = 'openid email profile'
 
 /** Identity provider hint passed to Keycloak (Discord). */
 export const AUTH_IDP_HINT = 'discord'
+
+/** In-app OAuth window size (Keycloak / Discord login). */
+export const AUTH_WINDOW_BOUNDS = {
+  width: 480,
+  height: 720,
+  minWidth: 400,
+  minHeight: 520
+} as const
