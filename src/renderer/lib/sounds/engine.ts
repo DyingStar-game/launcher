@@ -8,6 +8,7 @@ import {
 } from './catalog'
 import { effectiveVolume } from './volume'
 import { useSoundStore } from '@stores/sound'
+import { useGameStore } from '@stores/game'
 
 const soundAssets = import.meta.glob<string>('../../assets/sounds/*.{mp3,ogg,wav}', {
   eager: true,
@@ -31,7 +32,8 @@ function resolveSoundUrl(filename: string): string | undefined {
 
 function canPlay(): boolean {
   const { enabled, masterVolume } = useSoundStore.getState()
-  return enabled && masterVolume > 0
+  const { gameRunning } = useGameStore.getState()
+  return enabled && masterVolume > 0 && !gameRunning
 }
 
 function getMusicElement(url: string): HTMLAudioElement {
@@ -182,4 +184,10 @@ export function stopBackgroundMusic(): void {
 /** Stops all non-music sounds (e.g. when the user mutes audio). */
 export function stopAllInteractiveSounds(): void {
   stopPlayGameHover()
+}
+
+/** Stops background music and any sustained / interactive sounds. */
+export function stopAllSounds(): void {
+  stopBackgroundMusic()
+  stopAllInteractiveSounds()
 }
