@@ -1,5 +1,5 @@
 import type React from 'react'
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
@@ -25,14 +25,12 @@ export default function ChangelogSidebar(): React.JSX.Element {
   const { data, getEntries, getCurrentId, select, isUnread, syncSelectionForEnv } =
     useChangelogStore()
 
-  const entries = useMemo(() => getEntries(activeEnv), [data, activeEnv, getEntries])
+  const entries = getEntries(activeEnv)
   const currentId = getCurrentId(activeEnv)
 
   useEffect(() => {
     syncSelectionForEnv(activeEnv)
   }, [activeEnv, data, syncSelectionForEnv])
-
-  let lastComponentId: string | null = null
 
   return (
     <div className="ds-sidebar overflow-y-auto">
@@ -51,9 +49,8 @@ export default function ChangelogSidebar(): React.JSX.Element {
         <p className="px-3 py-2 text-xs text-[var(--color-ds-muted)]">{t('changelog.empty')}</p>
       )}
 
-      {entries.map((entry) => {
-        const showHeader = entry.componentId !== lastComponentId
-        lastComponentId = entry.componentId
+      {entries.map((entry, index) => {
+        const showHeader = index === 0 || entries[index - 1].componentId !== entry.componentId
         const label =
           entry.kind === 'unreleased'
             ? t('changelog.unreleased')
@@ -63,7 +60,9 @@ export default function ChangelogSidebar(): React.JSX.Element {
           <div key={entry.id}>
             {showHeader && (
               <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-ds-muted)]">
-                {t(`changelog.components.${entry.componentId}`, { defaultValue: entry.componentId })}
+                {t(`changelog.components.${entry.componentId}`, {
+                  defaultValue: entry.componentId
+                })}
               </p>
             )}
             <SidebarItemButton

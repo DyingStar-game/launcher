@@ -1,5 +1,4 @@
 import type React from 'react'
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
@@ -12,7 +11,7 @@ export default function ChangelogContent(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data, getEntries, getCurrentId, loading, fetched } = useChangelogStore()
 
-  const entries = useMemo(() => getEntries(activeEnv), [data, activeEnv, getEntries])
+  const entries = getEntries(activeEnv)
   const currentId = getCurrentId(activeEnv)
   const current = entries.find((e) => e.id === currentId)
 
@@ -63,7 +62,9 @@ export default function ChangelogContent(): React.JSX.Element {
           <header className="mb-6 text-left">
             <h1 className="text-xl font-bold text-[var(--color-ds-text)]">{title}</h1>
             {current.date && (
-              <p className="mt-1 text-xs text-[var(--color-ds-muted)] tabular-nums">{current.date}</p>
+              <p className="mt-1 text-xs text-[var(--color-ds-muted)] tabular-nums">
+                {current.date}
+              </p>
             )}
           </header>
 

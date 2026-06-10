@@ -24,11 +24,7 @@ export default function SocialSidebar({ current, setCurrent }: Props): React.JSX
       </div>
 
       {TAB_KEYS.map((item) => (
-        <SidebarItemButton
-          key={item}
-          active={current === item}
-          onClick={() => setCurrent(item)}
-        >
+        <SidebarItemButton key={item} active={current === item} onClick={() => setCurrent(item)}>
           {t(`universe.socialPage.tabs.${item}.label`)}
         </SidebarItemButton>
       ))}

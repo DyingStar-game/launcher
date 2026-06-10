@@ -22,5 +22,8 @@ export async function fetchGlobalChangelog(): Promise<GlobalChangelog | null> {
 /** Registers the IPC handler that fetches the remote changelog JSON. */
 export function registerChangelogHandlers(): void {
   ipcMain.removeHandler('changelog:fetch')
-  ipcMain.handle('changelog:fetch', async (): Promise<GlobalChangelog | null> => fetchGlobalChangelog())
+  ipcMain.handle(
+    'changelog:fetch',
+    async (): Promise<GlobalChangelog | null> => fetchGlobalChangelog()
+  )
 }

@@ -42,11 +42,7 @@ export default function SoundVolumeMenu(): React.JSX.Element {
   }
 
   return (
-    <div
-      className="relative"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <button
         type="button"
         onClick={handleToggleMute}
@@ -83,27 +79,29 @@ export default function SoundVolumeMenu(): React.JSX.Element {
               'px-3 py-3 flex flex-col gap-2.5'
             ].join(' ')}
           >
-          <div className="flex items-center justify-between gap-3">
-            <label
-              id={`${sliderId}-label`}
-              htmlFor={sliderId}
-              className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-ds-muted)] shrink-0"
-            >
-              {t('navbar.soundVolume')}
-            </label>
-            <span className="text-[11px] tabular-nums text-[var(--color-ds-muted)]">{volumePercent}%</span>
-          </div>
+            <div className="flex items-center justify-between gap-3">
+              <label
+                id={`${sliderId}-label`}
+                htmlFor={sliderId}
+                className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-ds-muted)] shrink-0"
+              >
+                {t('navbar.soundVolume')}
+              </label>
+              <span className="text-[11px] tabular-nums text-[var(--color-ds-muted)]">
+                {volumePercent}%
+              </span>
+            </div>
 
-          <input
-            id={sliderId}
-            type="range"
-            min={0}
-            max={100}
-            step={1}
-            value={volumePercent}
-            onChange={(e) => setMasterVolume(Number(e.target.value) / 100)}
-            className="sound-volume-slider w-full"
-          />
+            <input
+              id={sliderId}
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={volumePercent}
+              onChange={(e) => setMasterVolume(Number(e.target.value) / 100)}
+              className="sound-volume-slider w-full"
+            />
           </div>
         </div>
       )}

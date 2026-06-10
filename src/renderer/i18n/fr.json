@@ -58,15 +58,15 @@
   "changelog": {
     "sidebarTitle": "Changelog",
     "sidebarSubtitle": "Notes de version.",
-    "sidebarSubtitleTesting": "Changements à venir en test.",
+    "sidebarSubtitleTesting": "Changements disponibles en test.",
     "selectVersion": "Sélectionne une version",
     "loading": "Chargement du changelog…",
     "unavailable": "Changelog indisponible (URL non configurée ou échec du téléchargement).",
     "empty": "Aucune note de version pour l'instant.",
     "noEntries": "Aucune entrée pour cette version.",
-    "unreleased": "À venir",
+    "unreleased": "Nouveautés",
     "versionLabel": "v{{version}}",
-    "pageTitleUnreleased": "{{component}} — À venir",
+    "pageTitleUnreleased": "{{component}} — Nouveautés sur Universe Testing",
     "pageTitleRelease": "{{component}} — v{{version}}",
     "components": {
       "DyingStar": "Dying Star",
