@@ -129,7 +129,10 @@ function SoundIconButton({
   const merged = mergeSoundHandlers(uiSound, {
     onClick: onClick
       ? (event) => {
-          if (disabled || event.currentTarget instanceof HTMLButtonElement && event.currentTarget.disabled) {
+          if (
+            disabled ||
+            (event.currentTarget instanceof HTMLButtonElement && event.currentTarget.disabled)
+          ) {
             return
           }
           onClick()
@@ -290,19 +293,19 @@ export default function Navbar(): React.JSX.Element {
               onClick: () => handleEnvSwitch(env)
             })
             return (
-            <button
-              key={env}
-              onClick={envHandlers.onClick}
-              onMouseEnter={envHandlers.onMouseEnter}
-              className={[
-                'px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer',
-                activeEnv === env
-                  ? 'bg-[var(--color-ds-accent)] text-black'
-                  : 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
-              ].join(' ')}
-            >
-              {env === 'universe' ? t('navbar.envUniverse') : t('navbar.envTesting')}
-            </button>
+              <button
+                key={env}
+                onClick={envHandlers.onClick}
+                onMouseEnter={envHandlers.onMouseEnter}
+                className={[
+                  'px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer',
+                  activeEnv === env
+                    ? 'bg-[var(--color-ds-accent)] text-black'
+                    : 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
+                ].join(' ')}
+              >
+                {env === 'universe' ? t('navbar.envUniverse') : t('navbar.envTesting')}
+              </button>
             )
           })}
         </div>
@@ -314,26 +317,30 @@ export default function Navbar(): React.JSX.Element {
               onClick: () => navigate(view)
             })
             return (
-            <button
-              key={view}
-              onClick={linkHandlers.onClick}
-              onMouseEnter={linkHandlers.onMouseEnter}
-              className={[
-                'relative px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer',
-                currentView === view
-                  ? 'text-[var(--color-ds-text)] bg-white/10'
-                  : 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
-              ].join(' ')}
-            >
-              {label}
-              {badge && (
-                <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm">
-                  <svg viewBox="0 0 24 24" className="h-2.5 w-2.5 fill-current" aria-hidden="true">
-                    <path d="M12 22a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22zm6-6V11a6 6 0 00-5-5.91V4a1 1 0 10-2 0v1.09A6 6 0 006 11v5l-2 2v1h16v-1l-2-2z" />
-                  </svg>
-                </span>
-              )}
-            </button>
+              <button
+                key={view}
+                onClick={linkHandlers.onClick}
+                onMouseEnter={linkHandlers.onMouseEnter}
+                className={[
+                  'relative px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer',
+                  currentView === view
+                    ? 'text-[var(--color-ds-text)] bg-white/10'
+                    : 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
+                ].join(' ')}
+              >
+                {label}
+                {badge && (
+                  <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm">
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="h-2.5 w-2.5 fill-current"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 22a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22zm6-6V11a6 6 0 00-5-5.91V4a1 1 0 10-2 0v1.09A6 6 0 006 11v5l-2 2v1h16v-1l-2-2z" />
+                    </svg>
+                  </span>
+                )}
+              </button>
             )
           })}
         </div>

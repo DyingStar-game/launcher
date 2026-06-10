@@ -30,7 +30,11 @@ function entriesForEnv(data: GlobalChangelog | null, env: Env): ChangelogEntryRe
 }
 
 function viewedPatchForEntry(
-  state: { data: GlobalChangelog | null; viewedIds: string[]; unreleasedSeenAt: Record<string, string> },
+  state: {
+    data: GlobalChangelog | null
+    viewedIds: string[]
+    unreleasedSeenAt: Record<string, string>
+  },
   entry: ChangelogEntryRef,
   env: Env,
   id: string
@@ -81,7 +85,9 @@ export const useChangelogStore = create<ChangelogState>()(
       syncSelectionForEnv: (env) => {
         const entries = entriesForEnv(get().data, env)
         const currentId = get().currentByEnv[env]
-        const nextId = entries.some((e) => e.id === currentId) ? currentId : (entries[0]?.id ?? null)
+        const nextId = entries.some((e) => e.id === currentId)
+          ? currentId
+          : (entries[0]?.id ?? null)
 
         if (nextId !== currentId) {
           set((s) => ({

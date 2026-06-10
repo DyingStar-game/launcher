@@ -58,15 +58,15 @@
   "changelog": {
     "sidebarTitle": "Changelog",
     "sidebarSubtitle": "Release notes by version.",
-    "sidebarSubtitleTesting": "Upcoming changes in testing.",
+    "sidebarSubtitleTesting": "New changes in testing.",
     "selectVersion": "Select a version",
     "loading": "Loading changelog…",
     "unavailable": "Changelog is not available (URL not configured or fetch failed).",
     "empty": "No release notes yet.",
     "noEntries": "No entries for this version.",
-    "unreleased": "Upcoming",
+    "unreleased": "New features",
     "versionLabel": "v{{version}}",
-    "pageTitleUnreleased": "{{component}} — Upcoming",
+    "pageTitleUnreleased": "{{component}} — New features",
     "pageTitleRelease": "{{component}} — v{{version}}",
     "components": {
       "DyingStar": "Dying Star",

@@ -99,7 +99,9 @@ export default function UpdateAlert({
         <div className={`flex flex-col gap-1 text-[11px] ${cls.text}`}>
           <div className="flex flex-wrap items-center gap-1.5">
             {currentVersion && (
-              <span className="font-mono opacity-60">{formatGameVersionDisplay(currentVersion)}</span>
+              <span className="font-mono opacity-60">
+                {formatGameVersionDisplay(currentVersion)}
+              </span>
             )}
             {currentVersion && <span>→</span>}
             <span
