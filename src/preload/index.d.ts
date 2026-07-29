@@ -43,6 +43,9 @@ declare global {
       checkEnvAvailability: () => Promise<Record<Env, boolean>>
       quitApp: () => Promise<void>
       minimizeWindow: () => Promise<void>
+      toggleFullscreen: () => Promise<boolean>
+      isFullscreen: () => Promise<boolean>
+      onFullscreenChanged: (callback: (fullscreen: boolean) => void) => void
       closeWindow: () => Promise<void>
       checkVersions: () => Promise<VersionCheckResult>
       authLogin: (env: Env) => Promise<void>

@@ -16,7 +16,7 @@ import PanelMessage from '@components/ui/feedback/PanelMessage'
 /** Game panel: server status, player count, play button, and status page link. */
 export default function GamePanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
-  const { data: gameData, fetchServerStatus, play, gameRunning } = useGameStore()
+  const { data: gameData, fetchServerStatus, play, gameRunning, isLaunching } = useGameStore()
   const { data: filesData, syncInstalledVersions } = useFilesStore()
   const latestGameInfo = useVersionStore((s) => s.latestGameVersions[activeEnv])
   const { available } = useAvailabilityStore()
@@ -52,14 +52,15 @@ export default function GamePanel(): React.JSX.Element {
     return () => window.clearInterval(id)
   }, [activeEnv, isAvailable, fetchServerStatus])
 
-  /** Play is enabled when server is up, game installed, authenticated, and not already running. */
+  /** Play is enabled when server is up, game installed, authenticated, and not already running/launching. */
   const canPlay =
     installed &&
     isAvailable &&
     status === 'online' &&
     !gameUpdateAvailable &&
     isAuthenticated &&
-    !gameRunning
+    !gameRunning &&
+    !isLaunching
 
   const statusPageUrl = statusPageUrlForEnv(activeEnv)
   const canOpenStatusPage = Boolean(statusPageUrl)
@@ -101,7 +102,11 @@ export default function GamePanel(): React.JSX.Element {
           <PanelMessage variant="info">{t('universe.game.playDisabledUpdate')}</PanelMessage>
         )}
 
-        {installed && gameRunning && (
+        {installed && isLaunching && (
+          <PanelMessage variant="info">{t('universe.game.playDisabledLaunching')}</PanelMessage>
+        )}
+
+        {installed && gameRunning && !isLaunching && (
           <PanelMessage variant="info">{t('universe.game.playDisabledRunning')}</PanelMessage>
         )}
 
@@ -118,13 +123,13 @@ export default function GamePanel(): React.JSX.Element {
         )}
 
         <Button
-          onClick={play}
+          onClick={() => void play()}
           disabled={!canPlay}
           variant="primary"
           className="w-full"
           soundProfile={UiSoundProfile.PlayGame}
         >
-          {t('universe.game.play')}
+          {isLaunching ? t('universe.game.launching') : t('universe.game.play')}
         </Button>
 
         <Button
