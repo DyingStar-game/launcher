@@ -75,6 +75,19 @@ const api = {
   /** Minimizes the main window (frameless chrome). */
   minimizeWindow: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
 
+  /** Toggles fullscreen and returns the new state. */
+  toggleFullscreen: (): Promise<boolean> => ipcRenderer.invoke('window:toggle-fullscreen'),
+
+  /** Returns whether the main window is currently fullscreen. */
+  isFullscreen: (): Promise<boolean> => ipcRenderer.invoke('window:is-fullscreen'),
+
+  /** Subscribes to fullscreen enter/leave events from the main process. */
+  onFullscreenChanged: (callback: (fullscreen: boolean) => void): void => {
+    ipcRenderer.on('window:fullscreen-changed', (_event, fullscreen: boolean) => {
+      callback(fullscreen)
+    })
+  },
+
   /** Closes the main window. */
   closeWindow: (): Promise<void> => ipcRenderer.invoke('window:close'),
 

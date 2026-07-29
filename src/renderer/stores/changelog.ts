@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { ChangelogEntryRef, GlobalChangelog } from '@shared/types/changelog'
 import type { Env } from '@shared/types/env'
-import { buildChangelogEntryRefs } from '@lib/changelogEntries'
+import { buildChangelogEntryRefs, unreleasedFingerprint } from '@lib/changelogEntries'
 import { useEnvStore } from './env'
 
 type ChangelogState = {
@@ -11,8 +11,11 @@ type ChangelogState = {
   data: GlobalChangelog | null
   currentByEnv: Record<Env, string | null>
   viewedIds: string[]
-  /** Last seen `generated_at` per env/component for unreleased unread detection. */
-  unreleasedSeenAt: Record<string, string>
+  /**
+   * Last seen unreleased content fingerprint per env/component.
+   * Compared to the current component unreleased payload (not global `generated_at`).
+   */
+  unreleasedSeenFingerprint: Record<string, string>
   fetch: () => Promise<void>
   select: (id: string) => void
   /** Marks an entry as read without changing selection (e.g. when it is displayed). */
@@ -24,27 +27,70 @@ type ChangelogState = {
   hasUnread: (env: Env) => boolean
 }
 
+type PersistedChangelog = {
+  viewedIds: string[]
+  unreleasedSeenFingerprint: Record<string, string>
+  currentByEnv: Record<Env, string | null>
+}
+
+type PersistedChangelogV0 = {
+  viewedIds?: string[]
+  unreleasedSeenAt?: Record<string, string>
+  unreleasedSeenFingerprint?: Record<string, string>
+  currentByEnv?: Record<Env, string | null>
+}
+
+const defaultCurrentByEnv: Record<Env, string | null> = {
+  universe: null,
+  'universe-testing': null
+}
+
+function normalizePersistedChangelog(raw: PersistedChangelogV0): PersistedChangelog {
+  return {
+    viewedIds: raw.viewedIds ?? [],
+    unreleasedSeenFingerprint: raw.unreleasedSeenFingerprint ?? {},
+    currentByEnv: {
+      ...defaultCurrentByEnv,
+      ...raw.currentByEnv
+    }
+  }
+}
+
 function entriesForEnv(data: GlobalChangelog | null, env: Env): ChangelogEntryRef[] {
   if (!data) return []
   return buildChangelogEntryRefs(data, env)
+}
+
+function fingerprintForUnreleased(
+  data: GlobalChangelog | null,
+  componentId: string
+): string | null {
+  const component = data?.components[componentId]
+  if (!component) return null
+  return unreleasedFingerprint(component.unreleased)
 }
 
 function viewedPatchForEntry(
   state: {
     data: GlobalChangelog | null
     viewedIds: string[]
-    unreleasedSeenAt: Record<string, string>
+    unreleasedSeenFingerprint: Record<string, string>
   },
   entry: ChangelogEntryRef,
   env: Env,
   id: string
-): Pick<ChangelogState, 'viewedIds' | 'unreleasedSeenAt'> {
+): Pick<ChangelogState, 'viewedIds' | 'unreleasedSeenFingerprint'> {
   const viewedIds = state.viewedIds.includes(id) ? state.viewedIds : [...state.viewedIds, id]
-  const unreleasedSeenAt =
-    entry.kind === 'unreleased' && state.data
-      ? { ...state.unreleasedSeenAt, [`${env}:${entry.componentId}`]: state.data.generated_at }
-      : state.unreleasedSeenAt
-  return { viewedIds, unreleasedSeenAt }
+  if (entry.kind !== 'unreleased') {
+    return { viewedIds, unreleasedSeenFingerprint: state.unreleasedSeenFingerprint }
+  }
+
+  const fingerprint = fingerprintForUnreleased(state.data, entry.componentId)
+  const unreleasedSeenFingerprint = fingerprint
+    ? { ...state.unreleasedSeenFingerprint, [`${env}:${entry.componentId}`]: fingerprint }
+    : state.unreleasedSeenFingerprint
+
+  return { viewedIds, unreleasedSeenFingerprint }
 }
 
 /**
@@ -61,7 +107,7 @@ export const useChangelogStore = create<ChangelogState>()(
         'universe-testing': null
       },
       viewedIds: [],
-      unreleasedSeenAt: {},
+      unreleasedSeenFingerprint: {},
 
       getEntries: (env) => entriesForEnv(get().data, env),
 
@@ -115,7 +161,7 @@ export const useChangelogStore = create<ChangelogState>()(
       },
 
       isUnread: (id) => {
-        const { data, viewedIds, unreleasedSeenAt } = get()
+        const { data, viewedIds, unreleasedSeenFingerprint } = get()
         if (!data) return false
 
         const firstColon = id.indexOf(':')
@@ -128,7 +174,9 @@ export const useChangelogStore = create<ChangelogState>()(
         if (!env || !componentId || !suffix) return false
 
         if (suffix === 'unreleased') {
-          return unreleasedSeenAt[`${env}:${componentId}`] !== data.generated_at
+          const fingerprint = fingerprintForUnreleased(data, componentId)
+          if (!fingerprint) return false
+          return unreleasedSeenFingerprint[`${env}:${componentId}`] !== fingerprint
         }
 
         return !viewedIds.includes(id)
@@ -141,11 +189,25 @@ export const useChangelogStore = create<ChangelogState>()(
     }),
     {
       name: 'dyingstar-changelog',
+      version: 1,
       partialize: (state) => ({
         viewedIds: state.viewedIds,
-        unreleasedSeenAt: state.unreleasedSeenAt,
+        unreleasedSeenFingerprint: state.unreleasedSeenFingerprint,
         currentByEnv: state.currentByEnv
-      })
+      }),
+      migrate: (persisted, version): PersistedChangelog => {
+        const state = (persisted ?? {}) as PersistedChangelogV0
+        if (version < 1) {
+          // Drop generated_at-based markers: they fired on every JSON regen.
+          // Users may see unreleased badges once until they re-open those entries.
+          return normalizePersistedChangelog({
+            viewedIds: state.viewedIds,
+            currentByEnv: state.currentByEnv,
+            unreleasedSeenFingerprint: state.unreleasedSeenFingerprint ?? {}
+          })
+        }
+        return normalizePersistedChangelog(state)
+      }
     }
   )
 )

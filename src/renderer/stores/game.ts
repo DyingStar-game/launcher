@@ -14,6 +14,8 @@ type GameState = {
   data: Record<Env, EnvGameData>
   /** True while a game process launched by the launcher is running. */
   gameRunning: boolean
+  /** True from play click until launch IPC settles (blocks double-clicks on slow machines). */
+  isLaunching: boolean
   /** Refreshes server status and player count for the active environment. */
   fetchServerStatus: () => Promise<void>
   /** Syncs running state from the main process (e.g. after failed launch). */
@@ -42,6 +44,7 @@ export const useGameStore = create<GameState>((set, get) => {
       'universe-testing': { ...defaultEnvData }
     },
     gameRunning: false,
+    isLaunching: false,
 
     fetchServerStatus: async () => {
       const env = useEnvStore.getState().activeEnv
@@ -67,7 +70,7 @@ export const useGameStore = create<GameState>((set, get) => {
     },
 
     play: async () => {
-      if (get().gameRunning) return
+      if (get().gameRunning || get().isLaunching) return
 
       const env = useEnvStore.getState().activeEnv
       const { installPath } = useFilesStore.getState().data[env]
@@ -77,11 +80,14 @@ export const useGameStore = create<GameState>((set, get) => {
         return
       }
 
+      set({ isLaunching: true })
       try {
         await window.api.launchGame(env, installPath)
-        set({ gameRunning: true })
       } catch (err) {
         console.error('[GameStore] Launch failed:', err)
+      } finally {
+        // Source of truth is the main-process PID watch (handles instant crash / failed spawn).
+        set({ isLaunching: false })
         await get().syncGameRunning()
       }
     }

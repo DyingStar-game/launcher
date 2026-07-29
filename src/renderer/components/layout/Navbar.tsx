@@ -1,5 +1,5 @@
 import type React from 'react'
-import { useId } from 'react'
+import { useEffect, useId, useState } from 'react'
 import i18n from '@i18n'
 import { useEnvStore } from '@stores/env'
 import { useNavigationStore } from '@stores/navigation'
@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next'
 import Button from '@components/ui/primitives/Button'
 import DiscordIcon from '@components/ui/primitives/icons/DiscordIcon'
 import SoundVolumeMenu from '@components/ui/sound/SoundVolumeMenu'
+import NavbarMoreMenu from './NavbarMoreMenu'
 import { navUrls } from '@lib/env'
 import type { ReactNode } from 'react'
 
@@ -162,6 +163,12 @@ export default function Navbar(): React.JSX.Element {
   const hasUnreadChangelog = useChangelogStore((s) => s.hasUnread(activeEnv))
   const uiSound = useUiSound(UiSoundProfile.Default)
   const { t } = useTranslation()
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  useEffect(() => {
+    void window.api.isFullscreen().then(setIsFullscreen)
+    window.api.onFullscreenChanged(setIsFullscreen)
+  }, [])
 
   const { website: navWebsite, discord: navDiscord, wiki: navWiki, donate: navDonate } = navUrls()
 
@@ -346,9 +353,9 @@ export default function Navbar(): React.JSX.Element {
         </div>
       </div>
 
-      {/* Droite : langues + liens externes + soutenir */}
+      {/* Droite : langues + liens externes + soutenir (compact → menu hamburger) */}
       <div className="app-no-drag flex items-center gap-3">
-        <div className="flex items-center gap-1 pr-2 border-r border-[var(--color-ds-border)]">
+        <div className="hidden min-[1280px]:flex items-center gap-1 pr-2 border-r border-[var(--color-ds-border)]">
           <SoundIconButton
             onClick={() => void i18n.changeLanguage('en')}
             title={t('navbar.languageEn')}
@@ -365,39 +372,41 @@ export default function Navbar(): React.JSX.Element {
           </SoundIconButton>
         </div>
 
-        <SoundIconButton
-          disabled={!navWebsite}
-          onClick={() => navWebsite && window.open(navWebsite, '_blank')}
-          title={navWebsite ? t('navbar.openWebsite') : undefined}
-          ariaLabel={t('navbar.openWebsite')}
-          iconClassName={!navWebsite ? 'opacity-60' : ''}
-        >
-          <Svg title={t('navbar.openWebsite')}>
-            <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.5 9h-3.2a15.7 15.7 0 00-1.1-5 8.04 8.04 0 014.3 5zM12 4c1 1.5 1.8 3.8 2.1 7H9.9C10.2 7.8 11 5.5 12 4zM4.5 13h3.2c.2 1.9.7 3.7 1.1 5a8.04 8.04 0 01-4.3-5zm0-2a8.04 8.04 0 014.3-5c-.4 1.3-.9 3.1-1.1 5H4.5zm7.5 9c-1-1.5-1.8-3.8-2.1-7h4.2c-.3 3.2-1.1 5.5-2.1 7zm3.2-2c.4-1.3.9-3.1 1.1-5h3.2a8.04 8.04 0 01-4.3 5z" />
-          </Svg>
-        </SoundIconButton>
+        <div className="hidden min-[1280px]:contents">
+          <SoundIconButton
+            disabled={!navWebsite}
+            onClick={() => navWebsite && window.open(navWebsite, '_blank')}
+            title={navWebsite ? t('navbar.openWebsite') : undefined}
+            ariaLabel={t('navbar.openWebsite')}
+            iconClassName={!navWebsite ? 'opacity-60' : ''}
+          >
+            <Svg title={t('navbar.openWebsite')}>
+              <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.5 9h-3.2a15.7 15.7 0 00-1.1-5 8.04 8.04 0 014.3 5zM12 4c1 1.5 1.8 3.8 2.1 7H9.9C10.2 7.8 11 5.5 12 4zM4.5 13h3.2c.2 1.9.7 3.7 1.1 5a8.04 8.04 0 01-4.3-5zm0-2a8.04 8.04 0 014.3-5c-.4 1.3-.9 3.1-1.1 5H4.5zm7.5 9c-1-1.5-1.8-3.8-2.1-7h4.2c-.3 3.2-1.1 5.5-2.1 7zm3.2-2c.4-1.3.9-3.1 1.1-5h3.2a8.04 8.04 0 01-4.3 5z" />
+            </Svg>
+          </SoundIconButton>
 
-        <SoundIconButton
-          disabled={!navDiscord}
-          onClick={() => navDiscord && window.open(navDiscord, '_blank')}
-          title={navDiscord ? t('navbar.brandDiscord') : undefined}
-          ariaLabel={t('navbar.openDiscord')}
-          iconClassName={!navDiscord ? 'opacity-60' : ''}
-        >
-          <DiscordIcon className="w-4.5 h-4.5" title={t('navbar.brandDiscord')} />
-        </SoundIconButton>
+          <SoundIconButton
+            disabled={!navDiscord}
+            onClick={() => navDiscord && window.open(navDiscord, '_blank')}
+            title={navDiscord ? t('navbar.brandDiscord') : undefined}
+            ariaLabel={t('navbar.openDiscord')}
+            iconClassName={!navDiscord ? 'opacity-60' : ''}
+          >
+            <DiscordIcon className="w-4.5 h-4.5" title={t('navbar.brandDiscord')} />
+          </SoundIconButton>
 
-        <SoundIconButton
-          disabled={!navWiki}
-          onClick={() => navWiki && window.open(navWiki, '_blank')}
-          title={navWiki ? t('navbar.brandWiki') : undefined}
-          ariaLabel={t('navbar.openWiki')}
-          iconClassName={!navWiki ? 'opacity-60' : ''}
-        >
-          <Svg title={t('navbar.brandWiki')}>
-            <path d="M6 4h11a2 2 0 012 2v12a2 2 0 01-2 2H6a3 3 0 01-3-3V6a2 2 0 012-2h1zm0 2H5v11a1 1 0 001 1h11V6H6zm2 2h7v2H8V8zm0 4h7v2H8v-2z" />
-          </Svg>
-        </SoundIconButton>
+          <SoundIconButton
+            disabled={!navWiki}
+            onClick={() => navWiki && window.open(navWiki, '_blank')}
+            title={navWiki ? t('navbar.brandWiki') : undefined}
+            ariaLabel={t('navbar.openWiki')}
+            iconClassName={!navWiki ? 'opacity-60' : ''}
+          >
+            <Svg title={t('navbar.brandWiki')}>
+              <path d="M6 4h11a2 2 0 012 2v12a2 2 0 01-2 2H6a3 3 0 01-3-3V6a2 2 0 012-2h1zm0 2H5v11a1 1 0 001 1h11V6H6zm2 2h7v2H8V8zm0 4h7v2H8v-2z" />
+            </Svg>
+          </SoundIconButton>
+        </div>
 
         <SoundVolumeMenu />
 
@@ -408,13 +417,17 @@ export default function Navbar(): React.JSX.Element {
           size="sm"
           title={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
           aria-label={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
-          className="ml-1 rounded-full px-4 shadow-none overflow-visible"
+          className="ml-1 hidden min-[1280px]:inline-flex rounded-full px-4 shadow-none overflow-visible"
         >
           <span className="inline-flex items-center gap-2 overflow-visible">
             <HeartDonateIcon />
             {t('navbar.support')}
           </span>
         </Button>
+
+        <div className="min-[1280px]:hidden">
+          <NavbarMoreMenu />
+        </div>
 
         <div className="flex items-center gap-1 pl-2 border-l border-[var(--color-ds-border)]">
           <SoundIconButton
@@ -426,6 +439,21 @@ export default function Navbar(): React.JSX.Element {
           >
             <Svg title={t('navbar.minimize')}>
               <path d="M5 19h14v-2H5v2z" />
+            </Svg>
+          </SoundIconButton>
+          <SoundIconButton
+            onClick={() => {
+              void window.api.toggleFullscreen().then(setIsFullscreen)
+            }}
+            title={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}
+            ariaLabel={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}
+          >
+            <Svg title={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}>
+              {isFullscreen ? (
+                <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+              ) : (
+                <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+              )}
             </Svg>
           </SoundIconButton>
           <SoundIconButton
