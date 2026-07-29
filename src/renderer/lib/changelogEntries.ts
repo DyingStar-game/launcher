@@ -1,4 +1,8 @@
-import type { ChangelogEntryRef, GlobalChangelog } from '@shared/types/changelog'
+import type {
+  ChangelogEntryRef,
+  ChangelogLocaleEntries,
+  GlobalChangelog
+} from '@shared/types/changelog'
 import type { Env } from '@shared/types/env'
 
 export const GAME_COMPONENT_ID = 'DyingStar'
@@ -8,6 +12,15 @@ export type ChangelogModuleKind = 'game' | 'service' | 'launcher'
 
 function hasEntries(entries: { en: string[]; fr: string[] }): boolean {
   return entries.en.length > 0 || entries.fr.length > 0
+}
+
+/**
+ * Stable fingerprint of an unreleased section.
+ * Used so unread badges only reappear when that component's content actually changes,
+ * not when the global changelog JSON is regenerated (new `generated_at`).
+ */
+export function unreleasedFingerprint(entries: ChangelogLocaleEntries): string {
+  return JSON.stringify({ en: entries.en, fr: entries.fr })
 }
 
 /** Classifies a JSON component key as game client, launcher, or backend service module. */

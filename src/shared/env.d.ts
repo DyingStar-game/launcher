@@ -16,8 +16,6 @@ interface ImportMetaEnv {
   readonly VITE_WINDOW_DESIGN_HEIGHT: string
   readonly VITE_WINDOW_MIN_WIDTH: string
   readonly VITE_WINDOW_MIN_HEIGHT: string
-  readonly VITE_WINDOW_MAX_WIDTH: string
-  readonly VITE_WINDOW_MAX_HEIGHT: string
   readonly VITE_ENABLE_DEVTOOLS: string
   readonly VITE_ELECTRON_ENABLE_LOGGING: string
   /** Linux: disable GPU / accelerated decode (default on). Set to `false` to opt out. */

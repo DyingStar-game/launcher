@@ -59,8 +59,6 @@ function createWindow(): void {
     height: WINDOW_BOUNDS.height,
     minWidth: WINDOW_BOUNDS.minWidth,
     minHeight: WINDOW_BOUNDS.minHeight,
-    maxWidth: WINDOW_BOUNDS.maxWidth,
-    maxHeight: WINDOW_BOUNDS.maxHeight,
     resizable: true,
     frame: false,
     backgroundColor: '#0d0d14',
