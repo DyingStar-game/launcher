@@ -1,25 +1,33 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Orga } from '@stores/social'
+import type { Organisation } from '@stores/social'
 import { getSocialErrorMessage } from '@lib/socialErrors'
 
 type Props = {
-  orga: Orga
-  onJoin: () => Promise<void>
+  orga: Organisation
+  onJoin: () => Promise<unknown>
 }
 
-/** Organization row with member count and join button when not a member. */
+/**
+ * Organization row: ticker, member count, then a member / application badge, "closed", or a
+ * join button (joins open organisations, applies to the others).
+ */
 export function OrgaRow({ orga, onJoin }: Props): React.JSX.Element {
   const { t } = useTranslation()
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  const joinLabel =
+    orga.recruitment === 'open'
+      ? t('universe.socialPage.joinOrga')
+      : t('universe.socialPage.applyOrga')
 
   const handleJoin = async (): Promise<void> => {
     setStatus('loading')
     setErrorMsg('')
     try {
       await onJoin()
-      // Store sets isMember to true — component re-renders with updated orga
+      // The store reloads: the row shows the member or application badge
+      setStatus('idle')
     } catch (err) {
       setStatus('error')
       setErrorMsg(getSocialErrorMessage(err, t))
@@ -36,7 +44,8 @@ export function OrgaRow({ orga, onJoin }: Props): React.JSX.Element {
       {/* Infos */}
       <div className="flex-1 min-w-0 flex flex-col">
         <span className="text-sm font-medium text-[var(--color-ds-text)] truncate">
-          {orga.name}
+          {orga.name}{' '}
+          <span className="text-xs font-normal text-[var(--color-ds-muted)]">[{orga.ticker}]</span>
         </span>
         <span className="text-xs text-[var(--color-ds-muted)]">
           {t('universe.socialPage.orga.members', { count: orga.members })}
@@ -59,11 +68,35 @@ export function OrgaRow({ orga, onJoin }: Props): React.JSX.Element {
           <CheckSmallIcon />
           {t('universe.socialPage.orga.memberBadge')}
         </span>
+      ) : orga.applicationPending ? (
+        <span
+          className="
+          shrink-0 inline-flex items-center gap-1.5
+          px-2.5 py-1 rounded-lg
+          border border-[var(--color-ds-border)]
+          text-[10px] font-semibold text-[var(--color-ds-muted)]
+          uppercase tracking-[0.15em]
+        "
+        >
+          {t('universe.socialPage.orga.applicationBadge')}
+        </span>
+      ) : orga.recruitment === 'closed' ? (
+        <span
+          className="
+          shrink-0 inline-flex items-center gap-1.5
+          px-2.5 py-1 rounded-lg
+          border border-[var(--color-ds-border)]
+          text-[10px] font-semibold text-[var(--color-ds-muted)]
+          uppercase tracking-[0.15em]
+        "
+        >
+          {t('universe.socialPage.orga.closedBadge')}
+        </span>
       ) : (
         <button
           onClick={handleJoin}
           disabled={status === 'loading'}
-          title={t('universe.socialPage.joinOrga')}
+          title={joinLabel}
           aria-label={t('universe.socialPage.orga.joinAria', { name: orga.name })}
           className="
             shrink-0 inline-flex items-center gap-1.5
@@ -84,7 +117,7 @@ export function OrgaRow({ orga, onJoin }: Props): React.JSX.Element {
           ) : (
             <>
               <JoinIcon />
-              <span>{t('universe.socialPage.joinOrga')}</span>
+              <span>{joinLabel}</span>
             </>
           )}
         </button>

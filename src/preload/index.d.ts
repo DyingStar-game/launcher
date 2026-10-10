@@ -6,6 +6,13 @@ import type { VersionCheckResult } from '@shared/types/version'
 import type { ServerStatusValue } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
+import type {
+  FriendRequestOutcome,
+  JoinOutcome,
+  PlayerSearchResult,
+  SocialResult,
+  SocialSnapshot
+} from '@shared/types/social'
 
 /** Server status payload returned by `getServerStatus`. */
 interface ServerStatusResult {
@@ -53,6 +60,24 @@ declare global {
       authLogout: (env: Env) => Promise<void>
       authLoadUser: (env: Env) => Promise<UserInfo | null>
       onAuthStateChanged: (callback: (data: AuthStateChangedPayload) => void) => void
+      socialLoad: (env: Env, search?: string) => Promise<SocialResult<SocialSnapshot>>
+      socialSearchPlayers: (env: Env, query: string) => Promise<SocialResult<PlayerSearchResult[]>>
+      socialSendFriendRequest: (
+        env: Env,
+        playerId: string
+      ) => Promise<SocialResult<FriendRequestOutcome>>
+      socialRemoveFriend: (env: Env, playerId: string) => Promise<SocialResult<void>>
+      socialAcceptRequest: (env: Env, requestId: number) => Promise<SocialResult<void>>
+      socialDeclineRequest: (env: Env, requestId: number) => Promise<SocialResult<void>>
+      socialJoinOrganisation: (
+        env: Env,
+        corporationId: string
+      ) => Promise<SocialResult<JoinOutcome>>
+      socialCreateOrganisation: (
+        env: Env,
+        name: string,
+        ticker: string
+      ) => Promise<SocialResult<void>>
     }
   }
 }

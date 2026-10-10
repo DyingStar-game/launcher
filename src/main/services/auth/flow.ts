@@ -10,9 +10,9 @@ import {
 import { APP_PROTOCOL } from '../../config/constants'
 import type { Env } from '@shared/types/env'
 import type { UserInfo } from '@shared/types/auth'
-import type { PKCESession } from './types'
+import type { PKCESession, TokenSet } from './types'
 import { generatePKCE, generateState } from './pkce'
-import { describeGameTokenIssue, extractUser, pickGameLaunchToken } from './jwt'
+import { describeGameTokenIssue, extractUser, isJwtNotExpired, pickGameLaunchToken } from './jwt'
 import { exchangeCode, getKeycloakBase, mergeTokenSet, refreshToken } from './keycloakClient'
 import { clearStoredTokens, loadTokens, storeTokens } from './tokenStorage'
 import { closeAuthWindow, openAuthWindow } from './authWindow'
@@ -176,6 +176,38 @@ export async function loadFreshGameToken(env: Env): Promise<string | null> {
     return null
   }
   return launchToken
+}
+
+/** Access token for calling game services, or why there is none. */
+export type AccessTokenResult =
+  { token: string } | { error: 'notSignedIn' | 'sessionExpired' | 'unavailable' }
+
+/**
+ * Returns a valid access token for game services (e.g. `social`), refreshing it when expired
+ * or when `forceRefresh` is set (after a 401). A refused refresh ends the session.
+ */
+export async function loadFreshAccessToken(
+  env: Env,
+  forceRefresh = false
+): Promise<AccessTokenResult> {
+  const kcBase = getKeycloakBase(env)
+  const tokens = loadTokens(env)
+  if (!kcBase || !tokens) return { error: 'notSignedIn' }
+  if (!forceRefresh && isJwtNotExpired(tokens.access_token)) return { token: tokens.access_token }
+
+  let refreshed: TokenSet | null
+  try {
+    refreshed = await refreshToken(kcBase, tokens.refresh_token)
+  } catch {
+    return { error: 'unavailable' }
+  }
+  if (!refreshed) {
+    invalidateSession(env)
+    return { error: 'sessionExpired' }
+  }
+  const merged = mergeTokenSet(tokens, refreshed)
+  storeTokens(env, merged)
+  return { token: merged.access_token }
 }
 
 /** Refreshes tokens and returns the user profile, or null when session is invalid. */

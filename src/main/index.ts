@@ -9,6 +9,7 @@ import { registerChangelogHandlers } from './services/changelog'
 import { registerGameStatusHandlers } from './services/gameStatus'
 import { registerAuthHandlers, handleOAuthCallback } from './services/auth'
 import { registerWindowHandlers } from './services/window'
+import { registerSocialHandlers } from './services/social'
 import { WINDOW_BOUNDS } from './config/window'
 import { APP_PROTOCOL } from './config/constants'
 import { registerLinuxProtocolHandler } from './protocol/linuxDesktop'
@@ -113,6 +114,7 @@ app.whenReady().then(() => {
   registerVersionHandlers()
   registerChangelogHandlers()
   registerGameStatusHandlers()
+  registerSocialHandlers()
   createWindow()
 
   app.on('activate', () => {

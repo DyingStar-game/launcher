@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Friend } from '@stores/social'
+import type { Friend } from '@stores/social'
 
 type Props = {
   friend: Friend
@@ -12,7 +12,7 @@ export default function FriendItem({ friend }: Props): React.JSX.Element {
   const statusColor =
     friend.status === 'online'
       ? 'bg-green-500'
-      : friend.status === 'ingame'
+      : friend.status === 'mission'
         ? 'bg-orange-400'
         : 'bg-gray-500'
 
@@ -30,9 +30,11 @@ export default function FriendItem({ friend }: Props): React.JSX.Element {
       <div className="flex flex-col leading-tight">
         <span className="text-sm text-[var(--color-ds-text)]">{friend.name}</span>
 
-        {friend.status === 'ingame' && (
+        {friend.status === 'mission' && (
           <span className="text-xs text-orange-400">
-            {t('friendStatus.ingameWithGame', { game: friend.game ?? '' })}
+            {friend.system
+              ? t('friendStatus.missionIn', { system: friend.system })
+              : t('friendStatus.mission')}
           </span>
         )}
 

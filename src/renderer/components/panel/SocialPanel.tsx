@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useSocialStore } from '@stores/social'
 import { useEnvStore } from '@stores/env'
+import { useAccountStore } from '@stores/account'
 import { useNavigationStore } from '@stores/navigation'
 import { useTranslation } from 'react-i18next'
 import FriendItem from '@components/ui/social/FriendItem'
@@ -9,17 +10,28 @@ import Button from '@components/ui/primitives/Button'
 /** Compact social preview on the universe grid (friends + request badge). */
 export default function SocialPanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
+  const accountStatus = useAccountStore((s) => s.data[activeEnv].status)
   const { data, fetchAll } = useSocialStore()
   const { navigate } = useNavigationStore()
   const { t } = useTranslation()
 
-  const { friends, requests } = data[activeEnv]
-  const notifications = requests.length
+  const { friends, incoming, status } = data[activeEnv]
+  const notifications = incoming.length
   const visibleFriends = friends.slice(0, 5)
+  const placeholder =
+    status === 'unavailable'
+      ? t('universe.socialPage.state.unavailable')
+      : status === 'notSignedIn'
+        ? t('universe.socialPage.state.notSignedIn')
+        : status === 'error'
+          ? t('universe.socialPage.state.errorShort')
+          : friends.length === 0 && status === 'ready'
+            ? t('universe.social.noFriends')
+            : null
 
   useEffect(() => {
-    fetchAll()
-  }, [activeEnv, fetchAll])
+    void fetchAll()
+  }, [activeEnv, accountStatus, fetchAll])
 
   return (
     <div className="ds-panel ds-panel-padded-sm relative flex flex-col h-full">
@@ -39,9 +51,7 @@ export default function SocialPanel(): React.JSX.Element {
 
       {/* Friend list */}
       <div className="flex flex-col gap-1 overflow-y-auto flex-1 pr-1">
-        {friends.length === 0 && (
-          <p className="text-sm text-[var(--color-ds-muted)]">{t('universe.social.noFriends')}</p>
-        )}
+        {placeholder && <p className="text-sm text-[var(--color-ds-muted)]">{placeholder}</p>}
 
         {visibleFriends.map((friend) => (
           <FriendItem key={friend.id} friend={friend} />

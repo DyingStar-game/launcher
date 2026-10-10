@@ -83,8 +83,8 @@
   "friendStatus": {
     "online": "Online",
     "offline": "Offline",
-    "ingame": "In game",
-    "ingameWithGame": "In game • {{game}}"
+    "mission": "In mission",
+    "missionIn": "In mission • {{system}}"
   },
   "universe": {
     "title": "Universe",
@@ -178,6 +178,10 @@
           "label": "Friends",
           "subtitle": "Manage your friends and status."
         },
+        "players": {
+          "label": "Find players",
+          "subtitle": "Search players by name and send friend requests."
+        },
         "organizations": {
           "label": "Organizations",
           "subtitle": "Organizations, members, and invites."
@@ -187,17 +191,26 @@
           "subtitle": "Pending friend requests."
         }
       },
-      "addFriendForm": {
-        "title": "Add a friend",
-        "usernameLabel": "Exact username",
-        "usernamePlaceholder": "Enter a username...",
-        "success": "Request sent!"
-      },
       "createOrgaForm": {
         "title": "Create an organization",
         "nameLabel": "Organization name",
         "namePlaceholder": "Enter a unique name...",
-        "success": "Organization created!"
+        "success": "Organization created!",
+        "tickerLabel": "Ticker (2–5 letters or digits)",
+        "tickerPlaceholder": "e.g. NOVA"
+      },
+      "playerSearch": {
+        "label": "Player name",
+        "placeholder": "Start typing a name...",
+        "minChars_one": "Type at least {{count}} character to search.",
+        "minChars_other": "Type at least {{count}} characters to search.",
+        "searching": "Searching...",
+        "empty": "No player found. Only players who opened the social page once can be found.",
+        "add": "Add",
+        "addAria": "Send a friend request to {{name}}",
+        "requestSent": "Request sent",
+        "friend": "Friend",
+        "you": "You"
       },
       "pendingRequests_one": "{{count}} pending request",
       "pendingRequests_other": "{{count}} pending requests",
@@ -208,16 +221,45 @@
         "members_one": "{{count}} member",
         "members_other": "{{count}} members",
         "memberBadge": "Member",
-        "joinAria": "Join organization {{name}}"
+        "joinAria": "Join organization {{name}}",
+        "applicationBadge": "Application sent",
+        "closedBadge": "Closed"
       },
       "request": {
         "acceptAria": "Accept request from {{name}}",
-        "declineAria": "Decline request from {{name}}"
+        "declineAria": "Decline request from {{name}}",
+        "sent": "Sent",
+        "sentTitle": "Sent requests",
+        "cancel": "Cancel request",
+        "cancelAria": "Cancel request to {{name}}"
       },
       "errors": {
-        "friendRequestFailed": "User not found or request already sent.",
-        "orgaNameTaken": "This organization name is already taken.",
-        "joinOrgaFailed": "Could not join this organization."
+        "unavailable": "The social service cannot be reached. Try again later.",
+        "notSignedIn": "Sign in to use social features.",
+        "sessionExpired": "Your session has expired. Sign in again.",
+        "sanctioned": "Your account is suspended: social features are blocked.",
+        "playerNotFound": "No player with this exact username.",
+        "alreadyFriendsOrPending": "You are already friends, or a request is already pending.",
+        "blocked": "You cannot add this player.",
+        "invalidTarget": "You cannot add yourself as a friend.",
+        "nameOrTickerTaken": "This organization name or ticker is already taken.",
+        "alreadyMemberOrPending": "You are already a member, or your application is pending.",
+        "recruitmentClosed": "This organization is not recruiting.",
+        "invalidInput": "Check the fields: name 3–48 characters, ticker 2–5 letters or digits.",
+        "unknown": "Something went wrong. Try again."
+      },
+      "applyOrga": "Apply",
+      "orgaSearch": {
+        "label": "Search organizations",
+        "placeholder": "Name or ticker...",
+        "action": "Search"
+      },
+      "state": {
+        "loading": "Loading...",
+        "unavailable": "Social is not available on this server yet.",
+        "notSignedIn": "Sign in to see your friends and organizations.",
+        "errorShort": "Social is unavailable right now.",
+        "retry": "Retry"
       }
     }
   }

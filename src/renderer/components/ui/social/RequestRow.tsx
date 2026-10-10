@@ -4,16 +4,19 @@ import type { FriendRequest } from '@stores/social'
 
 type Props = {
   req: FriendRequest
-  onAccept: () => Promise<void>
+  /** Incoming requests can be accepted or declined; outgoing ones can only be cancelled. */
+  direction: 'incoming' | 'outgoing'
+  onAccept?: () => Promise<void>
   onDecline: () => Promise<void>
 }
 
-/** Incoming friend request row with accept/decline actions. */
-export function RequestRow({ req, onAccept, onDecline }: Props): React.JSX.Element {
+/** Friend request row: accept/decline (incoming) or cancel (outgoing). */
+export function RequestRow({ req, direction, onAccept, onDecline }: Props): React.JSX.Element {
   const { t } = useTranslation()
   const [status, setStatus] = useState<'idle' | 'accepting' | 'declining' | 'done'>('idle')
 
   const handleAccept = async (): Promise<void> => {
+    if (!onAccept) return
     setStatus('accepting')
     try {
       await onAccept()
@@ -49,15 +52,22 @@ export function RequestRow({ req, onAccept, onDecline }: Props): React.JSX.Eleme
         {req.name}
       </span>
 
+      {direction === 'outgoing' && (
+        <span className="shrink-0 text-[10px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.15em]">
+          {t('universe.socialPage.request.sent')}
+        </span>
+      )}
+
       {/* Actions */}
       <div className="flex items-center gap-1.5 shrink-0">
         {/* Accepter */}
-        <button
-          onClick={handleAccept}
-          disabled={busy}
-          title={t('universe.socialPage.accept')}
-          aria-label={t('universe.socialPage.request.acceptAria', { name: req.name })}
-          className="
+        {direction === 'incoming' && (
+          <button
+            onClick={handleAccept}
+            disabled={busy}
+            title={t('universe.socialPage.accept')}
+            aria-label={t('universe.socialPage.request.acceptAria', { name: req.name })}
+            className="
             inline-flex items-center justify-center w-7 h-7 rounded-lg
             border border-emerald-500/30 bg-emerald-500/10
             text-emerald-400
@@ -65,16 +75,25 @@ export function RequestRow({ req, onAccept, onDecline }: Props): React.JSX.Eleme
             disabled:opacity-40 disabled:cursor-not-allowed
             transition-colors duration-150
           "
-        >
-          {status === 'accepting' ? <SpinnerIcon /> : <CheckIcon />}
-        </button>
+          >
+            {status === 'accepting' ? <SpinnerIcon /> : <CheckIcon />}
+          </button>
+        )}
 
         {/* Refuser */}
         <button
           onClick={handleDecline}
           disabled={busy}
-          title={t('universe.socialPage.decline')}
-          aria-label={t('universe.socialPage.request.declineAria', { name: req.name })}
+          title={
+            direction === 'incoming'
+              ? t('universe.socialPage.decline')
+              : t('universe.socialPage.request.cancel')
+          }
+          aria-label={
+            direction === 'incoming'
+              ? t('universe.socialPage.request.declineAria', { name: req.name })
+              : t('universe.socialPage.request.cancelAria', { name: req.name })
+          }
           className="
             inline-flex items-center justify-center w-7 h-7 rounded-lg
             border border-red-500/30 bg-red-500/10
