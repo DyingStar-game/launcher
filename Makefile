@@ -26,14 +26,30 @@ endif
 # pnpm is pinned by `packageManager` in package.json (corepack).
 PNPM := pnpm
 
+# Linux display backend for `make dev` / `make start`: PLATFORM=x11 or PLATFORM=wayland.
+# Empty keeps Electron's auto-detection (what users get); passed to Electron after `--`.
+ifneq (,$(filter-out x11 wayland,$(PLATFORM)))
+$(error PLATFORM must be x11 or wayland, got "$(PLATFORM)")
+endif
+ELECTRON_ARGS := $(if $(PLATFORM),-- --ozone-platform=$(PLATFORM))
+
+# WSLg keeps its Wayland socket outside $XDG_RUNTIME_DIR: point Electron at it directly.
+ifeq ($(PLATFORM),wayland)
+ifeq (,$(wildcard $(XDG_RUNTIME_DIR)/$(WAYLAND_DISPLAY)))
+ifneq (,$(wildcard /mnt/wslg/runtime-dir/wayland-0))
+export WAYLAND_DISPLAY := /mnt/wslg/runtime-dir/wayland-0
+endif
+endif
+endif
+
 # =============================================================================
 # Testers profile - Try the launcher
 # =============================================================================
 
 .PHONY: start
-start: .env node_modules ## Build and run the launcher in production preview mode
+start: .env node_modules ## Build and run the launcher in production preview mode (PLATFORM=x11|wayland on Linux)
 	@echo "$(CYAN)🚀 Starting DyingStar Launcher (production preview)...$(RESET)"
-	@$(PNPM) start
+	@$(PNPM) start $(ELECTRON_ARGS)
 
 # =============================================================================
 # Dev profile - Development commands
@@ -45,9 +61,9 @@ install: .env ## Install dependencies
 	@$(PNPM) install
 
 .PHONY: dev
-dev: .env node_modules ## Run the launcher with hot reload
+dev: .env node_modules ## Run the launcher with hot reload (PLATFORM=x11|wayland on Linux)
 	@echo "$(CYAN)🔧 Starting development mode...$(RESET)"
-	@$(PNPM) dev
+	@$(PNPM) dev $(ELECTRON_ARGS)
 
 # Generic pnpm command runner
 .PHONY: pnpm
@@ -135,6 +151,7 @@ help: ## Show this help message
 	@echo "$(YELLOW)Examples:$(RESET)"
 	@echo "  $(CYAN)make start$(RESET)               # Try the launcher (testers)"
 	@echo "  $(CYAN)make dev$(RESET)                 # Hot-reload development"
+	@echo "  $(CYAN)make dev PLATFORM=wayland$(RESET) # Force the Linux display backend (x11|wayland)"
 	@echo "  $(CYAN)make check$(RESET)               # Every check before a commit"
 	@echo "  $(CYAN)make pnpm typecheck:web$(RESET)  # Typecheck the renderer only"
 	@echo "  $(CYAN)make pnpm test$(RESET)           # Run the unit tests"
