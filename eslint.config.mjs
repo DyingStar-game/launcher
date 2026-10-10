@@ -182,5 +182,10 @@ export default defineConfig(
       ]
     }
   },
+  {
+    // Claude Code hooks (ADR 0019): plain Node scripts, no TypeScript return types
+    files: ['.claude/**/*.mjs'],
+    rules: { '@typescript-eslint/explicit-function-return-type': 'off' }
+  },
   eslintConfigPrettier
 )
