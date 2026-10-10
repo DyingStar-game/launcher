@@ -42,9 +42,10 @@ git checkout -b feature/ma-modif
 
 ## Prérequis
 
-- **Node.js 20+**
-- **pnpm** (seul gestionnaire de paquets du dépôt — voir `packageManager` dans `package.json`)
+- **Node.js 24** (fixé dans `.nvmrc` : `nvm use`)
+- **pnpm 12** (seul gestionnaire de paquets du dépôt, version fixée par `packageManager` dans `package.json` ; ses réglages sont dans `pnpm-workspace.yaml`)
 - Git
+- **make** (optionnel : Linux / macOS / WSL / Git Bash ; chaque cible appelle un script pnpm)
 
 ## Première installation
 
@@ -52,10 +53,9 @@ git checkout -b feature/ma-modif
 git clone https://github.com/DyingStar-game/launcher.git
 cd launcher
 git checkout develop
-pnpm install
-cp .env.example .env
+make install   # crée .env depuis .env.example, puis pnpm install
 # Éditer .env — au minimum les URLs universe-testing pour tester l’install
-pnpm run dev
+make dev
 ```
 
 ### Fichiers d’environnement
@@ -64,15 +64,24 @@ pnpm run dev
 - Les variables `VITE_*` sont incluses dans le binaire au build
 - Pour travailler sur l’UI seule, les URLs de test dans l’exemple peuvent suffire
 
-### Scripts utiles
+### Makefile
 
-| Commande             | Description                   |
-| -------------------- | ----------------------------- |
-| `pnpm run dev`       | Dev avec rechargement à chaud |
-| `pnpm run typecheck` | TypeScript (main + renderer)  |
-| `pnpm run lint`      | ESLint                        |
-| `pnpm run format`    | Prettier                      |
-| `pnpm run build`     | Build production dans `out/`  |
+Le `Makefile` à la racine est le point d’entrée commun, comme dans les autres dépôts DyingStar
+([ADR 0002](../adr/0002-makefile-tooling.md)). `make help` liste toutes les cibles.
+
+| Commande          | Description                                                       |
+| ----------------- | ----------------------------------------------------------------- |
+| `make start`      | Build et lancement en mode preview production (testeurs)          |
+| `make install`    | Crée `.env` s’il manque, installe les dépendances                 |
+| `make dev`        | Dev avec rechargement à chaud                                     |
+| `make pnpm <cmd>` | N’importe quel script pnpm, ex. `make pnpm typecheck:web`         |
+| `make check`      | Format, lint, typecheck, vérification du format — avant un commit |
+| `make build`      | Build production dans `out/`                                      |
+| `make package`    | Installeur pour l’OS courant dans `release/`                      |
+| `make clean`      | Supprime `out/`, `release/` et le cache ESLint                    |
+
+Sans `make` (ex. Windows sans Git Bash), appeler directement les scripts pnpm : `pnpm run dev`,
+`pnpm run typecheck`, `pnpm run lint`, `pnpm run format`, `pnpm run build`.
 
 ## ESLint et Prettier
 
@@ -101,12 +110,10 @@ pnpm run lint:fix
 pnpm run format
 ```
 
-Workflow recommandé avant commit :
+Avant un commit, tout lancer d’un coup :
 
 ```bash
-pnpm run format
-pnpm run typecheck
-pnpm run lint
+make check
 ```
 
 ### VS Code / Cursor
@@ -122,7 +129,7 @@ Sinon : formateur par défaut **Prettier** + **Format On Save** activé.
 
 ### CI
 
-À terme : `pnpm run typecheck` et `pnpm run lint` sur chaque PR vers `develop`.
+`.github/workflows/build.yaml` lance `pnpm run lint` et `pnpm run typecheck` à chaque push et PR, puis builde Linux et Windows.
 
 ## Modèle mental de l’app
 
@@ -155,10 +162,10 @@ Le sélecteur de la navbar change `useEnvStore().activeEnv` ; la plupart des sto
 ## Avant d’ouvrir une PR
 
 1. Partir de **`develop`**
-2. `pnpm run typecheck && pnpm run lint`
+2. `make check`
 3. PR focalisée, style cohérent avec le dépôt
 4. Pour un changement visible utilisateur, remplir les sections `<!-- CHANGELOG_EN -->` et `<!-- CHANGELOG_FR -->` dans la description de la PR — les entrées sont enregistrées automatiquement à la fusion
-5. Lire [CONTRIBUTING.md](CONTRIBUTING.md)
+5. Lire [CONTRIBUTING.md](CONTRIBUTING.md) et les [ADR](../adr/README.md) de la zone touchée
 
 ## Aide
 

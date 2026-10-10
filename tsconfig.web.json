@@ -8,18 +8,17 @@
   "compilerOptions": {
     "composite": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
-      "@shared/*": ["src/shared/*"],
-      "@hooks/*": ["src/renderer/hooks/*"],
-      "@lib/*": ["src/renderer/lib/*"],
-      "@assets/*": ["src/renderer/assets/*"],
-      "@content/*": ["src/renderer/content/*"],
-      "@stores/*": ["src/renderer/stores/*"],
-      "@components/*": ["src/renderer/components/*"],
-      "@views/*": ["src/renderer/views/*"],
-      "@i18n": ["src/renderer/i18n/index.ts"],
-      "@i18n/*": ["src/renderer/i18n/*"]
+      "@shared/*": ["./src/shared/*"],
+      "@hooks/*": ["./src/renderer/hooks/*"],
+      "@lib/*": ["./src/renderer/lib/*"],
+      "@assets/*": ["./src/renderer/assets/*"],
+      "@content/*": ["./src/renderer/content/*"],
+      "@stores/*": ["./src/renderer/stores/*"],
+      "@components/*": ["./src/renderer/components/*"],
+      "@views/*": ["./src/renderer/views/*"],
+      "@i18n": ["./src/renderer/i18n/index.ts"],
+      "@i18n/*": ["./src/renderer/i18n/*"]
     }
   }
 }

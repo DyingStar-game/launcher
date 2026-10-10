@@ -1,3 +1,5 @@
+shamefullyHoist: true
+
 allowBuilds:
   electron: false
   electron-winstaller: false
