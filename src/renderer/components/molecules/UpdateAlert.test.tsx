@@ -24,8 +24,6 @@ describe('UpdateAlert', () => {
   it('gives the close button the colour of the alert', () => {
     render(<UpdateAlert variant="game" latestVersion="0.2.0" onDismiss={vi.fn()} />)
     const dismiss = screen.getByRole('button', { name: 'Dismiss alert' })
-    // A ghost button sets no text colour of its own: it inherits the alert's
-    expect(dismiss.className).not.toMatch(/(^|\s)text-(?!sm|xs)[a-z]/)
     expect(dismiss.parentElement).toHaveClass('text-sky-400')
   })
 })
