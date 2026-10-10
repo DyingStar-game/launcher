@@ -18,13 +18,15 @@ A desktop **Electron** launcher for the game _Dying Star_. It handles:
 src/
 ├── main/       # Electron main process (IPC, auth, download, game launch)
 ├── preload/    # contextBridge API exposed as window.api
-├── renderer/   # React UI (views, components, Zustand stores, i18n)
+├── renderer/   # React UI in atomic design (components/{atoms,molecules,organisms,templates}, pages/), Zustand stores, i18n
 └── shared/     # TypeScript types shared across processes
 docs/           # Contributor docs (en/ and fr/)
 resources/      # App icons and macOS entitlements
 ```
 
-Path aliases (Vite/TS): `@shared`, `@components`, `@views`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+Path aliases (Vite/TS): `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+
+Components follow **atomic design** ([ADR 0011](../adr/0011-atomic-design.md)): imports go down only, atoms / molecules / templates are pure (no store), and every new or modified component comes with a `*.test.tsx` (Testing Library).
 
 ## Branches
 

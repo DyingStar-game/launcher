@@ -4,15 +4,15 @@ import { useEnvStore } from '@stores/env'
 import { useAccountStore } from '@stores/account'
 import { useNavigationStore } from '@stores/navigation'
 import { useTranslation } from 'react-i18next'
-import FriendItem from '@components/ui/social/FriendItem'
-import Button from '@components/ui/primitives/Button'
+import FriendItem from '@components/molecules/FriendItem'
+import Button from '@components/atoms/Button'
 
 /** Compact social preview on the universe grid (friends + request badge). */
 export default function SocialPanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const accountStatus = useAccountStore((s) => s.data[activeEnv].status)
   const { data, fetchAll } = useSocialStore()
-  const { navigate } = useNavigationStore()
+  const { navigate, openPlayer } = useNavigationStore()
   const { t } = useTranslation()
 
   const { friends, incoming, status } = data[activeEnv]
@@ -54,7 +54,7 @@ export default function SocialPanel(): React.JSX.Element {
         {placeholder && <p className="text-sm text-[var(--color-ds-muted)]">{placeholder}</p>}
 
         {visibleFriends.map((friend) => (
-          <FriendItem key={friend.id} friend={friend} />
+          <FriendItem key={friend.id} friend={friend} onOpen={() => openPlayer(friend.id)} />
         ))}
       </div>
 

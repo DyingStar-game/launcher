@@ -1,20 +1,34 @@
 import type { Env } from '@shared/types/env'
 import type {
   ApiCorporation,
+  ApiCorporationMember,
+  ApiCorporationPage,
   ApiCorporationRequest,
   ApiFriend,
   ApiFriendRequests,
   ApiMyCorporation,
   ApiPage,
   ApiProfile,
+  ApiPublicProfile,
   FriendRequestOutcome,
   JoinOutcome,
+  OrganisationMembersPage,
+  OrganisationProfile,
+  PlayerProfile,
   PlayerSearchResult,
   SocialResult,
   SocialSnapshot
 } from '@shared/types/social'
 import { socialRequest } from './client'
-import { toFriend, toFriendRequest, toOrganisations, toPlayerSearchResult } from './mapping'
+import {
+  toFriend,
+  toFriendRequest,
+  toOrganisationMember,
+  toOrganisationProfile,
+  toOrganisations,
+  toPlayerProfile,
+  toPlayerSearchResult
+} from './mapping'
 
 /** Largest page `social` serves; lists are not paginated further yet (ADR 0007). */
 const PAGE = 'limit=100'
@@ -55,6 +69,7 @@ export async function loadSocial(env: Env, search = ''): Promise<SocialResult<So
   if (!memberships.ok) return memberships
   if (!corporationRequests.ok) return corporationRequests
   if (!directory.ok) return directory
+  const memberOf = memberships.data.items.map((m) => m.id)
 
   return {
     ok: true,
@@ -65,9 +80,13 @@ export async function loadSocial(env: Env, search = ''): Promise<SocialResult<So
       outgoing: requests.data.outgoing.map(toFriendRequest),
       organisations: toOrganisations(
         directory.data.items,
-        new Set(memberships.data.items.map((m) => m.id)),
+        new Set(memberOf),
         corporationRequests.data.items
-      )
+      ),
+      memberOf,
+      appliedTo: corporationRequests.data.items
+        .filter((r) => r.kind === 'application')
+        .map((r) => r.corporationId)
     }
   }
 }
@@ -88,6 +107,18 @@ export async function searchPlayers(
   )
   if (!found.ok) return found
   return { ok: true, data: found.data.items.map(toPlayerSearchResult) }
+}
+
+/** Loads a player's public sheet (ADR 0009). */
+export async function getPlayer(env: Env, playerId: string): Promise<SocialResult<PlayerProfile>> {
+  const res = await socialRequest<ApiPublicProfile>(
+    env,
+    'viewPlayer',
+    'GET',
+    `/profiles/${id(playerId)}`
+  )
+  if (!res.ok) return res
+  return { ok: true, data: toPlayerProfile(res.data) }
 }
 
 /** Sends a friend request; a pending request from that player is accepted instead. */
@@ -128,6 +159,43 @@ export async function acceptFriendRequest(
 /** Declines an incoming friend request, or cancels an outgoing one. */
 export function declineFriendRequest(env: Env, requestId: number): Promise<SocialResult<void>> {
   return socialRequest<void>(env, 'answerRequest', 'POST', `/friends/requests/${requestId}/decline`)
+}
+
+/** Loads an organisation's public sheet (ADR 0010). */
+export async function getOrganisation(
+  env: Env,
+  corporationId: string
+): Promise<SocialResult<OrganisationProfile>> {
+  const res = await socialRequest<ApiCorporationPage>(
+    env,
+    'viewOrganisation',
+    'GET',
+    `/corporations/${id(corporationId)}`
+  )
+  if (!res.ok) return res
+  return { ok: true, data: toOrganisationProfile(res.data) }
+}
+
+/** Members shown per "Load more" on the organisation page (ADR 0012). */
+const MEMBERS_PAGE = 50
+
+/** One page of an organisation's members, highest rank first (ADR 0012). */
+export async function getOrganisationMembers(
+  env: Env,
+  corporationId: string,
+  offset: number
+): Promise<SocialResult<OrganisationMembersPage>> {
+  const res = await socialRequest<ApiPage<ApiCorporationMember>>(
+    env,
+    'viewOrganisation',
+    'GET',
+    `/corporations/${id(corporationId)}/members?limit=${MEMBERS_PAGE}&offset=${Math.max(0, Math.floor(offset))}`
+  )
+  if (!res.ok) return res
+  return {
+    ok: true,
+    data: { members: res.data.items.map(toOrganisationMember), total: res.data.total }
+  }
 }
 
 /** Joins an open organisation, or applies to one that recruits on application. */

@@ -1,7 +1,7 @@
-import type React from 'react'
 import { useLayoutEffect } from 'react'
-import ChangelogSidebar from '@components/ui/changelog/ChangelogSidebar'
-import ChangelogContent from '@components/ui/changelog/ChangelogContent'
+import ChangelogSidebar from '@components/organisms/changelog/ChangelogSidebar'
+import ChangelogContent from '@components/organisms/changelog/ChangelogContent'
+import SidebarPageLayout from '@components/templates/SidebarPageLayout'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
 
@@ -22,9 +22,8 @@ export default function ChangelogPage(): React.JSX.Element {
   }, [activeEnv, data, getCurrentId, markViewed, syncSelectionForEnv])
 
   return (
-    <div className="ds-page">
-      <ChangelogSidebar />
+    <SidebarPageLayout sidebar={<ChangelogSidebar />} bare>
       <ChangelogContent />
-    </div>
+    </SidebarPageLayout>
   )
 }

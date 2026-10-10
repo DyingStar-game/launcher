@@ -3,8 +3,9 @@ import { UiSoundProfile } from '@shared/types/sounds'
 import type { UiSoundProfile as UiSoundProfileType } from '@shared/types/sounds'
 import { mergeSoundHandlers, useUiSound } from '@hooks/useUiSound'
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
-type Size = 'sm' | 'md'
+type Variant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline'
+/** `chip`: compact uppercase action inside list rows and sheets. */
+type Size = 'chip' | 'sm' | 'md'
 
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant
@@ -20,6 +21,7 @@ const base =
   'active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
 
 const sizes: Record<Size, string> = {
+  chip: 'px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.15em]',
   sm: 'px-3 py-2 text-sm font-semibold',
   md: 'px-4 py-2 text-sm font-semibold'
 }
@@ -36,10 +38,13 @@ const variants: Record<Variant, string> = {
     'hover:bg-[var(--color-ds-danger)]/15 hover:border-[var(--color-ds-danger)]/40',
   ghost:
     'bg-transparent text-[var(--color-ds-muted)] border-transparent ' +
-    'hover:bg-[var(--color-ds-surface-hover)] hover:border-[var(--color-ds-border)] hover:text-[var(--color-ds-text)]'
+    'hover:bg-[var(--color-ds-surface-hover)] hover:border-[var(--color-ds-border)] hover:text-[var(--color-ds-text)]',
+  outline:
+    'bg-transparent text-[var(--color-ds-muted)] border-[var(--color-ds-border)] ' +
+    'hover:border-[var(--color-ds-accent)]/60 hover:text-[var(--color-ds-text)] hover:bg-white/4'
 }
 
-/** Themed button with primary/secondary/danger/ghost variants and optional UI sounds. */
+/** Themed button with primary/secondary/danger/ghost/outline variants and optional UI sounds. */
 export default function Button({
   variant = 'secondary',
   size = 'md',

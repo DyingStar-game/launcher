@@ -1,4 +1,4 @@
-import type { ServerStatusValue } from '@stores/game'
+import type { ServerStatusValue } from '@shared/types/game'
 
 type Props = { status: ServerStatusValue }
 

@@ -9,6 +9,9 @@ import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type {
   FriendRequestOutcome,
   JoinOutcome,
+  OrganisationMembersPage,
+  OrganisationProfile,
+  PlayerProfile,
   PlayerSearchResult,
   SocialResult,
   SocialSnapshot
@@ -62,6 +65,16 @@ declare global {
       onAuthStateChanged: (callback: (data: AuthStateChangedPayload) => void) => void
       socialLoad: (env: Env, search?: string) => Promise<SocialResult<SocialSnapshot>>
       socialSearchPlayers: (env: Env, query: string) => Promise<SocialResult<PlayerSearchResult[]>>
+      socialGetPlayer: (env: Env, playerId: string) => Promise<SocialResult<PlayerProfile>>
+      socialGetOrganisation: (
+        env: Env,
+        corporationId: string
+      ) => Promise<SocialResult<OrganisationProfile>>
+      socialGetOrganisationMembers: (
+        env: Env,
+        corporationId: string,
+        offset: number
+      ) => Promise<SocialResult<OrganisationMembersPage>>
       socialSendFriendRequest: (
         env: Env,
         playerId: string

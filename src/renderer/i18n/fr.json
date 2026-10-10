@@ -15,7 +15,8 @@
     "loading": "...",
     "close": "Fermer",
     "send": "Envoyer",
-    "create": "Créer"
+    "create": "Créer",
+    "back": "Retour"
   },
   "navbar": {
     "home": "Accueil",
@@ -212,6 +213,49 @@
         "friend": "Ami",
         "you": "Toi"
       },
+      "profile": {
+        "openAria": "Ouvrir la fiche de {{name}}",
+        "reputation": "Réputation",
+        "playtime": "Temps de jeu",
+        "hours_one": "{{count}} h",
+        "hours_other": "{{count}} h",
+        "memberSince": "Membre depuis",
+        "biography": "Biographie",
+        "rpSheet": "Fiche RP",
+        "characterName": "Personnage :",
+        "alignment": "Alignement :",
+        "corporations": "Organisations",
+        "politics": "Entités politiques",
+        "politicalTypes": {
+          "commune": "Commune",
+          "agglomeration": "Agglomération",
+          "department": "Département",
+          "region": "Région",
+          "country": "Pays",
+          "federation": "Fédération"
+        },
+        "empty": "Ce joueur n'a pas encore écrit de biographie.",
+        "noCorporation": "Aucune organisation."
+      },
+      "organisation": {
+        "openAria": "Ouvrir l'organisation {{name}}",
+        "members": "Membres",
+        "createdAt": "Fondée le",
+        "description": "Description",
+        "parent": "Maison mère",
+        "subsidiaries_one": "{{count}} filiale",
+        "subsidiaries_other": "{{count}} filiales",
+        "recruitment": {
+          "open": "Recrutement ouvert",
+          "apply": "Recrutement sur candidature",
+          "closed": "Ne recrute pas"
+        },
+        "ceoTitle": "PDG",
+        "memberList_one": "{{count}} membre",
+        "memberList_other": "{{count}} membres",
+        "loadMore_one": "Charger le dernier membre",
+        "loadMore_other": "Charger plus ({{count}} restants)"
+      },
       "pendingRequests_one": "{{count}} demande en attente",
       "pendingRequests_other": "{{count}} demandes en attente",
       "emptyFriends": "Aucun ami pour le moment.",
@@ -239,6 +283,7 @@
         "sessionExpired": "Ta session a expiré. Reconnecte-toi.",
         "sanctioned": "Ton compte est suspendu : le social est bloqué.",
         "playerNotFound": "Aucun joueur avec ce pseudo exact.",
+        "organisationNotFound": "Cette organisation n'existe plus.",
         "alreadyFriendsOrPending": "Vous êtes déjà amis, ou une demande est déjà en attente.",
         "blocked": "Tu ne peux pas ajouter ce joueur.",
         "invalidTarget": "Tu ne peux pas t'ajouter toi-même en ami.",

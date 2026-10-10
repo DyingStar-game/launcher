@@ -2,8 +2,8 @@ import { useAccountStore } from '@stores/account'
 import { useEnvStore } from '@stores/env'
 import { useAvailabilityStore } from '@stores/availability'
 import { useTranslation } from 'react-i18next'
-import Button from '@components/ui/primitives/Button'
-import DiscordIcon from '@components/ui/primitives/icons/DiscordIcon'
+import Button from '@components/atoms/Button'
+import DiscordIcon from '@components/atoms/icons/DiscordIcon'
 
 /** Account panel: Discord login/logout and session display per environment. */
 export default function AccountPanel(): React.JSX.Element {

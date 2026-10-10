@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
-import SidebarItemButton from '@components/ui/primitives/SidebarItemButton'
+import SidebarItemButton from '@components/atoms/SidebarItemButton'
 
 function BellBadge(): React.JSX.Element {
   return (

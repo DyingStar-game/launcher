@@ -28,7 +28,7 @@ Go through the root `Makefile` (ADR 0002): a thin, host-side wrapper over the pn
 
 `typecheck` covers main/preload (`tsconfig.node.json`) and renderer (`tsconfig.web.json`); `typecheck:node` / `typecheck:web` check one side. Prettier: single quotes, no semicolons, width 100, no trailing commas.
 
-Tests: Vitest in Node (`vitest.config.ts`), `src/**/*.test.ts` next to the code; run one file with `make pnpm test src/main/services/social/mapping.test.ts`, or `make pnpm exec vitest` to watch. Only main/shared logic is tested (no renderer component tests yet). CI (`.github/workflows/build.yaml`) runs lint, typecheck and test on every push/PR, then builds Linux and Windows.
+Tests (Vitest, `vitest.config.ts`, two projects): `*.test.ts` run in Node (main, shared, renderer logic); `*.test.tsx` run in jsdom with Testing Library (components), set up by `src/renderer/test/setup.ts` (English strings, silent sounds, `window.api` as auto-mocks reset after each test; `test/seedSocial.ts` seeds the social store). Tests sit next to the code. Run one file with `make pnpm test src/main/services/social/mapping.test.ts`, or `make pnpm exec vitest` to watch. **Every new or modified component gets a `.test.tsx`** (ADR 0011). CI (`.github/workflows/build.yaml`) runs lint, typecheck and test on every push/PR, then builds Linux and Windows.
 
 ## Architecture
 
@@ -38,10 +38,16 @@ Three Electron processes plus shared types, under `src/`:
 
 - `main/` — Node side: all filesystem, network, OAuth, and child-process work. `index.ts` registers the custom protocol, single-instance lock, frameless `BrowserWindow`, and calls each service's `register*Handlers()`.
 - `preload/index.ts` — the **only** bridge: exposes `window.api` via `contextBridge`. Each method is an `ipcRenderer.invoke` to a channel handled in main, or an `on*` subscription for main→renderer pushes. Types for `window.api` live in `preload/index.d.ts`.
-- `renderer/` — React app. Views (`views/`), components (`components/{layout,panel,ui}`), Zustand stores (`stores/`), hooks, `lib/` helpers, i18n JSON, bundled markdown in `content/`.
+- `renderer/` — React app in **atomic design** (ADR 0011): `components/{atoms,molecules,organisms/<feature>,templates}`, `pages/` (templates + data), `App.tsx` (page routing from the navigation store; `openPlayer` / `openOrganisation` / `back` handle the player and organisation pages and their history, ADR 0012; page UI state that Back must restore goes through `usePageState` / `useScrollMemory`, ADR 0013), Zustand stores (`stores/`), hooks, `lib/` helpers and shared constants, i18n JSON, bundled markdown in `content/`.
 - `shared/` — types used across processes (`@shared/types/*`) and `env.d.ts` declaring every `VITE_*` variable.
 
-Path aliases (`electron.vite.config.ts` + tsconfigs): main/preload only get `@shared`; renderer also gets `@components`, `@views`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+Path aliases (`electron.vite.config.ts` + tsconfigs): main/preload only get `@shared`; renderer also gets `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+
+### Atomic design (ADR 0011)
+
+- Imports go down only: atoms → molecules → organisms → templates → pages (enforced by `no-restricted-imports` per folder in `eslint.config.mjs`).
+- Atoms, molecules and templates are pure: no `@stores/*`, no `window.api` (lint-enforced); `@hooks/useUiSound` is allowed. Rows take callbacks (`onOpen`) and slots (`action`); organisms and pages wire them to stores.
+- Reuse or extend before creating (e.g. `Button` `variant="outline" size="chip"`, `Badge`, `Avatar`, `Modal`). Constants shared by components go in `lib/` (fast refresh: component files export components only).
 
 ### Adding an IPC call
 
@@ -73,7 +79,8 @@ Significant decisions are recorded in [`docs/adr/`](./docs/adr/) (Nygard format,
   - anything env-dependent, any `VITE_*` variable: [0004](./docs/adr/0004-two-game-environments.md);
   - sign-in, tokens, game launch: [0005](./docs/adr/0005-keycloak-pkce-authentication.md);
   - tooling, Makefile, CI setup: [0002](./docs/adr/0002-makefile-tooling.md); dependency and toolchain versions: [0006](./docs/adr/0006-toolchain-versions.md);
-  - social (friends, requests, organisations), tests: [0007](./docs/adr/0007-social-player-side.md); player search screen: [0008](./docs/adr/0008-player-search-screen.md).
+  - social (friends, requests, organisations), tests: [0007](./docs/adr/0007-social-player-side.md); player search screen: [0008](./docs/adr/0008-player-search-screen.md); player sheet: [0009](./docs/adr/0009-player-profile-sheet.md); organisation sheet: [0010](./docs/adr/0010-organisation-sheet.md); both as pages with back history: [0012](./docs/adr/0012-sheets-as-pages.md); Back restoring tab, search, scroll: [0013](./docs/adr/0013-back-restores-page-state.md); BBCode in player texts: [0014](./docs/adr/0014-bbcode-player-texts.md);
+  - any renderer component: [0011](./docs/adr/0011-atomic-design.md).
 - A rule that cannot be followed is raised with the maintainer, never skipped silently. An accepted ADR is never rewritten: a new ADR supersedes it.
 
 ## Conventions

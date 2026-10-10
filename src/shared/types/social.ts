@@ -55,6 +55,38 @@ export interface ApiCorporation {
   memberCount: number
 }
 
+/** `GET /api/profiles/:playerId`: public profile with presence and memberships. */
+export interface ApiPublicProfile extends ApiProfile {
+  faction: string | null
+  biography: string | null
+  role: string | null
+  reputation: number
+  playtimeSeconds: number
+  rpSheet: { characterName?: string; story?: string; alignment?: string } | null
+  createdAt: string
+  status: ApiPresenceStatus
+  corporations: { id: string; name: string; ticker: string }[]
+  politics: { id: string; type: string; name: string }[]
+}
+
+/** Member on a corporation page: profile, rank and presence. */
+export interface ApiCorporationMember extends ApiProfile {
+  rank: { name: string; priority: number; isCeo: boolean }
+  status: ApiPresenceStatus
+}
+
+/** `GET /api/corporations/:id`: public corporation page (first 50 members, 20 subsidiaries). */
+export interface ApiCorporationPage extends ApiCorporation {
+  description: string | null
+  logoUrl: string | null
+  ceoId: string
+  createdAt: string
+  parent: { id: string; name: string; ticker: string } | null
+  subsidiaries: ApiCorporation[]
+  subsidiaryCount: number
+  members: ApiCorporationMember[]
+}
+
 /** `GET /api/me/corporations` item. */
 export interface ApiMyCorporation {
   id: string
@@ -111,6 +143,64 @@ export interface PlayerSearchResult {
   avatar?: string
 }
 
+/** A player's public sheet (ADR 0009). Optional fields are absent when empty. */
+export interface PlayerProfile {
+  id: string
+  name: string
+  avatar?: string
+  status: FriendStatus
+  faction?: string
+  role?: string
+  biography?: string
+  characterName?: string
+  alignment?: string
+  story?: string
+  reputation: number
+  playtimeHours: number
+  /** ISO date of the profile creation. */
+  memberSince: string
+  corporations: { id: string; name: string; ticker: string }[]
+  /** Political entities; `type` is the level (`commune` … `federation`). */
+  politics: { id: string; type: string; name: string }[]
+}
+
+/** Short reference to an organisation. */
+export interface OrganisationRef {
+  id: string
+  name: string
+  ticker: string
+}
+
+/** An organisation's public sheet (ADR 0010). Optional fields are absent when empty. */
+export interface OrganisationProfile extends OrganisationRef {
+  description?: string
+  logo?: string
+  recruitment: ApiRecruitment
+  /** Total member count. */
+  members: number
+  /** ISO creation date. */
+  createdAt: string
+  ceo?: { id: string; name: string }
+  parent?: OrganisationRef
+  subsidiaries: (OrganisationRef & { members: number })[]
+  subsidiaryCount: number
+}
+
+/** A member of an organisation, with their rank name and presence. */
+export interface OrganisationMember {
+  id: string
+  name: string
+  rank: string
+  status: FriendStatus
+}
+
+/** One page of an organisation's members (ADR 0012), highest rank first, then seniority. */
+export interface OrganisationMembersPage {
+  members: OrganisationMember[]
+  /** Total member count. */
+  total: number
+}
+
 /** How a found player relates to the signed-in player. */
 export type PlayerRelation = 'self' | 'friend' | 'incoming' | 'outgoing' | 'none'
 
@@ -122,6 +212,10 @@ export interface SocialSnapshot {
   incoming: FriendRequest[]
   outgoing: FriendRequest[]
   organisations: Organisation[]
+  /** Ids of the organisations the player belongs to. */
+  memberOf: string[]
+  /** Ids of the organisations the player applied to, awaiting an answer. */
+  appliedTo: string[]
 }
 
 /** Error codes sent by main; the renderer translates them (`universe.socialPage.errors.*`). */
@@ -131,6 +225,7 @@ export type SocialErrorCode =
   | 'sessionExpired'
   | 'sanctioned'
   | 'playerNotFound'
+  | 'organisationNotFound'
   | 'alreadyFriendsOrPending'
   | 'blocked'
   | 'invalidTarget'

@@ -16,7 +16,7 @@
       "@content/*": ["./src/renderer/content/*"],
       "@stores/*": ["./src/renderer/stores/*"],
       "@components/*": ["./src/renderer/components/*"],
-      "@views/*": ["./src/renderer/views/*"],
+      "@pages/*": ["./src/renderer/pages/*"],
       "@i18n": ["./src/renderer/i18n/index.ts"],
       "@i18n/*": ["./src/renderer/i18n/*"]
     }
