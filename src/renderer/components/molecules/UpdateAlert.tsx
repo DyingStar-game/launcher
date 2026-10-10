@@ -101,7 +101,7 @@ export default function UpdateAlert({
       <div className="flex-1 min-w-0 flex flex-col gap-0.5">
         <span className={cn('text-xs font-semibold', cls.title)}>{title}</span>
 
-        <div className={cn('flex flex-col gap-1 text-[11px]', cls.text)}>
+        <div className={cn('flex flex-col gap-1 text-xs', cls.text)}>
           <div className="flex flex-wrap items-center gap-1.5">
             {currentVersion && (
               <span className="font-mono opacity-60">
@@ -111,7 +111,7 @@ export default function UpdateAlert({
             {currentVersion && <span>→</span>}
             <span
               className={cn(
-                'inline-flex items-center px-1.5 py-0.5 rounded border font-mono font-semibold text-[10px]',
+                'inline-flex items-center px-1.5 py-0.5 rounded border font-mono font-semibold text-2xs',
                 cls.badge
               )}
             >
@@ -124,7 +124,7 @@ export default function UpdateAlert({
             )}
           </div>
           {variant === 'launcher' && launcherDownloadUrl && (
-            <p className="text-[11px] leading-snug">
+            <p className="text-xs leading-snug">
               {t('universe.updateAlert.launcher.downloadHint')}{' '}
               <a
                 href={launcherDownloadUrl}

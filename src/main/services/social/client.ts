@@ -6,7 +6,7 @@ import { HTTP_TIMEOUT_MS } from '../../config/constants'
 import { invalidateSession, loadFreshAccessToken } from '../auth'
 import { toSocialErrorCode, type SocialAction } from './mapping'
 
-type Method = 'GET' | 'POST' | 'DELETE'
+type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 
 /** One HTTP attempt with a bearer token; resolves to the response or null on network failure. */
 async function send(

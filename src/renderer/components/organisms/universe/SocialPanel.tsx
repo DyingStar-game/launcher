@@ -1,7 +1,4 @@
-import { useEffect } from 'react'
-import { useSocialStore } from '@stores/social'
-import { useEnvStore } from '@stores/env'
-import { useAccountStore } from '@stores/account'
+import { useSocialSnapshot } from '@hooks/social/useSocialSnapshot'
 import { useNavigationStore } from '@stores/navigation'
 import { useTranslation } from 'react-i18next'
 import FriendItem from '@components/molecules/FriendItem'
@@ -11,13 +8,11 @@ import { useDelayedFlag } from '@hooks/useDelayedFlag'
 
 /** Compact social preview on the universe grid (friends + request badge). */
 export default function SocialPanel(): React.JSX.Element {
-  const { activeEnv } = useEnvStore()
-  const accountStatus = useAccountStore((s) => s.data[activeEnv].status)
-  const { data, fetchAll } = useSocialStore()
+  const { data, status } = useSocialSnapshot()
   const { navigate, openPlayer } = useNavigationStore()
   const { t } = useTranslation()
 
-  const { friends, incoming, status } = data[activeEnv]
+  const { friends, incoming } = data
   const notifications = incoming.length
   const visibleFriends = friends.slice(0, 5)
   const showSkeleton = useDelayedFlag(status === 'loading')
@@ -32,15 +27,11 @@ export default function SocialPanel(): React.JSX.Element {
             ? t('universe.social.noFriends')
             : null
 
-  useEffect(() => {
-    void fetchAll()
-  }, [activeEnv, accountStatus, fetchAll])
-
   return (
     <div className="ds-panel ds-panel-padded-sm relative flex flex-col h-full">
       {notifications > 0 && (
         <div className="absolute top-4 right-4">
-          <div className="min-w-6 h-6 px-2 inline-flex items-center justify-center rounded-full text-xs font-semibold bg-red-500 text-white shadow-[0_10px_25px_rgba(239,68,68,0.25)]">
+          <div className="min-w-6 h-6 px-2 inline-flex items-center justify-center rounded-full text-xs font-semibold bg-red-500 text-white shadow-ds-alert">
             {notifications}
           </div>
         </div>

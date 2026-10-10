@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { seedSocial } from '../../../test/seedSocial'
 import FriendAction from './FriendAction'
@@ -9,26 +9,27 @@ describe('FriendAction', () => {
     ['me', 'You'],
     ['friend', 'Friend'],
     ['asked', 'Request sent']
-  ])('shows a badge for %s', (playerId, badge) => {
+  ])('shows a badge for %s', async (playerId, badge) => {
     seedSocial({
       friends: [{ id: 'friend', name: 'F', status: 'online' }],
       outgoing: [{ id: 1, playerId: 'asked', name: 'A' }]
     })
     render(<FriendAction playerId={playerId} name="X" />)
-    expect(screen.getByText(badge)).toBeInTheDocument()
+    expect(await screen.findByText(badge)).toBeInTheDocument()
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
-  it('shows a friend in the accent colour, other states muted', () => {
+  it('draws every state the same way, with its own icon', async () => {
     seedSocial({
       friends: [{ id: 'friend', name: 'F', status: 'online' }],
       outgoing: [{ id: 1, playerId: 'asked', name: 'A' }]
     })
-    const { unmount } = render(<FriendAction playerId="friend" name="X" />)
-    expect(screen.getByText('Friend')).toHaveClass('text-[var(--color-ds-accent)]')
+    const { container, unmount } = render(<FriendAction playerId="friend" name="X" />)
+    expect(await screen.findByText('Friend')).toHaveAttribute('data-variant', 'outline')
+    expect(container.querySelector('svg')).toHaveClass('lucide-user-check')
     unmount()
     render(<FriendAction playerId="asked" name="X" />)
-    expect(screen.getByText('Request sent')).toHaveClass('text-[var(--color-ds-muted)]')
+    expect(await screen.findByText('Request sent')).toHaveAttribute('data-variant', 'outline')
   })
 
   it('sends a friend request to a stranger', async () => {
@@ -43,7 +44,7 @@ describe('FriendAction', () => {
     seedSocial({ incoming: [{ id: 9, playerId: 'asks', name: 'Zed' }] })
     vi.mocked(window.api.socialAcceptRequest).mockResolvedValue({ ok: true, data: undefined })
     render(<FriendAction playerId="asks" name="Zed" />)
-    await userEvent.click(screen.getByRole('button', { name: 'Accept request from Zed' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Accept request from Zed' }))
     expect(window.api.socialAcceptRequest).toHaveBeenCalledWith('universe-testing', 9)
   })
 
@@ -53,5 +54,15 @@ describe('FriendAction', () => {
     render(<FriendAction playerId="stranger" name="Kira" />)
     await userEvent.click(screen.getByRole('button', { name: 'Send a friend request to Kira' }))
     expect(await screen.findByText('You cannot add this player.')).toBeInTheDocument()
+  })
+
+  it('on a page, shows only a full-size button, never a badge', async () => {
+    seedSocial({ friends: [{ id: 'friend', name: 'F', status: 'online' }] })
+    const { container, unmount } = render(<FriendAction playerId="friend" name="F" layout="page" />)
+    await waitFor(() => expect(window.api.socialLoad).toHaveBeenCalled())
+    await waitFor(() => expect(container).toBeEmptyDOMElement())
+    unmount()
+    render(<FriendAction playerId="stranger" name="Kira" layout="page" />)
+    expect(screen.getByRole('button', { name: 'Send a friend request to Kira' })).toHaveClass('h-9')
   })
 })

@@ -30,6 +30,13 @@ Element.prototype.setPointerCapture ??= () => {}
 Element.prototype.releasePointerCapture ??= () => {}
 Element.prototype.scrollIntoView ??= () => {}
 
+// The rich text editor (ProseMirror, ADR 0030) measures the selection; jsdom lays nothing out.
+const noRects = (): DOMRectList => Object.assign([], { item: () => null }) as unknown as DOMRectList
+Range.prototype.getClientRects ??= noRects
+Range.prototype.getBoundingClientRect ??= () => new DOMRect()
+Element.prototype.getClientRects ??= noRects
+document.elementFromPoint ??= () => null
+
 const api: Record<string, ReturnType<typeof vi.fn>> = {}
 Object.defineProperty(window, 'api', {
   configurable: true,

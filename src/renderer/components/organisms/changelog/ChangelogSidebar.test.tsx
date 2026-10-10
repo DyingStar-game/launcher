@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen } from '../../../test/render'
 import { useChangelogStore } from '@stores/changelog'
 import ChangelogSidebar from './ChangelogSidebar'
 

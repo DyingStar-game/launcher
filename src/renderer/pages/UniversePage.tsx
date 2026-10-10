@@ -28,7 +28,7 @@ export default function UniversePage({
       banner={
         showTestingBanner && (
           <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-1.5 bg-amber-500/10 border-b border-amber-500/30">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-400 uppercase tracking-[0.2em]">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400 uppercase tracking-[0.2em]">
               <svg
                 viewBox="0 0 24 24"
                 className="w-3.5 h-3.5 fill-current shrink-0"

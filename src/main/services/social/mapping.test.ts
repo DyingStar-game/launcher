@@ -2,17 +2,25 @@ import { describe, expect, it } from 'vitest'
 import type {
   ApiCorporation,
   ApiCorporationPage,
+  ApiCorporationRequest,
+  ApiCorporationRequestView,
   ApiFriend,
   ApiPublicProfile
 } from '@shared/types/social'
+import { createOrganisationSchema } from '@shared/schemas/social'
 import {
+  parseInput,
   toFriend,
   toFriendRequest,
+  toMembership,
   toOrganisationMember,
+  toOrganisationPendingRequest,
   toOrganisationProfile,
-  toOrganisations,
+  toOrganisationRequest,
+  toOrganisationSearchResult,
   toPlayerProfile,
   toPlayerSearchResult,
+  toReceivedApplication,
   toSocialErrorCode
 } from './mapping'
 
@@ -65,22 +73,75 @@ describe('toFriendRequest', () => {
   })
 })
 
-describe('toOrganisations', () => {
-  it('flags memberships and pending applications, not invitations', () => {
-    const orgas = toOrganisations(
-      [corporation('a'), corporation('b'), corporation('c', { recruitment: 'closed' })],
-      new Set(['a']),
-      [
-        { id: 1, corporationId: 'b', kind: 'application' },
-        { id: 2, corporationId: 'c', kind: 'invitation' }
-      ]
-    )
-    expect(orgas.map((o) => [o.id, o.isMember, o.applicationPending])).toEqual([
-      ['a', true, false],
-      ['b', false, true],
-      ['c', false, false]
-    ])
-    expect(orgas[0]).toMatchObject({ name: 'Corp a', ticker: 'A', members: 3 })
+const corporationRequest = (
+  id: number,
+  corporationId: string,
+  kind: ApiCorporationRequest['kind']
+): ApiCorporationRequest => ({
+  id,
+  corporationId,
+  kind,
+  corporation: { id: corporationId, name: `Corp ${corporationId}`, ticker: 'C' }
+})
+
+describe('toMembership', () => {
+  it("keeps the organisation and the player's rank", () => {
+    const rank = {
+      id: 4,
+      name: 'Officer',
+      priority: 50,
+      permissions: ['recruit'],
+      isCeo: false,
+      isDefault: false
+    }
+    expect(
+      toMembership({ id: 'a', name: 'Nova', ticker: 'NOVA', recruitment: 'apply', rank })
+    ).toEqual({ id: 'a', name: 'Nova', ticker: 'NOVA', recruitment: 'apply', rank })
+  })
+})
+
+describe('toOrganisationRequest', () => {
+  it('keeps the request id and the organisation', () => {
+    expect(toOrganisationRequest(corporationRequest(9, 'b', 'invitation'))).toEqual({
+      id: 9,
+      organisation: { id: 'b', name: 'Corp b', ticker: 'C' }
+    })
+  })
+})
+
+describe('toOrganisationSearchResult', () => {
+  it('keeps the organisation, its member count and recruitment', () => {
+    expect(toOrganisationSearchResult(corporation('a', { recruitment: 'closed' }))).toEqual({
+      id: 'a',
+      name: 'Corp a',
+      ticker: 'A',
+      members: 3,
+      recruitment: 'closed'
+    })
+  })
+})
+
+describe('toReceivedApplication', () => {
+  const application = (message: string | null): ApiCorporationRequestView => ({
+    id: 12,
+    corporationId: 'a',
+    kind: 'application',
+    message,
+    createdAt: '2026-10-10T00:00:00Z',
+    player: { playerId: 'p1', displayName: 'Kira', avatarUrl: null }
+  })
+
+  it('keeps the applicant and their message', () => {
+    expect(toReceivedApplication(application(' Hello '))).toEqual({
+      id: 12,
+      player: { id: 'p1', name: 'Kira' },
+      message: 'Hello'
+    })
+  })
+
+  it('drops an empty message', () => {
+    expect(toReceivedApplication(application(''))).not.toHaveProperty('message')
+    expect(toReceivedApplication(application(null))).not.toHaveProperty('message')
   })
 })
 
@@ -149,7 +210,7 @@ describe('toOrganisationProfile', () => {
     playerId,
     displayName,
     avatarUrl: null,
-    rank,
+    rank: { id: rank.priority + 1, permissions: [], isDefault: false, ...rank },
     status: 'offline'
   })
   const page: ApiCorporationPage = {
@@ -178,6 +239,9 @@ describe('toOrganisationProfile', () => {
       id: 'ceo',
       name: 'Aurel',
       rank: 'CEO',
+      rankId: 101,
+      rankPriority: 100,
+      isCeo: true,
       status: 'offline'
     })
   })
@@ -219,8 +283,53 @@ describe('toSocialErrorCode', () => {
     [404, 'NOT_FOUND', 'viewPlayer', 'playerNotFound'],
     [404, 'NOT_FOUND', 'viewOrganisation', 'organisationNotFound'],
     [404, 'NOT_FOUND', 'answerRequest', 'unknown'],
+    [404, 'NOT_FOUND', 'answerInvitation', 'requestNotFound'],
+    [404, 'NOT_FOUND', 'answerApplication', 'requestNotFound'],
+    [403, 'FORBIDDEN', 'answerApplication', 'forbidden'],
+    [409, 'CONFLICT', 'answerApplication', 'alreadyMember'],
+    [409, 'CONFLICT', 'updateOrganisation', 'nameOrTickerTaken'],
+    [409, 'CONFLICT', 'invite', 'alreadyMemberOrInvited'],
+    [409, 'CONFLICT', 'manageRanks', 'rankNameTaken'],
+    [403, 'FORBIDDEN', 'manageMembers', 'forbidden'],
+    [403, 'FORBIDDEN', 'leadership', 'forbidden'],
+    [404, 'NOT_FOUND', 'viewRequests', 'organisationNotFound'],
     [403, 'FORBIDDEN', 'answerRequest', 'unknown']
   ] as const)('%i %s on %s → %s', (status, code, action, expected) => {
     expect(toSocialErrorCode(status, code, action)).toBe(expected)
+  })
+})
+
+describe('parseInput', () => {
+  it('returns the parsed payload', () => {
+    expect(parseInput(createOrganisationSchema, { name: ' Nova ', ticker: 'nova' })).toEqual({
+      ok: true,
+      data: { name: 'Nova', ticker: 'NOVA' }
+    })
+  })
+
+  it('refuses a payload the form would not send', () => {
+    expect(parseInput(createOrganisationSchema, { name: 'Nova', ticker: 'N' })).toEqual({
+      ok: false,
+      error: 'invalidInput'
+    })
+    expect(parseInput(createOrganisationSchema, 'Nova')).toEqual({
+      ok: false,
+      error: 'invalidInput'
+    })
+  })
+})
+
+describe('toOrganisationPendingRequest', () => {
+  it('keeps the kind, the player and a written message', () => {
+    expect(
+      toOrganisationPendingRequest({
+        id: 4,
+        corporationId: 'c',
+        kind: 'invitation',
+        message: '  ',
+        createdAt: '2026-10-10T00:00:00Z',
+        player: { playerId: 'p1', displayName: 'Kira', avatarUrl: null }
+      })
+    ).toEqual({ id: 4, kind: 'invitation', player: { id: 'p1', name: 'Kira' } })
   })
 })

@@ -45,7 +45,7 @@ function HeartDonateIcon(): React.JSX.Element {
       aria-hidden="true"
       viewBox="0 0 24 24"
       overflow="visible"
-      className="h-[18px] w-[18px] shrink-0 overflow-visible"
+      className="size-4.5 shrink-0 overflow-visible"
     >
       <defs>
         <linearGradient id={gradId} x1="12" y1="4" x2="12" y2="22" gradientUnits="userSpaceOnUse">
@@ -205,7 +205,7 @@ export default function Navbar(): React.JSX.Element {
         </span>
 
         {/* Env switch (narrow → menu hamburger) */}
-        <div className="hidden min-[800px]:flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
+        <div className="hidden nav-env:flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
           {envOptions.map(({ env, label }) => (
             <TabButton
               key={env}
@@ -219,7 +219,7 @@ export default function Navbar(): React.JSX.Element {
         </div>
 
         {/* Liens vues secondaires (compact → menu hamburger) */}
-        <div className="hidden min-[1400px]:flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
+        <div className="hidden nav-full:flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
           {navLinks.map(({ label, view, badge }) => (
             <TabButton
               key={view}
@@ -243,13 +243,13 @@ export default function Navbar(): React.JSX.Element {
       <div className="app-no-drag flex shrink-0 items-center gap-3">
         {/* Groups: language | links | sound + donate (burger below 1400px) | window, 8px inside,
             one divider between two groups (the bar's 12px gap on each side) */}
-        <div className="hidden min-[1400px]:flex items-center gap-2">
+        <div className="hidden nav-full:flex items-center gap-2">
           <LanguageMenu />
         </div>
 
-        <GroupDivider className="hidden min-[1400px]:block" />
+        <GroupDivider className="hidden nav-full:block" />
 
-        <div className="hidden min-[1400px]:flex items-center gap-2">
+        <div className="hidden nav-full:flex items-center gap-2">
           <LabelTooltip label={t('navbar.openWebsite')}>
             <Button
               variant="outline"
@@ -289,7 +289,7 @@ export default function Navbar(): React.JSX.Element {
           </LabelTooltip>
         </div>
 
-        <GroupDivider className="hidden min-[1400px]:block" />
+        <GroupDivider className="hidden nav-full:block" />
 
         <div className="flex items-center gap-2">
           <SoundVolumeMenu />
@@ -299,7 +299,7 @@ export default function Navbar(): React.JSX.Element {
               onClick={() => window.open(navDonate, '_blank')}
               variant="primary"
               size="sm"
-              className="hidden min-[1400px]:inline-flex"
+              className="hidden nav-full:inline-flex"
             >
               <HeartDonateIcon />
               {t('navbar.support')}
@@ -307,7 +307,7 @@ export default function Navbar(): React.JSX.Element {
           ) : (
             // A disabled button gets no pointer events: the tooltip sits on a focusable wrapper
             <LabelTooltip label={t('navbar.donateUnavailable')}>
-              <span tabIndex={0} className="hidden min-[1400px]:inline-flex rounded-lg">
+              <span tabIndex={0} className="hidden nav-full:inline-flex rounded-lg">
                 <Button
                   disabled
                   variant="primary"
@@ -321,7 +321,7 @@ export default function Navbar(): React.JSX.Element {
             </LabelTooltip>
           )}
 
-          <div className="min-[1400px]:hidden">
+          <div className="nav-full:hidden">
             <NavbarMoreMenu
               sections={navLinks}
               currentSection={navSection(currentView)}

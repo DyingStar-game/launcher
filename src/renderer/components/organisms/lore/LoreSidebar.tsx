@@ -14,7 +14,7 @@ export default function LoreSidebar(): React.JSX.Element {
         <p className="text-xs font-semibold text-[var(--color-ds-muted)] uppercase tracking-widest">
           {t('lore.sidebarTitle')}
         </p>
-        <p className="text-[11px] text-[var(--color-ds-muted)]">{t('lore.sidebarSubtitle')}</p>
+        <p className="text-xs text-[var(--color-ds-muted)]">{t('lore.sidebarSubtitle')}</p>
       </div>
 
       {articles.map((a) => (

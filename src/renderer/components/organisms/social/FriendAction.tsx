@@ -1,26 +1,35 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useEnvStore } from '@stores/env'
-import { useSocialStore } from '@stores/social'
+import { useSocialSnapshot } from '@hooks/social/useSocialSnapshot'
+import { useAcceptFriendRequest, useSendFriendRequest } from '@hooks/social/useSocialActions'
 import { getSocialErrorMessage } from '@lib/socialErrors'
-import Badge from '@components/atoms/Badge'
+import StatusBadge from '@components/molecules/StatusBadge'
 import Button from '@components/atoms/Button'
 import { playerRelation } from '@lib/playerRelation'
 
 type Props = {
   playerId: string
   name: string
+  /**
+   * `list`: a badge or a small button, for a row (search results). `page`: only the button, full
+   * size — the page shows the relation elsewhere (player page header).
+   */
+  layout?: 'list' | 'page'
 }
 
 /**
  * Friend action matching a player's relation to the signed-in player (ADR 0008): "Add",
  * "Accept", or a badge (request sent, friend, you). Errors show under the action.
  */
-export default function FriendAction({ playerId, name }: Props): React.JSX.Element {
+export default function FriendAction({
+  playerId,
+  name,
+  layout = 'list'
+}: Props): React.JSX.Element | null {
   const { t } = useTranslation()
-  const { activeEnv } = useEnvStore()
-  const { data, sendFriendRequest, acceptRequest } = useSocialStore()
-  const social = data[activeEnv]
+  const social = useSocialSnapshot().data
+  const sendFriendRequest = useSendFriendRequest().mutateAsync
+  const acceptRequest = useAcceptFriendRequest().mutateAsync
   const relation = playerRelation(playerId, social)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
@@ -30,7 +39,7 @@ export default function FriendAction({ playerId, name }: Props): React.JSX.Eleme
     setErrorMsg('')
     try {
       await action()
-      // The store reloads: the relation, hence the badge, follows
+      // The social data reloads: the relation, hence the badge, follows
       setStatus('idle')
     } catch (err) {
       setStatus('error')
@@ -46,25 +55,25 @@ export default function FriendAction({ playerId, name }: Props): React.JSX.Eleme
     })
   }
 
-  const badge: { label: string; icon: 'self' | 'check' | 'pending' } | null =
+  const badge: { label: string; icon: 'self' | 'friend' | 'pending' } | null =
     relation === 'self'
       ? { label: t('universe.socialPage.playerSearch.you'), icon: 'self' }
       : relation === 'friend'
-        ? { label: t('universe.socialPage.playerSearch.friend'), icon: 'check' }
+        ? { label: t('universe.socialPage.playerSearch.friend'), icon: 'friend' }
         : relation === 'outgoing'
           ? { label: t('universe.socialPage.playerSearch.requestSent'), icon: 'pending' }
           : null
 
+  if (badge && layout === 'page') return null
+
   return (
     <div className="shrink-0 flex flex-col items-end gap-1">
       {badge ? (
-        <Badge variant={badge.icon === 'check' ? 'accent' : 'muted'} icon={badge.icon}>
-          {badge.label}
-        </Badge>
+        <StatusBadge icon={badge.icon}>{badge.label}</StatusBadge>
       ) : (
         <Button
-          variant="outline"
-          size="chip"
+          variant={layout === 'page' ? 'primary' : 'outline'}
+          size={layout === 'page' ? 'md' : 'chip'}
           onClick={relation === 'incoming' ? handleAccept : handleAdd}
           loading={status === 'loading'}
           aria-label={

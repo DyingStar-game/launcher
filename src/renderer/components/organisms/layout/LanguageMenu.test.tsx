@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import i18n from '@i18n'
 import LanguageMenu from './LanguageMenu'

@@ -13,7 +13,6 @@
   "common": {
     "cancel": "Cancel",
     "loadingContent": "Loading content",
-    "close": "Close",
     "create": "Create",
     "back": "Back"
   },
@@ -160,37 +159,17 @@
       "joinOrga": "Join",
       "accept": "Accept",
       "decline": "Decline",
-      "tabs": {
-        "friends": {
-          "label": "Friends",
-          "subtitle": "Manage your friends and status."
-        },
-        "players": {
-          "label": "Find players",
-          "subtitle": "Search players by name and send friend requests."
-        },
-        "organizations": {
-          "label": "Organizations",
-          "subtitle": "Organizations, members, and invites."
-        },
-        "requests": {
-          "label": "Requests",
-          "subtitle": "Pending friend requests."
-        }
-      },
       "createOrgaForm": {
         "title": "Create an organization",
         "nameLabel": "Organization name",
         "namePlaceholder": "Enter a unique name...",
         "success": "Organization created!",
-        "tickerLabel": "Ticker (2–5 letters or digits)",
+        "tickerLabel": "Tag (2–5 letters or digits)",
         "tickerPlaceholder": "e.g. NOVA"
       },
       "playerSearch": {
         "label": "Player name",
         "placeholder": "Start typing a name...",
-        "minChars_one": "Type at least {{count}} character to search.",
-        "minChars_other": "Type at least {{count}} characters to search.",
         "empty": "No player found. Only players who opened the social page once can be found.",
         "add": "Add",
         "addAria": "Send a friend request to {{name}}",
@@ -241,10 +220,7 @@
         "loadMore_one": "Load {{count}} more member",
         "loadMore_other": "Load more ({{count}} left)"
       },
-      "pendingRequests_one": "{{count}} pending request",
-      "pendingRequests_other": "{{count}} pending requests",
       "emptyFriends": "No friends yet.",
-      "emptyOrganizations": "No organizations.",
       "emptyRequests": "No pending requests.",
       "orga": {
         "members_one": "{{count}} member",
@@ -260,7 +236,16 @@
         "sent": "Sent",
         "sentTitle": "Sent requests",
         "cancel": "Cancel request",
-        "cancelAria": "Cancel request to {{name}}"
+        "cancelAria": "Cancel request to {{name}}",
+        "invitationAcceptAria": "Accept the invitation from {{name}}",
+        "invitationDeclineAria": "Decline the invitation from {{name}}",
+        "withdraw": "Withdraw application",
+        "withdrawAria": "Withdraw the application to {{name}}",
+        "invitationsTitle": "Invitations received",
+        "applicationsTitle": "Applications sent",
+        "receivedTitle": "Applications to {{name}} [{{ticker}}]",
+        "applicationAcceptAria": "Accept the application of {{name}}",
+        "applicationDeclineAria": "Decline the application of {{name}}"
       },
       "errors": {
         "unavailable": "The social service cannot be reached. Try again later.",
@@ -272,24 +257,178 @@
         "alreadyFriendsOrPending": "You are already friends, or a request is already pending.",
         "blocked": "You cannot add this player.",
         "invalidTarget": "You cannot add yourself as a friend.",
-        "nameOrTickerTaken": "This organization name or ticker is already taken.",
+        "nameOrTickerTaken": "This organization name or tag is already taken.",
         "alreadyMemberOrPending": "You are already a member, or your application is pending.",
         "recruitmentClosed": "This organization is not recruiting.",
-        "invalidInput": "Check the fields: name 3–48 characters, ticker 2–5 letters or digits.",
-        "unknown": "Something went wrong. Try again."
+        "invalidInput": "Check the fields: name 3–48 characters, tag 2–5 letters or digits.",
+        "unknown": "Something went wrong. Try again.",
+        "requestNotFound": "This request has already been answered.",
+        "forbidden": "Your rank no longer allows this action.",
+        "alreadyMember": "This player is already a member.",
+        "alreadyMemberOrInvited": "This player is already a member, or already invited.",
+        "rankNameTaken": "A rank already has this name."
       },
       "applyOrga": "Apply",
       "orgaSearch": {
-        "label": "Search organizations",
-        "placeholder": "Name or ticker...",
-        "action": "Search"
+        "label": "Organization name or tag",
+        "placeholder": "Start typing a name or tag..."
       },
       "state": {
         "unavailable": "Social is not available on this server yet.",
         "notSignedIn": "Sign in to see your friends and organizations.",
         "errorShort": "Social is unavailable right now.",
         "retry": "Retry"
+      },
+      "sections": {
+        "friends": {
+          "label": "Friends",
+          "subtitle": "Your friends, players to find, and friend requests.",
+          "tabs": {
+            "mine": "My friends",
+            "find": "Find a player",
+            "requests": "Requests"
+          }
+        },
+        "organisations": {
+          "label": "Organizations",
+          "subtitle": "Your organizations, the directory, invitations and applications.",
+          "tabs": {
+            "mine": "My organizations",
+            "find": "Find an organization",
+            "requests": "Requests"
+          }
+        }
+      },
+      "pendingCount_one": "{{count}} request waiting",
+      "pendingCount_other": "{{count}} requests waiting",
+      "emptyMyOrganisations": "You are not in any organization yet.",
+      "emptyOrganisationRequests": "No pending invitation or application.",
+      "emptyDirectory": "No organization found.",
+      "searchMinChars_one": "Type at least {{count}} character to search.",
+      "searchMinChars_other": "Type at least {{count}} characters to search.",
+      "profileEdit": {
+        "action": "Edit my profile",
+        "title": "Edit my profile",
+        "subtitle": "What other players see on your sheet. Your name comes from your account.",
+        "about": "About",
+        "faction": "Faction",
+        "biography": "Biography",
+        "rpSheet": "Role-play sheet",
+        "characterName": "Character name",
+        "alignment": "Alignment",
+        "story": "Story",
+        "save": "Save"
+      },
+      "myProfile": "My profile",
+      "manage": {
+        "action": "Manage",
+        "leave": "Leave",
+        "leaveTitle": "Leave {{name}}?",
+        "leaveDescription": "You will lose your rank. To come back, you will have to join or apply again.",
+        "title": "Manage {{name}}",
+        "subtitle": "What your rank lets you change.",
+        "noRight": "Your rank no longer lets you manage this organization.",
+        "saved": "Changes saved.",
+        "tabs": {
+          "details": "Details",
+          "invitations": "Invitations",
+          "members": "Members",
+          "ranks": "Ranks",
+          "leadership": "Leadership"
+        },
+        "details": {
+          "name": "Name",
+          "ticker": "Tag (2–5 letters or digits)",
+          "description": "Description",
+          "recruitment": "Recruitment"
+        },
+        "invitations": {
+          "empty": "No pending invitation. Invite players from their profile.",
+          "withdraw": "Withdraw",
+          "withdrawTitle": "Withdraw the invitation to {{name}}?",
+          "withdrawDescription": "They will no longer be able to accept it."
+        },
+        "members": {
+          "rankAria": "Rank of {{name}}",
+          "remove": "Remove",
+          "removeTitle": "Remove {{name}}?",
+          "removeDescription": "They leave the organization and lose their rank."
+        },
+        "ranks": {
+          "create": "New rank",
+          "name": "Name",
+          "priority": "Priority (0–99)",
+          "priorityValue": "priority {{priority}}",
+          "permissions": "Permissions",
+          "default": "Default rank (new members)",
+          "ceo": "CEO",
+          "edit": "Edit",
+          "delete": "Delete",
+          "deleteTitle": "Delete the rank {{name}}?",
+          "deleteDescription": "Its members get the default rank."
+        },
+        "permissions": {
+          "manage_corporation": "Edit the organization",
+          "manage_ranks": "Manage ranks",
+          "manage_members": "Manage members",
+          "invite": "Invite players",
+          "recruit": "Answer applications"
+        },
+        "leadership": {
+          "transfer": "Hand over the leadership",
+          "heir": "New CEO",
+          "noMember": "No other member to hand the leadership to.",
+          "transferTitle": "Make {{name}} the CEO?",
+          "transferDescription": "You get the highest rank below the CEO and lose the leadership actions.",
+          "disband": "Disband",
+          "disbandTitle": "Disband {{name}}?",
+          "disbandDescription": "The organization, its ranks and its memberships are deleted. This cannot be undone.",
+          "typeTag": "Type {{ticker}} to confirm"
+        },
+        "invite": {
+          "action": "Invite to an organization",
+          "to": "Invite to {{name}}",
+          "invitedTo": "Invited to {{name}}"
+        }
       }
     }
+  },
+  "forms": {
+    "errors": {
+      "organisationName": "3 to 48 characters.",
+      "organisationTicker": "2 to 5 letters or digits.",
+      "faction": "64 characters at most.",
+      "biography": "2,000 characters at most.",
+      "characterName": "64 characters at most.",
+      "alignment": "32 characters at most.",
+      "story": "4,000 characters at most.",
+      "nothingChanged": "Nothing has changed.",
+      "description": "2,000 characters at most.",
+      "rankName": "1 to 32 characters.",
+      "rankPriority": "A whole number from 0 to 99.",
+      "rankPriorityBelow": "Lower than your own rank's priority."
+    }
+  },
+  "bbcode": {
+    "toolbar": "Formatting",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strike": "Strikethrough",
+    "color": "Colour",
+    "rule": "Horizontal rule",
+    "colors": {
+      "red": "Red",
+      "orange": "Orange",
+      "yellow": "Yellow",
+      "green": "Green",
+      "cyan": "Cyan",
+      "blue": "Blue",
+      "purple": "Purple",
+      "pink": "Pink",
+      "white": "White",
+      "gray": "Grey"
+    },
+    "defaultColor": "Default colour"
   }
 }

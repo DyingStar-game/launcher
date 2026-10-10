@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ApiRecruitment } from '@shared/types/social'
-import { useEnvStore } from '@stores/env'
-import { useSocialStore } from '@stores/social'
+import { useSocialSnapshot } from '@hooks/social/useSocialSnapshot'
+import { useJoinOrganisation } from '@hooks/social/useSocialActions'
 import { getSocialErrorMessage } from '@lib/socialErrors'
-import Badge from '@components/atoms/Badge'
+import StatusBadge from '@components/molecules/StatusBadge'
 import Button from '@components/atoms/Button'
 
 type Props = {
@@ -19,9 +19,8 @@ type Props = {
  */
 export default function OrganisationAction({ id, name, recruitment }: Props): React.JSX.Element {
   const { t } = useTranslation()
-  const { activeEnv } = useEnvStore()
-  const { data, joinOrga } = useSocialStore()
-  const { memberOf, appliedTo } = data[activeEnv]
+  const { memberships, applications } = useSocialSnapshot().data
+  const joinOrga = useJoinOrganisation().mutateAsync
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -30,7 +29,7 @@ export default function OrganisationAction({ id, name, recruitment }: Props): Re
     setErrorMsg('')
     try {
       await joinOrga(id)
-      // The store reloads: membership or the pending application shows as a badge
+      // The social data reloads: membership or the pending application shows as a badge
       setStatus('idle')
     } catch (err) {
       setStatus('error')
@@ -38,9 +37,11 @@ export default function OrganisationAction({ id, name, recruitment }: Props): Re
     }
   }
 
-  const badge: { label: string; icon: 'check' | 'pending' | 'lock' } | null = memberOf.includes(id)
-    ? { label: t('universe.socialPage.orga.memberBadge'), icon: 'check' }
-    : appliedTo.includes(id)
+  const badge: { label: string; icon: 'member' | 'pending' | 'lock' } | null = memberships.some(
+    (m) => m.id === id
+  )
+    ? { label: t('universe.socialPage.orga.memberBadge'), icon: 'member' }
+    : applications.some((a) => a.organisation.id === id)
       ? { label: t('universe.socialPage.orga.applicationBadge'), icon: 'pending' }
       : recruitment === 'closed'
         ? { label: t('universe.socialPage.orga.closedBadge'), icon: 'lock' }
@@ -51,9 +52,7 @@ export default function OrganisationAction({ id, name, recruitment }: Props): Re
   return (
     <div className="shrink-0 flex flex-col items-end gap-1">
       {badge ? (
-        <Badge variant={badge.icon === 'check' ? 'accent' : 'muted'} icon={badge.icon}>
-          {badge.label}
-        </Badge>
+        <StatusBadge icon={badge.icon}>{badge.label}</StatusBadge>
       ) : (
         <Button
           variant="outline"

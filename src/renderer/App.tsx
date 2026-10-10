@@ -6,12 +6,15 @@ import LorePage from '@pages/LorePage'
 import ChangelogPage from '@pages/ChangelogPage'
 import PlayerPage from '@pages/PlayerPage'
 import OrganisationPage from '@pages/OrganisationPage'
+import ProfileEditPage from '@pages/ProfileEditPage'
+import OrganisationManagePage from '@pages/OrganisationManagePage'
 import { useNavigationStore, type View } from '@stores/navigation'
 import { useEffect } from 'react'
 import { useVersionStore } from '@stores/version'
 import { useAvailabilityStore } from '@stores/availability'
 import { useChangelogStore } from '@stores/changelog'
 import { useBackgroundMusic } from '@hooks/useBackgroundMusic'
+import { useSocialAccountSync } from '@hooks/social/useSocialSnapshot'
 
 /**
  * Runs one-time startup checks: API availability, version comparison, and changelog.
@@ -29,6 +32,10 @@ function useAppStartup(): void {
   useEffect(() => {
     void fetchChangelog()
   }, [fetchChangelog])
+
+  // Social data follows sign-in and sign-out in each environment (ADR 0025)
+  useSocialAccountSync('universe')
+  useSocialAccountSync('universe-testing')
 }
 
 /** Page for a navigation view id. */
@@ -46,6 +53,10 @@ function renderPage(view: View): React.JSX.Element {
       return <PlayerPage />
     case 'organisation':
       return <OrganisationPage />
+    case 'profileEdit':
+      return <ProfileEditPage />
+    case 'organisationManage':
+      return <OrganisationManagePage />
     default:
       return <UniversePage />
   }

@@ -2,7 +2,7 @@
  * Social types (ADR 0007).
  *
  * `Api*` types describe the `social` service responses, written by hand from its README and
- * code at commit 4df4e0a of DyingStar-game/services (`social/src`). Only the fields the
+ * code at commit 75eb1ce of DyingStar-game/services (`social/src`). Only the fields the
  * launcher reads are listed. The other types are what main sends to the renderer.
  */
 
@@ -71,7 +71,7 @@ export interface ApiPublicProfile extends ApiProfile {
 
 /** Member on a corporation page: profile, rank and presence. */
 export interface ApiCorporationMember extends ApiProfile {
-  rank: { name: string; priority: number; isCeo: boolean }
+  rank: ApiRank
   status: ApiPresenceStatus
 }
 
@@ -87,9 +87,25 @@ export interface ApiCorporationPage extends ApiCorporation {
   members: ApiCorporationMember[]
 }
 
-/** `GET /api/me/corporations` item. */
+/** A corporation rank (`corporation_ranks`); `priority`: higher wins. */
+export interface ApiRank {
+  id: number
+  name: string
+  priority: number
+  /** Permissions held; the CEO rank holds every permission whatever it lists. */
+  permissions: string[]
+  isCeo: boolean
+  /** Rank given to new members. */
+  isDefault: boolean
+}
+
+/** `GET /api/me/corporations` item: the corporation with the player's rank in it. */
 export interface ApiMyCorporation {
   id: string
+  name: string
+  ticker: string
+  recruitment: ApiRecruitment
+  rank: ApiRank
 }
 
 /** `GET /api/me/corporation/requests` item (`kind`: the player applied, or was invited). */
@@ -97,6 +113,17 @@ export interface ApiCorporationRequest {
   id: number
   corporationId: string
   kind: 'application' | 'invitation'
+  corporation: { id: string; name: string; ticker: string }
+}
+
+/** `GET /api/corporations/:id/requests` item: a pending application or invitation. */
+export interface ApiCorporationRequestView {
+  id: number
+  corporationId: string
+  kind: 'application' | 'invitation'
+  message: string | null
+  createdAt: string
+  player: ApiProfile
 }
 
 /** Error body of the service. */
@@ -125,15 +152,13 @@ export interface FriendRequest {
   name: string
 }
 
-export interface Organisation {
+/** An organisation found by name or tag (ADR 0024). */
+export interface OrganisationSearchResult {
   id: string
   name: string
   ticker: string
   members: number
   recruitment: ApiRecruitment
-  isMember: boolean
-  /** The player applied and waits for an answer. */
-  applicationPending: boolean
 }
 
 /** A player found by name on the player search screen (ADR 0008). */
@@ -186,19 +211,72 @@ export interface OrganisationProfile extends OrganisationRef {
   subsidiaryCount: number
 }
 
-/** A member of an organisation, with their rank name and presence. */
+/** A member of an organisation, with their rank and presence. */
 export interface OrganisationMember {
   id: string
   name: string
+  /** Rank name. */
   rank: string
+  rankId: number
+  /** Higher wins (ADR 0021). */
+  rankPriority: number
+  isCeo: boolean
   status: FriendStatus
 }
+
+/** A pending application or invitation of an organisation, seen by its managers (ADR 0021). */
+export interface OrganisationPendingRequest {
+  id: number
+  kind: 'application' | 'invitation'
+  player: { id: string; name: string }
+  message?: string
+}
+
+/** Outcome of inviting a player: a pending application from them is accepted at once. */
+export type InviteOutcome = 'invited' | 'joined'
 
 /** One page of an organisation's members (ADR 0012), highest rank first, then seniority. */
 export interface OrganisationMembersPage {
   members: OrganisationMember[]
   /** Total member count. */
   total: number
+}
+
+/** A rank of an organisation (ADR 0021). */
+export interface OrganisationRank {
+  id: number
+  name: string
+  /** Higher wins: a member only acts on ranks strictly below their own. */
+  priority: number
+  permissions: string[]
+  isCeo: boolean
+  isDefault: boolean
+}
+
+/** An organisation the player belongs to, with their rank in it. */
+export interface Membership extends OrganisationRef {
+  recruitment: ApiRecruitment
+  rank: OrganisationRank
+}
+
+/** A pending invitation received, or application sent, by the player (ADR 0023). */
+export interface OrganisationRequest {
+  id: number
+  organisation: OrganisationRef
+}
+
+/** An application received by an organisation (ADR 0024). */
+export interface ReceivedApplication {
+  id: number
+  player: { id: string; name: string }
+  /** The applicant's message, when they wrote one. */
+  message?: string
+}
+
+/** Pending applications of one organisation the player recruits for. */
+export interface OrganisationApplications {
+  organisation: OrganisationRef
+  applications: ReceivedApplication[]
 }
 
 /** How a found player relates to the signed-in player. */
@@ -211,11 +289,14 @@ export interface SocialSnapshot {
   friends: Friend[]
   incoming: FriendRequest[]
   outgoing: FriendRequest[]
-  organisations: Organisation[]
-  /** Ids of the organisations the player belongs to. */
-  memberOf: string[]
-  /** Ids of the organisations the player applied to, awaiting an answer. */
-  appliedTo: string[]
+  /** Organisations the player belongs to, with their rank. */
+  memberships: Membership[]
+  /** Invitations to join an organisation, awaiting the player's answer. */
+  invitations: OrganisationRequest[]
+  /** Applications the player sent, awaiting the organisation's answer. */
+  applications: OrganisationRequest[]
+  /** Applications received by the organisations the player recruits for (ADR 0024). */
+  receivedApplications: OrganisationApplications[]
 }
 
 /** Error codes sent by main; the renderer translates them (`universe.socialPage.errors.*`). */
@@ -232,6 +313,11 @@ export type SocialErrorCode =
   | 'nameOrTickerTaken'
   | 'alreadyMemberOrPending'
   | 'recruitmentClosed'
+  | 'requestNotFound'
+  | 'forbidden'
+  | 'alreadyMember'
+  | 'alreadyMemberOrInvited'
+  | 'rankNameTaken'
   | 'invalidInput'
   | 'unknown'
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { useEnvStore } from '@stores/env'
 import { useNavigationStore } from '@stores/navigation'
@@ -43,7 +43,7 @@ describe('Navbar', () => {
     render(<Navbar />)
     const donate = screen.getByRole('button', { name: 'Donate' })
     // cn() drops the atom's own inline-flex, so `hidden` really applies
-    expect(donate).toHaveClass('hidden', 'min-[1400px]:inline-flex')
+    expect(donate).toHaveClass('hidden', 'nav-full:inline-flex')
     expect(donate).not.toHaveClass('inline-flex')
     // Same corners as the other buttons (rounded-lg from the atom)
     expect(donate).toHaveClass('rounded-lg')
@@ -57,7 +57,7 @@ describe('Navbar', () => {
     expect(donate).toBeDisabled()
     // A disabled button gets no events: its focusable wrapper carries layout and tooltip
     const wrapper = donate.parentElement as HTMLElement
-    expect(wrapper).toHaveClass('hidden', 'min-[1400px]:inline-flex')
+    expect(wrapper).toHaveClass('hidden', 'nav-full:inline-flex')
     await userEvent.hover(wrapper)
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Support link not configured')
   })
@@ -66,7 +66,7 @@ describe('Navbar', () => {
     render(<Navbar />)
     expect(screen.getByRole('button', { name: 'Social' }).parentElement).toHaveClass(
       'hidden',
-      'min-[1400px]:flex'
+      'nav-full:flex'
     )
   })
 
@@ -81,13 +81,13 @@ describe('Navbar', () => {
     render(<Navbar />)
     expect(screen.getByRole('button', { name: 'Universe Testing' }).parentElement).toHaveClass(
       'hidden',
-      'min-[800px]:flex'
+      'nav-env:flex'
     )
   })
 
-  it('turns the close button red on hover through its variant', () => {
+  it('draws the close button as an outline icon button (ADR 0028)', () => {
     render(<Navbar />)
-    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('hover:text-red-300')
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('size-9', 'border-border')
   })
 
   it('shows the wiki with the open book of the admin panel', () => {

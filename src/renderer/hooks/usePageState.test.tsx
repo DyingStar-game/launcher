@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { act, render, renderHook, screen, waitFor } from '@testing-library/react'
+import { act, render, renderHook, screen, waitFor } from '../test/render'
 import { useNavigationStore } from '@stores/navigation'
 import { usePageState, useScrollMemory } from './usePageState'
 

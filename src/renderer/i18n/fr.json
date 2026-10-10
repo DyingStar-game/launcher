@@ -13,7 +13,6 @@
   "common": {
     "cancel": "Annuler",
     "loadingContent": "Chargement du contenu",
-    "close": "Fermer",
     "create": "Créer",
     "back": "Retour"
   },
@@ -160,37 +159,17 @@
       "joinOrga": "Rejoindre",
       "accept": "Accepter",
       "decline": "Refuser",
-      "tabs": {
-        "friends": {
-          "label": "Amis",
-          "subtitle": "Gère ta liste d'amis et ton statut."
-        },
-        "players": {
-          "label": "Trouver des joueurs",
-          "subtitle": "Cherche des joueurs par leur nom et envoie des demandes d'ami."
-        },
-        "organizations": {
-          "label": "Organisations",
-          "subtitle": "Organisations, membres et invitations."
-        },
-        "requests": {
-          "label": "Demandes",
-          "subtitle": "Demandes d'amis en attente."
-        }
-      },
       "createOrgaForm": {
         "title": "Créer une organisation",
         "nameLabel": "Nom de l'organisation",
         "namePlaceholder": "Entrez un nom unique...",
         "success": "Organisation créée !",
-        "tickerLabel": "Ticker (2 à 5 lettres ou chiffres)",
+        "tickerLabel": "Tag (2 à 5 lettres ou chiffres)",
         "tickerPlaceholder": "ex. NOVA"
       },
       "playerSearch": {
         "label": "Nom du joueur",
         "placeholder": "Commence à taper un nom...",
-        "minChars_one": "Tape au moins {{count}} caractère pour chercher.",
-        "minChars_other": "Tape au moins {{count}} caractères pour chercher.",
         "empty": "Aucun joueur trouvé. Seuls les joueurs ayant déjà ouvert la page social peuvent être trouvés.",
         "add": "Ajouter",
         "addAria": "Envoyer une demande d'ami à {{name}}",
@@ -241,10 +220,7 @@
         "loadMore_one": "Charger le dernier membre",
         "loadMore_other": "Charger plus ({{count}} restants)"
       },
-      "pendingRequests_one": "{{count}} demande en attente",
-      "pendingRequests_other": "{{count}} demandes en attente",
       "emptyFriends": "Aucun ami pour le moment.",
-      "emptyOrganizations": "Aucune organisation.",
       "emptyRequests": "Aucune demande en attente.",
       "orga": {
         "members_one": "{{count}} membre",
@@ -260,7 +236,16 @@
         "sent": "Envoyée",
         "sentTitle": "Demandes envoyées",
         "cancel": "Annuler la demande",
-        "cancelAria": "Annuler la demande à {{name}}"
+        "cancelAria": "Annuler la demande à {{name}}",
+        "invitationAcceptAria": "Accepter l'invitation de {{name}}",
+        "invitationDeclineAria": "Refuser l'invitation de {{name}}",
+        "withdraw": "Retirer la candidature",
+        "withdrawAria": "Retirer la candidature à {{name}}",
+        "invitationsTitle": "Invitations reçues",
+        "applicationsTitle": "Candidatures envoyées",
+        "receivedTitle": "Candidatures pour {{name}} [{{ticker}}]",
+        "applicationAcceptAria": "Accepter la candidature de {{name}}",
+        "applicationDeclineAria": "Refuser la candidature de {{name}}"
       },
       "errors": {
         "unavailable": "Le service social est injoignable. Réessaie plus tard.",
@@ -272,24 +257,178 @@
         "alreadyFriendsOrPending": "Vous êtes déjà amis, ou une demande est déjà en attente.",
         "blocked": "Tu ne peux pas ajouter ce joueur.",
         "invalidTarget": "Tu ne peux pas t'ajouter toi-même en ami.",
-        "nameOrTickerTaken": "Ce nom ou ce ticker d'organisation est déjà pris.",
+        "nameOrTickerTaken": "Ce nom ou ce tag d'organisation est déjà pris.",
         "alreadyMemberOrPending": "Tu es déjà membre, ou ta candidature est en attente.",
         "recruitmentClosed": "Cette organisation ne recrute pas.",
-        "invalidInput": "Vérifie les champs : nom de 3 à 48 caractères, ticker de 2 à 5 lettres ou chiffres.",
-        "unknown": "Une erreur s'est produite. Réessaie."
+        "invalidInput": "Vérifie les champs : nom de 3 à 48 caractères, tag de 2 à 5 lettres ou chiffres.",
+        "unknown": "Une erreur s'est produite. Réessaie.",
+        "requestNotFound": "Cette demande a déjà reçu une réponse.",
+        "forbidden": "Ton grade ne permet plus cette action.",
+        "alreadyMember": "Ce joueur est déjà membre.",
+        "alreadyMemberOrInvited": "Ce joueur est déjà membre, ou déjà invité.",
+        "rankNameTaken": "Un grade porte déjà ce nom."
       },
       "applyOrga": "Postuler",
       "orgaSearch": {
-        "label": "Rechercher une organisation",
-        "placeholder": "Nom ou ticker...",
-        "action": "Rechercher"
+        "label": "Nom ou tag de l'organisation",
+        "placeholder": "Commence à taper un nom ou un tag..."
       },
       "state": {
         "unavailable": "Le social n'est pas encore disponible sur ce serveur.",
         "notSignedIn": "Connecte-toi pour voir tes amis et tes organisations.",
         "errorShort": "Social momentanément indisponible.",
         "retry": "Réessayer"
+      },
+      "sections": {
+        "friends": {
+          "label": "Amis",
+          "subtitle": "Tes amis, trouver un joueur et les demandes d'ami.",
+          "tabs": {
+            "mine": "Mes amis",
+            "find": "Trouver un joueur",
+            "requests": "Demandes"
+          }
+        },
+        "organisations": {
+          "label": "Organisations",
+          "subtitle": "Tes organisations, l'annuaire, les invitations et candidatures.",
+          "tabs": {
+            "mine": "Mes organisations",
+            "find": "Trouver une organisation",
+            "requests": "Demandes"
+          }
+        }
+      },
+      "pendingCount_one": "{{count}} demande en attente",
+      "pendingCount_other": "{{count}} demandes en attente",
+      "emptyMyOrganisations": "Tu ne fais encore partie d'aucune organisation.",
+      "emptyOrganisationRequests": "Aucune invitation ni candidature en attente.",
+      "emptyDirectory": "Aucune organisation trouvée.",
+      "searchMinChars_one": "Tape au moins {{count}} caractère pour chercher.",
+      "searchMinChars_other": "Tape au moins {{count}} caractères pour chercher.",
+      "profileEdit": {
+        "action": "Modifier mon profil",
+        "title": "Modifier mon profil",
+        "subtitle": "Ce que les autres joueurs voient sur ta fiche. Ton nom vient de ton compte.",
+        "about": "À propos",
+        "faction": "Faction",
+        "biography": "Biographie",
+        "rpSheet": "Fiche RP",
+        "characterName": "Nom du personnage",
+        "alignment": "Alignement",
+        "story": "Histoire",
+        "save": "Enregistrer"
+      },
+      "myProfile": "Mon profil",
+      "manage": {
+        "action": "Gérer",
+        "leave": "Quitter",
+        "leaveTitle": "Quitter {{name}} ?",
+        "leaveDescription": "Tu perdras ton grade. Pour revenir, il faudra rejoindre ou postuler à nouveau.",
+        "title": "Gérer {{name}}",
+        "subtitle": "Ce que ton grade te permet de modifier.",
+        "noRight": "Ton grade ne te permet plus de gérer cette organisation.",
+        "saved": "Modifications enregistrées.",
+        "tabs": {
+          "details": "Infos",
+          "invitations": "Invitations",
+          "members": "Membres",
+          "ranks": "Grades",
+          "leadership": "Direction"
+        },
+        "details": {
+          "name": "Nom",
+          "ticker": "Tag (2 à 5 lettres ou chiffres)",
+          "description": "Description",
+          "recruitment": "Recrutement"
+        },
+        "invitations": {
+          "empty": "Aucune invitation en attente. Invite des joueurs depuis leur profil.",
+          "withdraw": "Retirer",
+          "withdrawTitle": "Retirer l'invitation de {{name}} ?",
+          "withdrawDescription": "Ce joueur ne pourra plus l'accepter."
+        },
+        "members": {
+          "rankAria": "Grade de {{name}}",
+          "remove": "Exclure",
+          "removeTitle": "Exclure {{name}} ?",
+          "removeDescription": "Ce membre quitte l'organisation et perd son grade."
+        },
+        "ranks": {
+          "create": "Nouveau grade",
+          "name": "Nom",
+          "priority": "Priorité (0 à 99)",
+          "priorityValue": "priorité {{priority}}",
+          "permissions": "Permissions",
+          "default": "Grade par défaut (nouveaux membres)",
+          "ceo": "CEO",
+          "edit": "Modifier",
+          "delete": "Supprimer",
+          "deleteTitle": "Supprimer le grade {{name}} ?",
+          "deleteDescription": "Ses membres passent au grade par défaut."
+        },
+        "permissions": {
+          "manage_corporation": "Modifier l'organisation",
+          "manage_ranks": "Gérer les grades",
+          "manage_members": "Gérer les membres",
+          "invite": "Inviter des joueurs",
+          "recruit": "Répondre aux candidatures"
+        },
+        "leadership": {
+          "transfer": "Transmettre la direction",
+          "heir": "Nouveau CEO",
+          "noMember": "Aucun autre membre à qui transmettre la direction.",
+          "transferTitle": "Faire de {{name}} le CEO ?",
+          "transferDescription": "Tu reçois le grade le plus haut sous le CEO et perds les actions de direction.",
+          "disband": "Dissoudre",
+          "disbandTitle": "Dissoudre {{name}} ?",
+          "disbandDescription": "L'organisation, ses grades et ses adhésions sont supprimés. C'est définitif.",
+          "typeTag": "Tape {{ticker}} pour confirmer"
+        },
+        "invite": {
+          "action": "Inviter dans une organisation",
+          "to": "Inviter dans {{name}}",
+          "invitedTo": "Invité dans {{name}}"
+        }
       }
     }
+  },
+  "forms": {
+    "errors": {
+      "organisationName": "3 à 48 caractères.",
+      "organisationTicker": "2 à 5 lettres ou chiffres.",
+      "faction": "64 caractères au maximum.",
+      "biography": "2 000 caractères au maximum.",
+      "characterName": "64 caractères au maximum.",
+      "alignment": "32 caractères au maximum.",
+      "story": "4 000 caractères au maximum.",
+      "nothingChanged": "Rien n'a changé.",
+      "description": "2 000 caractères au maximum.",
+      "rankName": "1 à 32 caractères.",
+      "rankPriority": "Un nombre entier de 0 à 99.",
+      "rankPriorityBelow": "Inférieure à la priorité de ton propre grade."
+    }
+  },
+  "bbcode": {
+    "toolbar": "Mise en forme",
+    "bold": "Gras",
+    "italic": "Italique",
+    "underline": "Souligné",
+    "strike": "Barré",
+    "color": "Couleur",
+    "rule": "Ligne de séparation",
+    "colors": {
+      "red": "Rouge",
+      "orange": "Orange",
+      "yellow": "Jaune",
+      "green": "Vert",
+      "cyan": "Cyan",
+      "blue": "Bleu",
+      "purple": "Violet",
+      "pink": "Rose",
+      "white": "Blanc",
+      "gray": "Gris"
+    },
+    "defaultColor": "Couleur par défaut"
   }
 }

@@ -111,7 +111,7 @@ export default function NavbarMoreMenu({
 
       <DropdownMenuContent align="end" aria-label={t('navbar.more')} className="min-w-[13.5rem]">
         {/* Env switch: in the bar from the narrow breakpoint up */}
-        <DropdownMenuGroup className="flex flex-col gap-0.5 min-[800px]:hidden">
+        <DropdownMenuGroup className="flex flex-col gap-0.5 nav-env:hidden">
           {envs.map(({ env, label }) => (
             <DropdownMenuItem asChild key={env}>
               <MenuItemButton selected={activeEnv === env} onClick={() => onEnvSwitch(env)}>

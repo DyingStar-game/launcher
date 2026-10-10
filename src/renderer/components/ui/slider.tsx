@@ -46,7 +46,7 @@ function Slider({
           data-slot="slider-thumb"
           key={index}
           aria-label={ariaLabel}
-          className="relative block size-[0.85rem] shrink-0 cursor-pointer rounded-full border border-[color-mix(in_srgb,var(--color-ds-accent)_60%,black)] bg-[var(--color-ds-accent)] transition-[box-shadow] select-none after:absolute after:-inset-2 focus-visible:outline-hidden focus-visible:shadow-[0_0_0_2px_color-mix(in_srgb,var(--color-ds-accent)_35%,transparent)] disabled:pointer-events-none disabled:opacity-50"
+          className="relative block size-[0.85rem] shrink-0 cursor-pointer rounded-full border border-[color-mix(in_srgb,var(--color-ds-accent)_60%,black)] bg-[var(--color-ds-accent)] transition-[box-shadow] select-none after:absolute after:-inset-2 focus-visible:outline-hidden focus-visible:shadow-ds-focus-ring disabled:pointer-events-none disabled:opacity-50"
         />
       ))}
     </SliderPrimitive.Root>

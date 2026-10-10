@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useNavigationStore } from '@stores/navigation'
-import { useSocialStore } from '@stores/social'
-import { useSocialResource } from '@hooks/useSocialResource'
+import { usePlayer } from '@hooks/social/useSocialSheets'
 import { useScrollMemory } from '@hooks/usePageState'
 import BackButton from '@components/molecules/BackButton'
 import PlayerAbout from '@components/molecules/PlayerAbout'
@@ -17,8 +16,7 @@ import { useDelayedFlag } from '@hooks/useDelayedFlag'
 export default function PlayerPage(): React.JSX.Element {
   const { t, i18n } = useTranslation()
   const { subject, back } = useNavigationStore()
-  const getPlayer = useSocialStore((s) => s.getPlayer)
-  const state = useSocialResource(subject, getPlayer)
+  const state = usePlayer(subject)
   const showSkeleton = useDelayedFlag(state.kind === 'loading')
   const backButton = <BackButton onBack={back} />
   const scrollRef = useScrollMemory<HTMLDivElement>('scroll', state.kind === 'loaded')

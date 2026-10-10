@@ -42,7 +42,7 @@ export default function ChangelogSidebar(): React.JSX.Element {
         <p className="text-xs font-semibold text-[var(--color-ds-muted)] uppercase tracking-widest">
           {t('changelog.sidebarTitle')}
         </p>
-        <p className="text-[11px] text-[var(--color-ds-muted)]">
+        <p className="text-xs text-[var(--color-ds-muted)]">
           {activeEnv === 'universe-testing'
             ? t('changelog.sidebarSubtitleTesting')
             : t('changelog.sidebarSubtitle')}
@@ -76,7 +76,7 @@ export default function ChangelogSidebar(): React.JSX.Element {
         return (
           <div key={entry.id}>
             {showHeader && (
-              <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-ds-muted)]">
+              <p className="px-3 pt-2 pb-1 text-2xs font-semibold uppercase tracking-widest text-[var(--color-ds-muted)]">
                 {t(`changelog.components.${entry.componentId}`, {
                   defaultValue: entry.componentId
                 })}
@@ -90,7 +90,7 @@ export default function ChangelogSidebar(): React.JSX.Element {
               <span className="flex flex-col gap-0.5 pr-2">
                 <span>{label}</span>
                 {entry.date && (
-                  <span className="text-[10px] text-[var(--color-ds-muted)] tabular-nums">
+                  <span className="text-2xs text-[var(--color-ds-muted)] tabular-nums">
                     {entry.date}
                   </span>
                 )}

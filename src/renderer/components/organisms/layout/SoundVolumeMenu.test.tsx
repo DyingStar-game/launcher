@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { useSoundStore } from '@stores/sound'
 import SoundVolumeMenu from './SoundVolumeMenu'

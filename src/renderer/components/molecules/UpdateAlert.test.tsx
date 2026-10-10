@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '../../test/render'
 import userEvent from '@testing-library/user-event'
 import UpdateAlert from './UpdateAlert'
 
@@ -24,7 +24,8 @@ describe('UpdateAlert', () => {
   it('gives the close button the colour of the alert', () => {
     render(<UpdateAlert variant="game" latestVersion="0.2.0" onDismiss={vi.fn()} />)
     const dismiss = screen.getByRole('button', { name: 'Dismiss alert' })
-    expect(dismiss).toHaveClass('text-current')
+    // A ghost button sets no text colour of its own: it inherits the alert's
+    expect(dismiss.className).not.toMatch(/(^|\s)text-(?!sm|xs)[a-z]/)
     expect(dismiss.parentElement).toHaveClass('text-sky-400')
   })
 })

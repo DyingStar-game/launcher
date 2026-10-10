@@ -59,6 +59,19 @@ describe('navigation store', () => {
   it('files the sheets under Social in the navbar', () => {
     expect(navSection('player')).toBe('social')
     expect(navSection('organisation')).toBe('social')
+    expect(navSection('profileEdit')).toBe('social')
+    expect(navSection('organisationManage')).toBe('social')
     expect(navSection('lore')).toBe('lore')
+  })
+
+  it('opens the profile edit page from the sheet, and Back returns to it', () => {
+    state().openPlayer('me')
+    state().openProfileEdit('me')
+    expect(state()).toMatchObject({
+      currentView: 'profileEdit',
+      subject: { id: 'me', env: 'universe-testing' }
+    })
+    state().back()
+    expect(state()).toMatchObject({ currentView: 'player', subject: { id: 'me' } })
   })
 })

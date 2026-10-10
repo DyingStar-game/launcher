@@ -8,14 +8,24 @@ import type { GlobalChangelog } from '@shared/types/changelog'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type {
   FriendRequestOutcome,
+  InviteOutcome,
   JoinOutcome,
   OrganisationMembersPage,
+  OrganisationPendingRequest,
+  OrganisationRank,
   OrganisationProfile,
+  OrganisationSearchResult,
   PlayerProfile,
   PlayerSearchResult,
   SocialResult,
   SocialSnapshot
 } from '@shared/types/social'
+import type {
+  CreateOrganisationInput,
+  OrganisationPatch,
+  ProfilePatch,
+  RankInput
+} from '@shared/schemas/social'
 
 /** Server status payload returned by `getServerStatus`. */
 interface ServerStatusResult {
@@ -63,7 +73,11 @@ declare global {
       authLogout: (env: Env) => Promise<void>
       authLoadUser: (env: Env) => Promise<UserInfo | null>
       onAuthStateChanged: (callback: (data: AuthStateChangedPayload) => void) => void
-      socialLoad: (env: Env, search?: string) => Promise<SocialResult<SocialSnapshot>>
+      socialLoad: (env: Env) => Promise<SocialResult<SocialSnapshot>>
+      socialSearchOrganisations: (
+        env: Env,
+        query: string
+      ) => Promise<SocialResult<OrganisationSearchResult[]>>
       socialSearchPlayers: (env: Env, query: string) => Promise<SocialResult<PlayerSearchResult[]>>
       socialGetPlayer: (env: Env, playerId: string) => Promise<SocialResult<PlayerProfile>>
       socialGetOrganisation: (
@@ -88,9 +102,71 @@ declare global {
       ) => Promise<SocialResult<JoinOutcome>>
       socialCreateOrganisation: (
         env: Env,
-        name: string,
-        ticker: string
+        input: CreateOrganisationInput
       ) => Promise<SocialResult<void>>
+      socialAnswerOrganisationInvitation: (
+        env: Env,
+        requestId: number,
+        accept: boolean
+      ) => Promise<SocialResult<void>>
+      socialAnswerOrganisationRequest: (
+        env: Env,
+        corporationId: string,
+        requestId: number,
+        accept: boolean
+      ) => Promise<SocialResult<void>>
+      socialUpdateProfile: (env: Env, patch: ProfilePatch) => Promise<SocialResult<void>>
+      socialUpdateOrganisation: (
+        env: Env,
+        corporationId: string,
+        patch: OrganisationPatch
+      ) => Promise<SocialResult<void>>
+      socialGetOrganisationRequests: (
+        env: Env,
+        corporationId: string
+      ) => Promise<SocialResult<OrganisationPendingRequest[]>>
+      socialInviteToOrganisation: (
+        env: Env,
+        corporationId: string,
+        playerId: string
+      ) => Promise<SocialResult<InviteOutcome>>
+      socialSetMemberRank: (
+        env: Env,
+        corporationId: string,
+        playerId: string,
+        rankId: number
+      ) => Promise<SocialResult<void>>
+      socialRemoveMember: (
+        env: Env,
+        corporationId: string,
+        playerId: string
+      ) => Promise<SocialResult<void>>
+      socialGetOrganisationRanks: (
+        env: Env,
+        corporationId: string
+      ) => Promise<SocialResult<OrganisationRank[]>>
+      socialCreateRank: (
+        env: Env,
+        corporationId: string,
+        rank: RankInput
+      ) => Promise<SocialResult<void>>
+      socialUpdateRank: (
+        env: Env,
+        corporationId: string,
+        rankId: number,
+        rank: RankInput
+      ) => Promise<SocialResult<void>>
+      socialDeleteRank: (
+        env: Env,
+        corporationId: string,
+        rankId: number
+      ) => Promise<SocialResult<void>>
+      socialTransferOrganisation: (
+        env: Env,
+        corporationId: string,
+        playerId: string
+      ) => Promise<SocialResult<void>>
+      socialDisbandOrganisation: (env: Env, corporationId: string) => Promise<SocialResult<void>>
     }
   }
 }

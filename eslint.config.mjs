@@ -44,7 +44,8 @@ const levelRules = (patterns, pure) => ({
  */
 const LAYOUT_CLASS =
   /^-?(?:m[trblxyse]?|p[trblxyse]?|space-[xy]|w|h|min-w|min-h|max-w|max-h|size|inset(?:-[xy])?|top|bottom|left|right|start|end|z|gap(?:-[xy])?|basis|order|col(?:-span|-start|-end)?|row(?:-span|-start|-end)?|flex|grow|shrink|self|justify(?:-items|-self)?|items|content|place-(?:content|items|self)|overflow(?:-[xy])?|whitespace|break)-.+$|^(?:hidden|block|inline|inline-block|inline-flex|inline-grid|flex|grid|contents|flow-root|relative|absolute|fixed|sticky|static|isolate|truncate|grow|shrink|sr-only|text-(?:left|right|center|justify|start|end))$/
-const RESPONSIVE_PREFIX = /^(?:(?:sm|md|lg|xl|2xl|min-\[[^\]]+\]|max-\[[^\]]+\]):)+/
+const RESPONSIVE_PREFIX =
+  /^(?:(?:max-)?(?:sm|md|lg|xl|2xl|nav-env|nav-full):|(?:min|max)-\[[^\]]+\]:)+/
 
 /** Collects the static class strings of a className value (literals, templates, cn() args). */
 function classStrings(node, out = []) {
@@ -82,6 +83,40 @@ const classNameLayoutOnly = {
       }
     }
   }
+}
+
+/**
+ * ADR 0026: no `px` in a Tailwind arbitrary value or variant (`-[…px…]`, `[…px…]:`). Every string
+ * of the renderer is checked, since classes also live in `cva()` and constants.
+ */
+const PX_CLASS = /\[[^\]\s]*\d(?:\.\d+)?px[^\]\s]*\]/
+
+const noPxClasses = {
+  meta: { type: 'problem', schema: [] },
+  create(context) {
+    const check = (node, text) => {
+      const match = PX_CLASS.exec(text)
+      if (match) {
+        context.report({
+          node,
+          message: `ADR 0026: no px in Tailwind classes (${match[0]}); use the scale or a theme token in rem.`
+        })
+      }
+    }
+    return {
+      Literal(node) {
+        if (typeof node.value === 'string') check(node, node.value)
+      },
+      TemplateElement(node) {
+        check(node, node.value.cooked ?? '')
+      }
+    }
+  }
+}
+
+/** The launcher's own rules (ADR 0017, 0026). */
+const launcherPlugin = {
+  rules: { 'classname-layout-only': classNameLayoutOnly, 'no-px-classes': noPxClasses }
 }
 
 export default defineConfig(
@@ -165,10 +200,16 @@ export default defineConfig(
     }
   },
   {
+    // ADR 0026: no px in classes, shadcn code included
+    files: ['src/renderer/**/*.{ts,tsx}'],
+    plugins: { launcher: launcherPlugin },
+    rules: { 'launcher/no-px-classes': 'error' }
+  },
+  {
     // ADR 0017: generated shadcn code composes Radix primitives with their own look
     files: ['src/renderer/**/*.tsx'],
     ignores: ['src/renderer/components/ui/**'],
-    plugins: { launcher: { rules: { 'classname-layout-only': classNameLayoutOnly } } },
+    plugins: { launcher: launcherPlugin },
     rules: {
       'launcher/classname-layout-only': 'error',
       // ADR 0016: tooltips are Radix (LabelTooltip), never the native `title` attribute; the
@@ -177,7 +218,9 @@ export default defineConfig(
       'react/forbid-component-props': [
         'error',
         {
-          forbid: [{ propName: 'title', allowedFor: ['PageHeader', 'SheetSection'] }]
+          forbid: [
+            { propName: 'title', allowedFor: ['PageHeader', 'SheetSection', 'ConfirmDialog'] }
+          ]
         }
       ]
     }

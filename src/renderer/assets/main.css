@@ -18,6 +18,24 @@
   font-display: swap;
 }
 
+/* Every weight the classes use is loaded: a missing one falls back to another (font-medium
+   rendered as Regular) */
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 @font-face {
   font-family: 'Poppins';
   src: url('./fonts/Poppins-Bold.ttf') format('truetype');
@@ -53,6 +71,14 @@
   --shadow-ds-card: 0 8px 24px rgba(0, 0, 0, 0.3);
   --shadow-ds-modal: 0 24px 64px rgba(0, 0, 0, 0.55);
   --radius-ds-panel: 0.75rem;
+  --shadow-ds-alert: 0 0.625rem 1.5625rem rgba(239, 68, 68, 0.25);
+  --shadow-ds-focus-ring: 0 0 0 0.125rem color-mix(in srgb, var(--color-ds-accent) 35%, transparent);
+
+  /* ADR 0026: one text step below the scale, and the navbar breakpoints, in rem */
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1rem;
+  --breakpoint-nav-env: 50rem;
+  --breakpoint-nav-full: 87.5rem;
 }
 
 /*
@@ -73,6 +99,7 @@
   --color-accent: var(--color-ds-surface-hover);
   --color-accent-foreground: var(--color-ds-text);
   --color-destructive: var(--color-ds-danger);
+  --color-success: var(--color-ds-success);
   --color-border: var(--color-ds-border);
   --color-input: var(--color-ds-border);
   --color-ring: var(--color-ds-accent);
@@ -299,4 +326,13 @@ body {
   padding: 2px 6px;
   border-radius: 6px;
   font-size: 0.9em;
+}
+
+/* Rich text editor (ADR 0030): the placeholder of an empty text */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--color-ds-muted);
 }
