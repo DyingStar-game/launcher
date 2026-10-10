@@ -46,19 +46,21 @@ export default function FriendAction({ playerId, name }: Props): React.JSX.Eleme
     })
   }
 
-  const badge =
+  const badge: { label: string; icon: 'self' | 'check' | 'pending' } | null =
     relation === 'self'
-      ? t('universe.socialPage.playerSearch.you')
+      ? { label: t('universe.socialPage.playerSearch.you'), icon: 'self' }
       : relation === 'friend'
-        ? t('universe.socialPage.playerSearch.friend')
+        ? { label: t('universe.socialPage.playerSearch.friend'), icon: 'check' }
         : relation === 'outgoing'
-          ? t('universe.socialPage.playerSearch.requestSent')
+          ? { label: t('universe.socialPage.playerSearch.requestSent'), icon: 'pending' }
           : null
 
   return (
     <div className="shrink-0 flex flex-col items-end gap-1">
       {badge ? (
-        <Badge>{badge}</Badge>
+        <Badge variant={badge.icon === 'check' ? 'accent' : 'muted'} icon={badge.icon}>
+          {badge.label}
+        </Badge>
       ) : (
         <Button
           variant="outline"

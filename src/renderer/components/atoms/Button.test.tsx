@@ -30,4 +30,29 @@ describe('Button', () => {
     )
     expect(screen.getByRole('button', { name: 'Add' })).toHaveClass('uppercase', 'bg-transparent')
   })
+
+  it('renders a square icon button', () => {
+    render(
+      <Button variant="outline" size="icon" aria-label="Close">
+        ×
+      </Button>
+    )
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('h-9', 'w-9', 'border')
+  })
+
+  it('renders a frameless link button', () => {
+    render(
+      <Button variant="link" size="none">
+        Cancel
+      </Button>
+    )
+    expect(screen.getByRole('button', { name: 'Cancel' })).not.toHaveClass('border')
+  })
+
+  it('lets className override the variant through cn()', () => {
+    render(<Button className="hidden">Donate</Button>)
+    const button = screen.getByRole('button', { name: 'Donate' })
+    expect(button).toHaveClass('hidden')
+    expect(button).not.toHaveClass('inline-flex')
+  })
 })

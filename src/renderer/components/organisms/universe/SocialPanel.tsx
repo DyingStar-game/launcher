@@ -59,11 +59,7 @@ export default function SocialPanel(): React.JSX.Element {
       </div>
 
       {/* Footer */}
-      <Button
-        onClick={() => navigate('social')}
-        variant="secondary"
-        className="mt-4 w-full justify-between"
-      >
+      <Button onClick={() => navigate('social')} variant="secondary" className="mt-4 w-full">
         {t('universe.social.seeAll')} →
       </Button>
     </div>

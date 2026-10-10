@@ -2,13 +2,12 @@ import type React from 'react'
 import { useEffect, useId, useRef, useState } from 'react'
 import i18n from '@i18n'
 import { useTranslation } from 'react-i18next'
+import Button from '@components/atoms/Button'
+import MenuItemButton from '@components/atoms/MenuItemButton'
 import DiscordIcon from '@components/atoms/icons/DiscordIcon'
-import { mergeSoundHandlers, useUiSound } from '@hooks/useUiSound'
-import { UiSoundProfile } from '@shared/types/sounds'
 import { navUrls } from '@lib/env'
 import type { TopView, View } from '@stores/navigation'
 import type { Env } from '@shared/types/env'
-import type { ReactNode } from 'react'
 
 /** A top-level section link folded into the menu on narrow windows. */
 export type NavbarSection = { label: string; view: TopView; badge?: boolean }
@@ -26,54 +25,6 @@ type Props = {
   envs: NavbarEnvOption[]
   activeEnv: Env
   onEnvSwitch: (env: Env) => void
-}
-
-function MenuItem({
-  disabled,
-  selected,
-  onClick,
-  children
-}: {
-  disabled?: boolean
-  selected?: boolean
-  onClick?: () => void
-  children: ReactNode
-}): React.JSX.Element {
-  const uiSound = useUiSound(UiSoundProfile.Default, { disabled })
-  const merged = mergeSoundHandlers(uiSound, {
-    onClick: onClick
-      ? (event) => {
-          if (
-            disabled ||
-            (event.currentTarget instanceof HTMLButtonElement && event.currentTarget.disabled)
-          ) {
-            return
-          }
-          onClick()
-        }
-      : undefined
-  })
-
-  return (
-    <button
-      type="button"
-      role="menuitem"
-      disabled={disabled}
-      aria-current={selected ? 'true' : undefined}
-      onClick={merged.onClick}
-      onMouseEnter={merged.onMouseEnter}
-      className={[
-        'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm',
-        'transition-colors cursor-pointer',
-        selected
-          ? 'bg-[var(--color-ds-accent)]/15 text-[var(--color-ds-text)]'
-          : 'text-[var(--color-ds-text)] hover:bg-[var(--color-ds-surface-hover)]',
-        'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent'
-      ].join(' ')}
-    >
-      {children}
-    </button>
-  )
 }
 
 function HeartIcon(): React.JSX.Element {
@@ -115,7 +66,6 @@ export default function NavbarMoreMenu({
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const { website, discord, wiki, donate } = navUrls()
-  const uiSound = useUiSound(UiSoundProfile.Default)
   const currentLang = (i18nInstance.resolvedLanguage ?? i18nInstance.language).startsWith('fr')
     ? 'fr'
     : 'en'
@@ -152,83 +102,65 @@ export default function NavbarMoreMenu({
     setOpen(false)
   }
 
-  const toggleHandlers = mergeSoundHandlers(uiSound, {
-    onClick: () => setOpen((value) => !value)
-  })
-
   return (
     <div ref={rootRef} className="relative ml-1">
-      <button
-        type="button"
-        onClick={toggleHandlers.onClick}
-        onMouseEnter={toggleHandlers.onMouseEnter}
-        className="relative text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => setOpen((value) => !value)}
+        className="relative"
         title={t('navbar.more')}
         aria-label={t('navbar.more')}
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <span
-          className={[
-            'inline-flex items-center justify-center w-9 h-9 rounded-lg',
-            'border border-[var(--color-ds-border)] bg-white/0',
-            'hover:bg-[var(--color-ds-surface-hover)] hover:border-[var(--color-ds-border)]',
-            'transition-colors',
-            open ? 'border-[var(--color-ds-accent)]/40 bg-white/5' : ''
-          ].join(' ')}
-        >
-          <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4.5 h-4.5 fill-current">
-            <title>{t('navbar.more')}</title>
-            <path d="M4 7h16v2H4V7zm0 4h16v2H4v-2zm0 4h16v2H4v-2z" />
-          </svg>
-        </span>
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4.5 h-4.5 fill-current">
+          <title>{t('navbar.more')}</title>
+          <path d="M4 7h16v2H4V7zm0 4h16v2H4v-2zm0 4h16v2H4v-2z" />
+        </svg>
         {hasBadge && (
           <span
             data-testid="navbar-more-badge"
             className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 shadow-sm"
           />
         )}
-      </button>
+      </Button>
 
       {open && (
         <div className="absolute right-0 top-full pt-1 z-[300]">
           <div
             role="menu"
             aria-label={t('navbar.more')}
-            className={[
-              'min-w-[13.5rem] rounded-xl border border-[var(--color-ds-border)]',
-              'bg-[var(--color-ds-surface)] shadow-[var(--shadow-ds-modal)]',
-              'p-1.5 flex flex-col gap-0.5'
-            ].join(' ')}
+            className="min-w-[13.5rem] rounded-xl border border-[var(--color-ds-border)] bg-[var(--color-ds-surface)] shadow-[var(--shadow-ds-modal)] p-1.5 flex flex-col gap-0.5"
           >
             {/* Env switch: in the bar from the narrow breakpoint up */}
             <div className="flex flex-col gap-0.5 min-[800px]:hidden">
               {envs.map(({ env, label }) => (
-                <MenuItem
+                <MenuItemButton
                   key={env}
                   selected={activeEnv === env}
                   onClick={() => runAndClose(() => onEnvSwitch(env))}
                 >
                   <span className="flex-1">{label}</span>
-                </MenuItem>
+                </MenuItemButton>
               ))}
               <div className="my-1 h-px bg-[var(--color-ds-border)]" role="separator" />
             </div>
 
             {sections.map(({ label, view, badge }) => (
-              <MenuItem
+              <MenuItemButton
                 key={view}
                 selected={currentSection === view}
                 onClick={() => runAndClose(() => onNavigate(view))}
               >
                 <span className="flex-1">{label}</span>
                 {badge && <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />}
-              </MenuItem>
+              </MenuItemButton>
             ))}
 
             <div className="my-1 h-px bg-[var(--color-ds-border)]" role="separator" />
 
-            <MenuItem
+            <MenuItemButton
               selected={currentLang === 'en'}
               onClick={() => runAndClose(() => void i18n.changeLanguage('en'))}
             >
@@ -256,8 +188,8 @@ export default function NavbarMoreMenu({
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                 </svg>
               )}
-            </MenuItem>
-            <MenuItem
+            </MenuItemButton>
+            <MenuItemButton
               selected={currentLang === 'fr'}
               onClick={() => runAndClose(() => void i18n.changeLanguage('fr'))}
             >
@@ -278,11 +210,11 @@ export default function NavbarMoreMenu({
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                 </svg>
               )}
-            </MenuItem>
+            </MenuItemButton>
 
             <div className="my-1 h-px bg-[var(--color-ds-border)]" role="separator" />
 
-            <MenuItem
+            <MenuItemButton
               disabled={!website}
               onClick={() => website && runAndClose(() => window.open(website, '_blank'))}
             >
@@ -290,15 +222,15 @@ export default function NavbarMoreMenu({
                 <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.5 9h-3.2a15.7 15.7 0 00-1.1-5 8.04 8.04 0 014.3 5zM12 4c1 1.5 1.8 3.8 2.1 7H9.9C10.2 7.8 11 5.5 12 4zM4.5 13h3.2c.2 1.9.7 3.7 1.1 5a8.04 8.04 0 01-4.3-5zm0-2a8.04 8.04 0 014.3-5c-.4 1.3-.9 3.1-1.1 5H4.5zm7.5 9c-1-1.5-1.8-3.8-2.1-7h4.2c-.3 3.2-1.1 5.5-2.1 7zm3.2-2c.4-1.3.9-3.1 1.1-5h3.2a8.04 8.04 0 01-4.3 5z" />
               </svg>
               {t('navbar.openWebsite')}
-            </MenuItem>
-            <MenuItem
+            </MenuItemButton>
+            <MenuItemButton
               disabled={!discord}
               onClick={() => discord && runAndClose(() => window.open(discord, '_blank'))}
             >
               <DiscordIcon className="w-4 h-4 shrink-0" title={t('navbar.brandDiscord')} />
               {t('navbar.brandDiscord')}
-            </MenuItem>
-            <MenuItem
+            </MenuItemButton>
+            <MenuItemButton
               disabled={!wiki}
               onClick={() => wiki && runAndClose(() => window.open(wiki, '_blank'))}
             >
@@ -306,11 +238,11 @@ export default function NavbarMoreMenu({
                 <path d="M6 4h11a2 2 0 012 2v12a2 2 0 01-2 2H6a3 3 0 01-3-3V6a2 2 0 012-2h1zm0 2H5v11a1 1 0 001 1h11V6H6zm2 2h7v2H8V8zm0 4h7v2H8v-2z" />
               </svg>
               {t('navbar.brandWiki')}
-            </MenuItem>
+            </MenuItemButton>
 
             <div className="my-1 h-px bg-[var(--color-ds-border)]" role="separator" />
 
-            <MenuItem
+            <MenuItemButton
               disabled={!donate}
               onClick={() => donate && runAndClose(() => window.open(donate, '_blank'))}
             >
@@ -318,7 +250,7 @@ export default function NavbarMoreMenu({
               <span className="font-semibold text-[var(--color-ds-accent)]">
                 {donate ? t('navbar.support') : t('navbar.donateUnavailable')}
               </span>
-            </MenuItem>
+            </MenuItemButton>
           </div>
         </div>
       )}

@@ -19,6 +19,18 @@ describe('FriendAction', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
+  it('shows a friend in the accent colour, other states muted', () => {
+    seedSocial({
+      friends: [{ id: 'friend', name: 'F', status: 'online' }],
+      outgoing: [{ id: 1, playerId: 'asked', name: 'A' }]
+    })
+    const { unmount } = render(<FriendAction playerId="friend" name="X" />)
+    expect(screen.getByText('Friend')).toHaveClass('text-[var(--color-ds-accent)]')
+    unmount()
+    render(<FriendAction playerId="asked" name="X" />)
+    expect(screen.getByText('Request sent')).toHaveClass('text-[var(--color-ds-muted)]')
+  })
+
   it('sends a friend request to a stranger', async () => {
     seedSocial({})
     vi.mocked(window.api.socialSendFriendRequest).mockResolvedValue({ ok: true, data: 'sent' })

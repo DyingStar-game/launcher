@@ -48,6 +48,7 @@ Path aliases (`electron.vite.config.ts` + tsconfigs): main/preload only get `@sh
 - Imports go down only: atoms → molecules → organisms → templates → pages (enforced by `no-restricted-imports` per folder in `eslint.config.mjs`).
 - Atoms, molecules and templates are pure: no `@stores/*`, no `window.api` (lint-enforced); `@hooks/useUiSound` is allowed. Rows take callbacks (`onOpen`) and slots (`action`); organisms and pages wire them to stores.
 - Reuse or extend before creating (e.g. `Button` `variant="outline" size="chip"`, `Badge`, `Avatar`, `Modal`). Constants shared by components go in `lib/` (fast refresh: component files export components only).
+- Classes go through `cn()` (`@lib/cn`, `clsx` + `tailwind-merge`) and variants through `cva` (ADR 0015). No raw `<button>` outside `atoms/` (lint-enforced): use `Button` (incl. `size="icon"`, `variant="link"` / `"bare"`), `TabButton`, `MenuItemButton` or `SidebarItemButton`.
 
 ### Adding an IPC call
 
@@ -80,7 +81,7 @@ Significant decisions are recorded in [`docs/adr/`](./docs/adr/) (Nygard format,
   - sign-in, tokens, game launch: [0005](./docs/adr/0005-keycloak-pkce-authentication.md);
   - tooling, Makefile, CI setup: [0002](./docs/adr/0002-makefile-tooling.md); dependency and toolchain versions: [0006](./docs/adr/0006-toolchain-versions.md);
   - social (friends, requests, organisations), tests: [0007](./docs/adr/0007-social-player-side.md); player search screen: [0008](./docs/adr/0008-player-search-screen.md); player sheet: [0009](./docs/adr/0009-player-profile-sheet.md); organisation sheet: [0010](./docs/adr/0010-organisation-sheet.md); both as pages with back history: [0012](./docs/adr/0012-sheets-as-pages.md); Back restoring tab, search, scroll: [0013](./docs/adr/0013-back-restores-page-state.md); BBCode in player texts: [0014](./docs/adr/0014-bbcode-player-texts.md);
-  - any renderer component: [0011](./docs/adr/0011-atomic-design.md).
+  - any renderer component: [0011](./docs/adr/0011-atomic-design.md); classes, variants and buttons: [0015](./docs/adr/0015-component-variants-cva-cn.md).
 - A rule that cannot be followed is raised with the maintainer, never skipped silently. An accepted ADR is never rewritten: a new ADR supersedes it.
 
 ## Conventions

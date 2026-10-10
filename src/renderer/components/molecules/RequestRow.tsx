@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { FriendRequest } from '@shared/types/social'
+import Button from '@components/atoms/Button'
 import PlayerIdentity from './PlayerIdentity'
 
 type Props = {
@@ -61,26 +62,22 @@ export default function RequestRow({
       <div className="flex items-center gap-1.5 shrink-0">
         {/* Accepter */}
         {direction === 'incoming' && (
-          <button
+          <Button
+            variant="success"
+            size="icon-sm"
             onClick={handleAccept}
             disabled={busy}
             title={t('universe.socialPage.accept')}
             aria-label={t('universe.socialPage.request.acceptAria', { name: req.name })}
-            className="
-            inline-flex items-center justify-center w-7 h-7 rounded-lg
-            border border-emerald-500/30 bg-emerald-500/10
-            text-emerald-400
-            hover:bg-emerald-500/20 hover:border-emerald-500/60
-            disabled:opacity-40 disabled:cursor-not-allowed
-            transition-colors duration-150
-          "
           >
             {status === 'accepting' ? <SpinnerIcon /> : <CheckIcon />}
-          </button>
+          </Button>
         )}
 
         {/* Refuser */}
-        <button
+        <Button
+          variant="danger"
+          size="icon-sm"
           onClick={handleDecline}
           disabled={busy}
           title={
@@ -93,17 +90,9 @@ export default function RequestRow({
               ? t('universe.socialPage.request.declineAria', { name: req.name })
               : t('universe.socialPage.request.cancelAria', { name: req.name })
           }
-          className="
-            inline-flex items-center justify-center w-7 h-7 rounded-lg
-            border border-red-500/30 bg-red-500/10
-            text-red-400
-            hover:bg-red-500/20 hover:border-red-500/60
-            disabled:opacity-40 disabled:cursor-not-allowed
-            transition-colors duration-150
-          "
         >
           {status === 'declining' ? <SpinnerIcon /> : <XIcon />}
-        </button>
+        </Button>
       </div>
     </div>
   )

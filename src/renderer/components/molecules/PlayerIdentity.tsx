@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import type { FriendStatus } from '@shared/types/social'
+import { UiSoundProfile } from '@shared/types/sounds'
 import Avatar from '@components/atoms/Avatar'
+import Button from '@components/atoms/Button'
 
 type Props = {
   name: string
@@ -22,11 +24,13 @@ export default function PlayerIdentity({
   const { t } = useTranslation()
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="bare"
+      size="none"
+      soundProfile={UiSoundProfile.None}
       onClick={onOpen}
       aria-label={t('universe.socialPage.profile.openAria', { name })}
-      className="flex flex-1 min-w-0 items-center gap-3 text-left rounded-lg cursor-pointer focus-visible:outline focus-visible:outline-[var(--color-ds-accent)]"
+      className="flex flex-1 min-w-0 justify-start gap-3 text-left"
     >
       <Avatar name={name} status={status} />
       <div className="flex-1 min-w-0 flex flex-col leading-tight">
@@ -35,6 +39,6 @@ export default function PlayerIdentity({
         </span>
         {children}
       </div>
-    </button>
+    </Button>
   )
 }

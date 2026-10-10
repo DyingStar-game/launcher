@@ -11,6 +11,7 @@ import OrganisationHeader from '@components/organisms/social/OrganisationHeader'
 import OrganisationMembers from '@components/organisms/social/OrganisationMembers'
 import OrganisationRelations from '@components/organisms/social/OrganisationRelations'
 import DetailPageLayout from '@components/templates/DetailPageLayout'
+import { cn } from '@lib/cn'
 
 /** Organisation page (ADR 0012): identity and join action, figures, description and members, relations. */
 export default function OrganisationPage(): React.JSX.Element {
@@ -34,7 +35,10 @@ export default function OrganisationPage(): React.JSX.Element {
         header={null}
         placeholder={
           <p
-            className={`text-sm ${state.kind === 'error' ? 'text-red-400' : 'text-[var(--color-ds-muted)]'}`}
+            className={cn(
+              'text-sm',
+              state.kind === 'error' ? 'text-red-400' : 'text-[var(--color-ds-muted)]'
+            )}
           >
             {state.kind === 'error' ? state.message : t('universe.socialPage.state.loading')}
           </p>

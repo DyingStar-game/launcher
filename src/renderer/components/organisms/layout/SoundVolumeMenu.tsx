@@ -1,7 +1,9 @@
 import type React from 'react'
 import { useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import Button from '@components/atoms/Button'
 import SpeakerIcon from '@components/atoms/icons/SpeakerIcon'
+import { UiSoundProfile } from '@shared/types/sounds'
 import { useSoundStore } from '@stores/sound'
 
 const CLOSE_DELAY_MS = 120
@@ -43,41 +45,28 @@ export default function SoundVolumeMenu(): React.JSX.Element {
 
   return (
     <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <button
-        type="button"
+      <Button
+        variant="outline"
+        size="icon"
+        soundProfile={UiSoundProfile.None}
         onClick={handleToggleMute}
-        className="text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
         title={enabled ? t('navbar.soundEnabled') : t('navbar.soundDisabled')}
         aria-label={t('navbar.toggleSound')}
         aria-expanded={open}
         aria-haspopup="true"
       >
-        <span
-          className={[
-            'inline-flex items-center justify-center w-9 h-9 rounded-lg',
-            'border border-[var(--color-ds-border)] bg-white/0',
-            'hover:bg-[var(--color-ds-surface-hover)] hover:border-[var(--color-ds-border)]',
-            'transition-colors',
-            open ? 'border-[var(--color-ds-accent)]/40 bg-white/5' : ''
-          ].join(' ')}
-        >
-          <SpeakerIcon
-            muted={!enabled}
-            title={enabled ? t('navbar.soundEnabled') : t('navbar.soundDisabled')}
-          />
-        </span>
-      </button>
+        <SpeakerIcon
+          muted={!enabled}
+          title={enabled ? t('navbar.soundEnabled') : t('navbar.soundDisabled')}
+        />
+      </Button>
 
       {open && (
         <div className="absolute right-0 top-full pt-1 z-[300]">
           <div
             role="region"
             aria-labelledby={`${sliderId}-label`}
-            className={[
-              'min-w-[11rem] rounded-xl border border-[var(--color-ds-border)]',
-              'bg-[var(--color-ds-surface)] shadow-[var(--shadow-ds-modal)]',
-              'px-3 py-3 flex flex-col gap-2.5'
-            ].join(' ')}
+            className="min-w-[11rem] rounded-xl border border-[var(--color-ds-border)] bg-[var(--color-ds-surface)] shadow-[var(--shadow-ds-modal)] px-3 py-3 flex flex-col gap-2.5"
           >
             <div className="flex items-center justify-between gap-3">
               <label
