@@ -6,7 +6,27 @@ import DiscordIcon from '@components/atoms/icons/DiscordIcon'
 import { mergeSoundHandlers, useUiSound } from '@hooks/useUiSound'
 import { UiSoundProfile } from '@shared/types/sounds'
 import { navUrls } from '@lib/env'
+import type { TopView, View } from '@stores/navigation'
+import type { Env } from '@shared/types/env'
 import type { ReactNode } from 'react'
+
+/** A top-level section link folded into the menu on narrow windows. */
+export type NavbarSection = { label: string; view: TopView; badge?: boolean }
+
+/** An environment of the env switch, folded into the menu on very narrow windows. */
+export type NavbarEnvOption = { env: Env; label: string }
+
+type Props = {
+  /** Section links (Social, Lore, Changelog), hidden from the bar below the breakpoint. */
+  sections: NavbarSection[]
+  /** Section currently shown, highlighted in the menu. */
+  currentSection: View
+  onNavigate: (view: TopView) => void
+  /** Env switch entries, shown in the menu only below the narrow breakpoint. */
+  envs: NavbarEnvOption[]
+  activeEnv: Env
+  onEnvSwitch: (env: Env) => void
+}
 
 function MenuItem({
   disabled,
@@ -79,10 +99,18 @@ function HeartIcon(): React.JSX.Element {
 }
 
 /**
- * Compact navbar overflow menu: languages, external links, and donate.
- * Shown below the wide breakpoint in place of the donate button.
+ * Compact navbar overflow menu: env switch, sections, languages, external links, and donate.
+ * Shown below the wide breakpoint in place of the section links and the donate button; the env
+ * switch joins it below the narrow breakpoint.
  */
-export default function NavbarMoreMenu(): React.JSX.Element {
+export default function NavbarMoreMenu({
+  sections,
+  currentSection,
+  onNavigate,
+  envs,
+  activeEnv,
+  onEnvSwitch
+}: Props): React.JSX.Element {
   const { t, i18n: i18nInstance } = useTranslation()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -91,6 +119,7 @@ export default function NavbarMoreMenu(): React.JSX.Element {
   const currentLang = (i18nInstance.resolvedLanguage ?? i18nInstance.language).startsWith('fr')
     ? 'fr'
     : 'en'
+  const hasBadge = sections.some((section) => section.badge)
 
   useEffect(() => {
     if (!open) return
@@ -103,7 +132,7 @@ export default function NavbarMoreMenu(): React.JSX.Element {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') setOpen(false)
     }
-    const media = window.matchMedia('(min-width: 1280px)')
+    const media = window.matchMedia('(min-width: 1400px)')
     const onBreakpoint = (): void => {
       if (media.matches) setOpen(false)
     }
@@ -133,7 +162,7 @@ export default function NavbarMoreMenu(): React.JSX.Element {
         type="button"
         onClick={toggleHandlers.onClick}
         onMouseEnter={toggleHandlers.onMouseEnter}
-        className="text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
+        className="relative text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer"
         title={t('navbar.more')}
         aria-label={t('navbar.more')}
         aria-expanded={open}
@@ -153,6 +182,12 @@ export default function NavbarMoreMenu(): React.JSX.Element {
             <path d="M4 7h16v2H4V7zm0 4h16v2H4v-2zm0 4h16v2H4v-2z" />
           </svg>
         </span>
+        {hasBadge && (
+          <span
+            data-testid="navbar-more-badge"
+            className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 shadow-sm"
+          />
+        )}
       </button>
 
       {open && (
@@ -166,6 +201,33 @@ export default function NavbarMoreMenu(): React.JSX.Element {
               'p-1.5 flex flex-col gap-0.5'
             ].join(' ')}
           >
+            {/* Env switch: in the bar from the narrow breakpoint up */}
+            <div className="flex flex-col gap-0.5 min-[800px]:hidden">
+              {envs.map(({ env, label }) => (
+                <MenuItem
+                  key={env}
+                  selected={activeEnv === env}
+                  onClick={() => runAndClose(() => onEnvSwitch(env))}
+                >
+                  <span className="flex-1">{label}</span>
+                </MenuItem>
+              ))}
+              <div className="my-1 h-px bg-[var(--color-ds-border)]" role="separator" />
+            </div>
+
+            {sections.map(({ label, view, badge }) => (
+              <MenuItem
+                key={view}
+                selected={currentSection === view}
+                onClick={() => runAndClose(() => onNavigate(view))}
+              >
+                <span className="flex-1">{label}</span>
+                {badge && <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />}
+              </MenuItem>
+            ))}
+
+            <div className="my-1 h-px bg-[var(--color-ds-border)]" role="separator" />
+
             <MenuItem
               selected={currentLang === 'en'}
               onClick={() => runAndClose(() => void i18n.changeLanguage('en'))}
