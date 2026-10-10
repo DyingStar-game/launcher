@@ -98,7 +98,7 @@ export default function Navbar(): React.JSX.Element {
     <nav className="app-drag ds-panel-bar flex items-center justify-between gap-6 px-6 h-14 shrink-0">
       {/* Gauche : logo + onglets environnement */}
       <div className="app-no-drag flex min-w-0 items-center gap-6">
-        <span className="font-bold text-[var(--color-ds-accent)] text-lg tracking-wider select-none">
+        <span className="font-bold text-(--color-ds-accent) text-lg tracking-wider select-none">
           <svg
             width="160"
             height="50"
@@ -205,7 +205,7 @@ export default function Navbar(): React.JSX.Element {
         </span>
 
         {/* Env switch (narrow → menu hamburger) */}
-        <div className="hidden nav-env:flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
+        <div className="hidden nav-env:flex gap-1 p-1 rounded-xl bg-white/3 border border-(--color-ds-border)">
           {envOptions.map(({ env, label }) => (
             <TabButton
               key={env}
@@ -219,7 +219,7 @@ export default function Navbar(): React.JSX.Element {
         </div>
 
         {/* Liens vues secondaires (compact → menu hamburger) */}
-        <div className="hidden nav-full:flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
+        <div className="hidden nav-full:flex gap-1 p-1 rounded-xl bg-white/3 border border-(--color-ds-border)">
           {navLinks.map(({ label, view, badge }) => (
             <TabButton
               key={view}

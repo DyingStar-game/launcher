@@ -52,7 +52,7 @@ export default function OrganisationHeader({
           )}
           {!membership.rank.isCeo && (
             <ConfirmDialog
-              trigger={<Button variant="outline">{t('universe.socialPage.manage.leave')}</Button>}
+              trigger={<Button variant="danger">{t('universe.socialPage.manage.leave')}</Button>}
               title={t('universe.socialPage.manage.leaveTitle', { name: organisation.name })}
               description={t('universe.socialPage.manage.leaveDescription')}
               confirmLabel={t('universe.socialPage.manage.leave')}

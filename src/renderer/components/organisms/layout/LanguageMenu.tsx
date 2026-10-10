@@ -26,7 +26,7 @@ export default function LanguageMenu(): React.JSX.Element {
         </DropdownMenuTrigger>
       </LabelTooltip>
 
-      <DropdownMenuContent align="end" aria-label={t('navbar.language')} className="min-w-[10rem]">
+      <DropdownMenuContent align="end" aria-label={t('navbar.language')} className="min-w-40">
         {LANGUAGES.map(({ code, labelKey }) => (
           <DropdownMenuItem asChild key={code}>
             <MenuItemButton
@@ -35,7 +35,7 @@ export default function LanguageMenu(): React.JSX.Element {
             >
               <span className="flex-1">{t(labelKey)}</span>
               {current === code && (
-                <span className="shrink-0 text-[var(--color-ds-accent)]">
+                <span className="shrink-0 text-(--color-ds-accent)">
                   <CheckIcon className="w-4 h-4" aria-hidden="true" />
                 </span>
               )}
