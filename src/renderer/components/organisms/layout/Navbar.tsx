@@ -13,6 +13,8 @@ import Button from '@components/atoms/Button'
 import DiscordIcon from '@components/atoms/icons/DiscordIcon'
 import SoundVolumeMenu from '@components/organisms/layout/SoundVolumeMenu'
 import NavbarMoreMenu from '@components/organisms/layout/NavbarMoreMenu'
+import type { NavbarEnvOption } from '@components/organisms/layout/NavbarMoreMenu'
+import type { Env } from '@shared/types/env'
 import { navUrls } from '@lib/env'
 import type { ReactNode } from 'react'
 
@@ -173,10 +175,15 @@ export default function Navbar(): React.JSX.Element {
   const { website: navWebsite, discord: navDiscord, wiki: navWiki, donate: navDonate } = navUrls()
 
   /** Switches active env in the store and navigates to the matching universe view. */
-  const handleEnvSwitch = (env: 'universe' | 'universe-testing'): void => {
+  const handleEnvSwitch = (env: Env): void => {
     setEnv(env)
     navigate(env)
   }
+
+  const envOptions: NavbarEnvOption[] = [
+    { env: 'universe', label: t('navbar.envUniverse') },
+    { env: 'universe-testing', label: t('navbar.envTesting') }
+  ]
 
   const navLinks: { label: string; view: TopView; badge?: boolean }[] = [
     { label: t('navbar.social'), view: 'social' },
@@ -185,9 +192,9 @@ export default function Navbar(): React.JSX.Element {
   ]
 
   return (
-    <nav className="app-drag ds-panel-bar flex items-center justify-between px-6 h-14 shrink-0">
+    <nav className="app-drag ds-panel-bar flex items-center justify-between gap-6 px-6 h-14 shrink-0">
       {/* Gauche : logo + onglets environnement */}
-      <div className="app-no-drag flex items-center gap-6">
+      <div className="app-no-drag flex min-w-0 items-center gap-6">
         <span className="font-bold text-[var(--color-ds-accent)] text-lg tracking-wider select-none">
           <svg
             width="160"
@@ -294,8 +301,9 @@ export default function Navbar(): React.JSX.Element {
           </svg>
         </span>
 
-        <div className="flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
-          {(['universe', 'universe-testing'] as const).map((env) => {
+        {/* Env switch (narrow → menu hamburger) */}
+        <div className="hidden min-[800px]:flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
+          {envOptions.map(({ env, label }) => {
             const envHandlers = mergeSoundHandlers(uiSound, {
               onClick: () => handleEnvSwitch(env)
             })
@@ -305,20 +313,20 @@ export default function Navbar(): React.JSX.Element {
                 onClick={envHandlers.onClick}
                 onMouseEnter={envHandlers.onMouseEnter}
                 className={[
-                  'px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer',
+                  'px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer',
                   activeEnv === env
                     ? 'bg-[var(--color-ds-accent)] text-black'
                     : 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
                 ].join(' ')}
               >
-                {env === 'universe' ? t('navbar.envUniverse') : t('navbar.envTesting')}
+                {label}
               </button>
             )
           })}
         </div>
 
-        {/* Liens vues secondaires */}
-        <div className="flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
+        {/* Liens vues secondaires (compact → menu hamburger) */}
+        <div className="hidden min-[1400px]:flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
           {navLinks.map(({ label, view, badge }) => {
             const linkHandlers = mergeSoundHandlers(uiSound, {
               onClick: () => navigate(view)
@@ -329,7 +337,7 @@ export default function Navbar(): React.JSX.Element {
                 onClick={linkHandlers.onClick}
                 onMouseEnter={linkHandlers.onMouseEnter}
                 className={[
-                  'relative px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer',
+                  'relative px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer',
                   navSection(currentView) === view
                     ? 'text-[var(--color-ds-text)] bg-white/10'
                     : 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
@@ -353,9 +361,9 @@ export default function Navbar(): React.JSX.Element {
         </div>
       </div>
 
-      {/* Droite : langues + liens externes + soutenir (compact → menu hamburger) */}
-      <div className="app-no-drag flex items-center gap-3">
-        <div className="hidden min-[1280px]:flex items-center gap-1 pr-2 border-r border-[var(--color-ds-border)]">
+      {/* Droite : langues + liens externes + soutenir (compact → menu hamburger) ; never shrinks so the window controls stay visible */}
+      <div className="app-no-drag flex shrink-0 items-center gap-3">
+        <div className="hidden min-[1400px]:flex items-center gap-1 pr-2 border-r border-[var(--color-ds-border)]">
           <SoundIconButton
             onClick={() => void i18n.changeLanguage('en')}
             title={t('navbar.languageEn')}
@@ -372,7 +380,7 @@ export default function Navbar(): React.JSX.Element {
           </SoundIconButton>
         </div>
 
-        <div className="hidden min-[1280px]:contents">
+        <div className="hidden min-[1400px]:contents">
           <SoundIconButton
             disabled={!navWebsite}
             onClick={() => navWebsite && window.open(navWebsite, '_blank')}
@@ -408,25 +416,37 @@ export default function Navbar(): React.JSX.Element {
           </SoundIconButton>
         </div>
 
-        <SoundVolumeMenu />
+        <div className="ml-2">
+          <SoundVolumeMenu />
+        </div>
 
-        <Button
-          disabled={!navDonate}
-          onClick={() => navDonate && window.open(navDonate, '_blank')}
-          variant="primary"
-          size="sm"
-          title={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
-          aria-label={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
-          className="ml-1 hidden min-[1280px]:inline-flex rounded-full px-4 shadow-none overflow-visible"
-        >
-          <span className="inline-flex items-center gap-2 overflow-visible">
-            <HeartDonateIcon />
-            {t('navbar.support')}
-          </span>
-        </Button>
+        {/* Wrapper owns the display: Button's own inline-flex would override `hidden` */}
+        <div className="ml-1 hidden min-[1400px]:flex">
+          <Button
+            disabled={!navDonate}
+            onClick={() => navDonate && window.open(navDonate, '_blank')}
+            variant="primary"
+            size="sm"
+            title={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
+            aria-label={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
+            className="rounded-full px-4 shadow-none overflow-visible"
+          >
+            <span className="inline-flex items-center gap-2 overflow-visible">
+              <HeartDonateIcon />
+              {t('navbar.support')}
+            </span>
+          </Button>
+        </div>
 
-        <div className="min-[1280px]:hidden">
-          <NavbarMoreMenu />
+        <div className="min-[1400px]:hidden">
+          <NavbarMoreMenu
+            sections={navLinks}
+            currentSection={navSection(currentView)}
+            onNavigate={navigate}
+            envs={envOptions}
+            activeEnv={activeEnv}
+            onEnvSwitch={handleEnvSwitch}
+          />
         </div>
 
         <div className="flex items-center gap-1 pl-2 border-l border-[var(--color-ds-border)]">

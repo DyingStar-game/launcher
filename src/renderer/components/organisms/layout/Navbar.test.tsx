@@ -26,4 +26,41 @@ describe('Navbar', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Lore' }))
     expect(useNavigationStore.getState()).toMatchObject({ currentView: 'lore', history: [] })
   })
+
+  it('keeps nav buttons on one line so the bar keeps its height', () => {
+    render(<Navbar />)
+    for (const name of ['Universe', 'Universe Testing', 'Social', 'Changelog']) {
+      expect(screen.getByRole('button', { name })).toHaveClass('whitespace-nowrap')
+    }
+  })
+
+  it('hides the donate button below the wide breakpoint', () => {
+    render(<Navbar />)
+    expect(
+      screen.getByRole('button', { name: /^(Donate|Support link not configured)$/ }).parentElement
+    ).toHaveClass('hidden', 'min-[1400px]:flex')
+  })
+
+  it('folds the section links into the menu below the wide breakpoint', () => {
+    render(<Navbar />)
+    expect(screen.getByRole('button', { name: 'Social' }).parentElement).toHaveClass(
+      'hidden',
+      'min-[1400px]:flex'
+    )
+  })
+
+  it('never shrinks the side holding the window controls', () => {
+    render(<Navbar />)
+    expect(screen.getByRole('button', { name: 'Close' }).parentElement?.parentElement).toHaveClass(
+      'shrink-0'
+    )
+  })
+
+  it('folds the env switch into the menu below the narrow breakpoint', () => {
+    render(<Navbar />)
+    expect(screen.getByRole('button', { name: 'Universe Testing' }).parentElement).toHaveClass(
+      'hidden',
+      'min-[800px]:flex'
+    )
+  })
 })
