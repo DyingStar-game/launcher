@@ -10,7 +10,7 @@ Un **launcher Electron** pour le jeu _Dying Star_. Il gère notamment :
 - Téléchargement, installation et mises à jour du jeu (ZIP via URLs configurables)
 - Statut serveur et nombre de joueurs
 - Vérification des mises à jour du launcher (GitHub Releases)
-- Articles de lore (markdown embarqué) et une **UI social** (données mock pour l’instant)
+- Articles de lore (markdown embarqué) et une **UI social** (amis, demandes, organisations) sur le service de jeu `social`
 
 ## Arborescence
 
@@ -18,13 +18,15 @@ Un **launcher Electron** pour le jeu _Dying Star_. Il gère notamment :
 src/
 ├── main/       # Process Electron principal (IPC, auth, téléchargement, lancement jeu)
 ├── preload/    # API contextBridge exposée en window.api
-├── renderer/   # UI React (vues, composants, stores Zustand, i18n)
+├── renderer/   # UI React en atomic design (components/{atoms,molecules,organisms,templates}, pages/), stores Zustand, i18n
 └── shared/     # Types TypeScript partagés entre processus
 docs/           # Documentation contributeur (en/ et fr/)
 resources/      # Icônes et entitlements macOS
 ```
 
-Alias (Vite/TS) : `@shared`, `@components`, `@views`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+Alias (Vite/TS) : `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+
+Les composants suivent l’**atomic design** ([ADR 0011](../adr/0011-atomic-design.md)) : les imports ne vont que vers le bas, atomes / molécules / templates sont purs (pas de store), et tout composant nouveau ou modifié vient avec son `*.test.tsx` (Testing Library).
 
 ## Branches
 
@@ -42,9 +44,10 @@ git checkout -b feature/ma-modif
 
 ## Prérequis
 
-- **Node.js 20+**
-- **pnpm** (seul gestionnaire de paquets du dépôt — voir `packageManager` dans `package.json`)
+- **Node.js 24** (fixé dans `.nvmrc` : `nvm use`)
+- **pnpm 12** (seul gestionnaire de paquets du dépôt, version fixée par `packageManager` dans `package.json` ; ses réglages sont dans `pnpm-workspace.yaml`)
 - Git
+- **make** (optionnel : Linux / macOS / WSL / Git Bash ; chaque cible appelle un script pnpm)
 
 ## Première installation
 
@@ -52,10 +55,9 @@ git checkout -b feature/ma-modif
 git clone https://github.com/DyingStar-game/launcher.git
 cd launcher
 git checkout develop
-pnpm install
-cp .env.example .env
+make install   # crée .env depuis .env.example, puis pnpm install
 # Éditer .env — au minimum les URLs universe-testing pour tester l’install
-pnpm run dev
+make dev
 ```
 
 ### Fichiers d’environnement
@@ -64,15 +66,28 @@ pnpm run dev
 - Les variables `VITE_*` sont incluses dans le binaire au build
 - Pour travailler sur l’UI seule, les URLs de test dans l’exemple peuvent suffire
 
-### Scripts utiles
+### Makefile
 
-| Commande             | Description                   |
-| -------------------- | ----------------------------- |
-| `pnpm run dev`       | Dev avec rechargement à chaud |
-| `pnpm run typecheck` | TypeScript (main + renderer)  |
-| `pnpm run lint`      | ESLint                        |
-| `pnpm run format`    | Prettier                      |
-| `pnpm run build`     | Build production dans `out/`  |
+Le `Makefile` à la racine est le point d’entrée commun, comme dans les autres dépôts DyingStar
+([ADR 0002](../adr/0002-makefile-tooling.md)). `make help` liste toutes les cibles.
+
+| Commande          | Description                                                       |
+| ----------------- | ----------------------------------------------------------------- |
+| `make start`      | Build et lancement en mode preview production (testeurs)          |
+| `make install`    | Crée `.env` s’il manque, installe les dépendances                 |
+| `make dev`        | Dev avec rechargement à chaud                                     |
+| `make pnpm <cmd>` | N’importe quel script pnpm, ex. `make pnpm typecheck:web`         |
+| `make check`      | Format, lint, typecheck, vérification du format — avant un commit |
+| `make build`      | Build production dans `out/`                                      |
+| `make package`    | Installeur pour l’OS courant dans `release/`                      |
+
+Sous Linux, Electron choisit X11 ou Wayland selon la session. Pour reproduire un bug d’affichage
+sur l’autre backend, forcez-le avec `make dev PLATFORM=wayland` ou `make dev PLATFORM=x11`
+(idem pour `make start`). Sous WSLg, le socket Wayland est trouvé automatiquement.
+| `make clean` | Supprime `out/`, `release/` et le cache ESLint |
+
+Sans `make` (ex. Windows sans Git Bash), appeler directement les scripts pnpm : `pnpm run dev`,
+`pnpm run typecheck`, `pnpm run lint`, `pnpm run format`, `pnpm run build`.
 
 ## ESLint et Prettier
 
@@ -101,12 +116,10 @@ pnpm run lint:fix
 pnpm run format
 ```
 
-Workflow recommandé avant commit :
+Avant un commit, tout lancer d’un coup :
 
 ```bash
-pnpm run format
-pnpm run typecheck
-pnpm run lint
+make check
 ```
 
 ### VS Code / Cursor
@@ -122,7 +135,7 @@ Sinon : formateur par défaut **Prettier** + **Format On Save** activé.
 
 ### CI
 
-À terme : `pnpm run typecheck` et `pnpm run lint` sur chaque PR vers `develop`.
+`.github/workflows/build.yaml` lance `pnpm run lint` et `pnpm run typecheck` à chaque push et PR, puis builde Linux et Windows.
 
 ## Modèle mental de l’app
 
@@ -141,9 +154,9 @@ La progression d’installation utilise des **clés structurées** (`InstallProg
 
 ## Points importants
 
-### Page Social (mock)
+### Page Social
 
-`src/renderer/stores/social.ts` utilise des **données mock** en attendant les APIs. Les erreurs passent par `SocialStoreError` et `src/renderer/lib/socialErrors.ts`.
+Le process main appelle le service `social` (`src/main/services/social/`, [ADR 0007](../adr/0007-social-player-side.md)) avec le jeton Keycloak du joueur. Il est disponible sur `universe-testing` (service preprod par défaut, `VITE_SOCIAL_BASE_TESTING`) et affiche « indisponible » sur `universe` tant que la prod n’est pas déployée. Connecte-toi sur `universe-testing` pour l’essayer. Les erreurs remontent sous forme de codes, traduits sous `universe.socialPage.errors.*`.
 
 ### Deux environnements jeu
 
@@ -155,10 +168,10 @@ Le sélecteur de la navbar change `useEnvStore().activeEnv` ; la plupart des sto
 ## Avant d’ouvrir une PR
 
 1. Partir de **`develop`**
-2. `pnpm run typecheck && pnpm run lint`
+2. `make check`
 3. PR focalisée, style cohérent avec le dépôt
 4. Pour un changement visible utilisateur, remplir les sections `<!-- CHANGELOG_EN -->` et `<!-- CHANGELOG_FR -->` dans la description de la PR — les entrées sont enregistrées automatiquement à la fusion
-5. Lire [CONTRIBUTING.md](CONTRIBUTING.md)
+5. Lire [CONTRIBUTING.md](CONTRIBUTING.md) et les [ADR](../adr/README.md) de la zone touchée
 
 ## Aide
 

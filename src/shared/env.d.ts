@@ -2,6 +2,8 @@
 interface ImportMetaEnv {
   readonly VITE_API_BASE_UNIVERSE: string
   readonly VITE_API_BASE_TESTING: string
+  readonly VITE_SOCIAL_BASE_UNIVERSE: string
+  readonly VITE_SOCIAL_BASE_TESTING: string
   readonly VITE_GAME_DOWNLOAD_BASE_UNIVERSE: string
   readonly VITE_GAME_DOWNLOAD_BASE_TESTING: string
   readonly VITE_GAME_ZIP_LINUX: string

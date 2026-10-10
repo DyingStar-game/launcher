@@ -10,7 +10,7 @@ A desktop **Electron** launcher for the game _Dying Star_. It handles:
 - Game download, install, and updates (ZIP from configurable URLs)
 - Server status and player count
 - Launcher update checks (GitHub Releases)
-- Lore articles (bundled markdown) and a **social UI** (currently mock data)
+- Lore articles (bundled markdown) and a **social UI** (friends, requests, organisations) on the `social` game service
 
 ## Repository layout
 
@@ -18,13 +18,15 @@ A desktop **Electron** launcher for the game _Dying Star_. It handles:
 src/
 ├── main/       # Electron main process (IPC, auth, download, game launch)
 ├── preload/    # contextBridge API exposed as window.api
-├── renderer/   # React UI (views, components, Zustand stores, i18n)
+├── renderer/   # React UI in atomic design (components/{atoms,molecules,organisms,templates}, pages/), Zustand stores, i18n
 └── shared/     # TypeScript types shared across processes
 docs/           # Contributor docs (en/ and fr/)
 resources/      # App icons and macOS entitlements
 ```
 
-Path aliases (Vite/TS): `@shared`, `@components`, `@views`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+Path aliases (Vite/TS): `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+
+Components follow **atomic design** ([ADR 0011](../adr/0011-atomic-design.md)): imports go down only, atoms / molecules / templates are pure (no store), and every new or modified component comes with a `*.test.tsx` (Testing Library).
 
 ## Branches
 
@@ -42,9 +44,10 @@ git checkout -b feature/my-change
 
 ## Prerequisites
 
-- **Node.js 20+**
-- **pnpm** (only package manager used in this repo — see root `packageManager` in `package.json`)
+- **Node.js 24** (pinned in `.nvmrc`: `nvm use`)
+- **pnpm 12** (only package manager used in this repo, pinned by `packageManager` in `package.json`; its settings live in `pnpm-workspace.yaml`)
 - Git
+- **make** (optional: Linux / macOS / WSL / Git Bash; every target wraps a pnpm script)
 
 ## First-time setup
 
@@ -52,10 +55,9 @@ git checkout -b feature/my-change
 git clone https://github.com/DyingStar-game/launcher.git
 cd launcher
 git checkout develop
-pnpm install
-cp .env.example .env
+make install   # creates .env from .env.example, then pnpm install
 # Edit .env — at minimum set API/ZIP URLs for universe-testing if you want installs
-pnpm run dev
+make dev
 ```
 
 ### Environment files
@@ -64,15 +66,28 @@ pnpm run dev
 - Variables prefixed with `VITE_` are embedded at build time in the app binary
 - For local UI-only work, testing URLs in `.env.example` may be enough; production URLs are often empty until configured
 
-### Useful scripts
+### Makefile
 
-| Command              | Description                  |
-| -------------------- | ---------------------------- |
-| `pnpm run dev`       | Hot-reload development       |
-| `pnpm run typecheck` | TypeScript (main + renderer) |
-| `pnpm run lint`      | ESLint                       |
-| `pnpm run format`    | Prettier                     |
-| `pnpm run build`     | Production build to `out/`   |
+The root `Makefile` is the common entry point, as in the other DyingStar repositories
+([ADR 0002](../adr/0002-makefile-tooling.md)). `make help` lists every target.
+
+| Command           | Description                                                 |
+| ----------------- | ----------------------------------------------------------- |
+| `make start`      | Build and run the production preview (testers)              |
+| `make install`    | Create `.env` if missing, install dependencies              |
+| `make dev`        | Hot-reload development                                      |
+| `make pnpm <cmd>` | Any pnpm script, e.g. `make pnpm typecheck:web`             |
+| `make check`      | Format, lint, typecheck, format check — before every commit |
+| `make build`      | Production build to `out/`                                  |
+| `make package`    | Installer for the current OS in `release/`                  |
+
+On Linux, Electron picks X11 or Wayland from the session. To reproduce a display bug on the
+other backend, force it with `make dev PLATFORM=wayland` or `make dev PLATFORM=x11` (same for
+`make start`). Under WSLg, the Wayland socket is found automatically.
+| `make clean` | Remove `out/`, `release/` and the ESLint cache |
+
+Without `make` (e.g. plain Windows), call the pnpm scripts directly: `pnpm run dev`,
+`pnpm run typecheck`, `pnpm run lint`, `pnpm run format`, `pnpm run build`.
 
 ## ESLint and Prettier
 
@@ -101,12 +116,10 @@ pnpm run lint:fix
 pnpm run format
 ```
 
-Recommended workflow before committing:
+Before committing, run everything at once:
 
 ```bash
-pnpm run format
-pnpm run typecheck
-pnpm run lint
+make check
 ```
 
 ### VS Code / Cursor
@@ -122,7 +135,7 @@ If format on save does not run, set **Default Formatter** to Prettier and enable
 
 ### CI
 
-When GitHub Actions is added, run `pnpm run typecheck` and `pnpm run lint` on every PR to `develop`.
+`.github/workflows/build.yaml` runs `pnpm run lint` and `pnpm run typecheck` on every push and PR, then builds Linux and Windows.
 
 ## How the app is structured (mental model)
 
@@ -141,9 +154,9 @@ Install progress uses **structured keys** (`InstallProgressLabel` in `src/shared
 
 ## Features to know about
 
-### Social page (mock)
+### Social page
 
-`src/renderer/stores/social.ts` uses **in-memory mock data** until backend APIs exist. Friend/org actions simulate latency; errors use `SocialStoreError` codes mapped in `src/renderer/lib/socialErrors.ts`.
+The main process calls the `social` service (`src/main/services/social/`, [ADR 0007](../adr/0007-social-player-side.md)) with the player's Keycloak token. It is available on `universe-testing` (preprod service by default, `VITE_SOCIAL_BASE_TESTING`) and shows "unavailable" on `universe` until production is deployed. Sign in on `universe-testing` to try it. Errors come back as codes, translated under `universe.socialPage.errors.*`.
 
 ### Two game environments
 
@@ -155,10 +168,10 @@ The navbar env switcher changes `useEnvStore().activeEnv`; most stores are keyed
 ## Before opening a PR
 
 1. Branch from **`develop`**
-2. Run `pnpm run typecheck && pnpm run lint`
+2. Run `make check`
 3. Keep changes focused; match existing code style
 4. For user-visible changes, fill in the `<!-- CHANGELOG_EN -->` and `<!-- CHANGELOG_FR -->` sections in the PR description — entries are recorded automatically on merge
-5. Read [CONTRIBUTING.md](CONTRIBUTING.md)
+5. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [ADRs](../adr/README.md) of the area you touch
 
 ## Getting help
 

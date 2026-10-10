@@ -15,7 +15,7 @@ const rendererAlias = {
   '@content': resolve(__dirname, 'src/renderer/content'),
   '@stores': resolve(__dirname, 'src/renderer/stores'),
   '@components': resolve(__dirname, 'src/renderer/components'),
-  '@views': resolve(__dirname, 'src/renderer/views'),
+  '@pages': resolve(__dirname, 'src/renderer/pages'),
   '@i18n': resolve(__dirname, 'src/renderer/i18n/index.ts')
 }
 

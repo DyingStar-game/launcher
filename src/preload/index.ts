@@ -5,6 +5,16 @@ import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type { UserInfo } from '@shared/types/auth'
 import type { ServerStatusValue } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
+import type {
+  FriendRequestOutcome,
+  JoinOutcome,
+  OrganisationMembersPage,
+  OrganisationProfile,
+  PlayerProfile,
+  PlayerSearchResult,
+  SocialResult,
+  SocialSnapshot
+} from '@shared/types/social'
 
 /**
  * Renderer-facing API exposed as `window.api`.
@@ -123,7 +133,61 @@ const api = {
   ): void => {
     ipcRenderer.removeAllListeners('auth:state-changed')
     ipcRenderer.on('auth:state-changed', (_event, data) => callback(data))
-  }
+  },
+
+  /** Loads friends, friend requests and organisations from `social` (organisations filtered by `search`). */
+  socialLoad: (env: Env, search?: string): Promise<SocialResult<SocialSnapshot>> =>
+    ipcRenderer.invoke('social:load', env, search),
+
+  /** Finds players whose display name contains `query` (2 characters minimum). */
+  socialSearchPlayers: (env: Env, query: string): Promise<SocialResult<PlayerSearchResult[]>> =>
+    ipcRenderer.invoke('social:search-players', env, query),
+
+  /** Loads a player's public sheet. */
+  socialGetPlayer: (env: Env, playerId: string): Promise<SocialResult<PlayerProfile>> =>
+    ipcRenderer.invoke('social:get-player', env, playerId),
+
+  /** Loads an organisation's public sheet. */
+  socialGetOrganisation: (
+    env: Env,
+    corporationId: string
+  ): Promise<SocialResult<OrganisationProfile>> =>
+    ipcRenderer.invoke('social:get-organisation', env, corporationId),
+
+  /** Loads one page of an organisation's members, highest rank first. */
+  socialGetOrganisationMembers: (
+    env: Env,
+    corporationId: string,
+    offset: number
+  ): Promise<SocialResult<OrganisationMembersPage>> =>
+    ipcRenderer.invoke('social:get-organisation-members', env, corporationId, offset),
+
+  /** Sends a friend request (accepts a pending one from that player instead). */
+  socialSendFriendRequest: (
+    env: Env,
+    playerId: string
+  ): Promise<SocialResult<FriendRequestOutcome>> =>
+    ipcRenderer.invoke('social:send-friend-request', env, playerId),
+
+  /** Removes a friend. */
+  socialRemoveFriend: (env: Env, playerId: string): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:remove-friend', env, playerId),
+
+  /** Accepts an incoming friend request. */
+  socialAcceptRequest: (env: Env, requestId: number): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:accept-request', env, requestId),
+
+  /** Declines an incoming friend request or cancels an outgoing one. */
+  socialDeclineRequest: (env: Env, requestId: number): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:decline-request', env, requestId),
+
+  /** Joins an open organisation or applies to one. */
+  socialJoinOrganisation: (env: Env, corporationId: string): Promise<SocialResult<JoinOutcome>> =>
+    ipcRenderer.invoke('social:join-organisation', env, corporationId),
+
+  /** Creates an organisation (name + 2–5 character ticker). */
+  socialCreateOrganisation: (env: Env, name: string, ticker: string): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:create-organisation', env, name, ticker)
 }
 
 /** Exposes safe APIs to the renderer (isolated context) or assigns to window in dev. */

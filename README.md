@@ -19,18 +19,19 @@ Launcher desktop open source pour le jeu **Dying Star**, basé sur [Electron](ht
 src/
 ├── main/           # Process principal Electron (IPC, auth, téléchargement, jeu)
 ├── preload/        # Pont sécurisé contextBridge → window.api
-├── renderer/       # Application React (composants, vues, stores, i18n)
+├── renderer/       # Application React en atomic design (atoms → molecules → organisms → templates → pages), stores, i18n
 └── shared/         # Types TypeScript partagés (main, preload, renderer)
 docs/               # Documentation contributeur (en/ et fr/)
 resources/          # Icônes et entitlements macOS (versionnés)
 ```
 
-Alias TypeScript / Vite : `@shared`, `@components`, `@views`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+Alias TypeScript / Vite : `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
 
 ## Prérequis
 
-- Node.js 20+
+- Node.js 24 (fixé dans `.nvmrc`)
 - [pnpm](https://pnpm.io/) (gestionnaire de paquets du dépôt)
+- `make` (optionnel ; sous Windows via Git Bash ou WSL)
 
 ## Installation
 
@@ -38,12 +39,24 @@ Alias TypeScript / Vite : `@shared`, `@components`, `@views`, `@stores`, `@hooks
 git clone https://github.com/DyingStar-game/launcher.git
 cd launcher
 git checkout develop
-pnpm install
-cp .env.example .env
+make install   # crée .env depuis .env.example puis lance pnpm install
 # Éditer .env selon l’environnement (API, ZIP de test, etc.)
+make dev
 ```
 
-## Scripts
+## Commandes
+
+Le `Makefile` est le point d’entrée commun (`make help` liste tout, voir [ADR 0002](docs/adr/0002-makefile-tooling.md)) :
+
+| Commande          | Description                                                    |
+| ----------------- | -------------------------------------------------------------- |
+| `make start`      | Build + preview production (testeurs)                          |
+| `make dev`        | Développement avec rechargement à chaud                        |
+| `make check`      | Format, lint, typecheck, vérification du format (avant commit) |
+| `make pnpm <cmd>` | N’importe quel script pnpm, ex. `make pnpm typecheck:web`      |
+| `make package`    | Installateur pour l’OS courant dans `release/`                 |
+
+Les scripts pnpm sous-jacents restent utilisables directement :
 
 | Commande               | Description                                            |
 | ---------------------- | ------------------------------------------------------ |
@@ -73,8 +86,9 @@ Documentation bilingue :
 - Index : [docs/README.md](docs/README.md)
 - Onboarding : [English](docs/en/ONBOARDING.md) · [Français](docs/fr/ONBOARDING.md)
 - Contributing : [English](docs/en/CONTRIBUTING.md) · [Français](docs/fr/CONTRIBUTING.md)
+- Décisions d’architecture (ADR) : [docs/adr/](docs/adr/README.md)
 
-Avant une PR : `pnpm run typecheck && pnpm run lint`
+Avant une PR : `make check`
 
 ## Licence
 

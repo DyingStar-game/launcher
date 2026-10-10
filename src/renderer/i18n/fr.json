@@ -12,13 +12,12 @@
   },
   "common": {
     "cancel": "Annuler",
-    "loading": "...",
+    "loadingContent": "Chargement du contenu",
     "close": "Fermer",
-    "send": "Envoyer",
-    "create": "Créer"
+    "create": "Créer",
+    "back": "Retour"
   },
   "navbar": {
-    "home": "Accueil",
     "social": "Social",
     "lore": "Lore",
     "support": "Faire un don",
@@ -27,22 +26,18 @@
     "openDiscord": "Ouvrir Discord",
     "openWiki": "Ouvrir le wiki",
     "donateUnavailable": "Lien de soutien non configuré",
-    "quit": "Quitter l'application",
     "minimize": "Réduire",
     "fullscreen": "Plein écran",
     "exitFullscreen": "Quitter le plein écran",
     "close": "Fermer",
     "languageFr": "Français",
-    "languageEn": "English",
-    "switchToFrench": "Passer en français",
-    "switchToEnglish": "Switch to English",
+    "languageEn": "Anglais",
+    "language": "Langue",
     "envUniverse": "Universe",
     "envTesting": "Universe Testing",
     "brandDiscord": "Discord",
     "brandWiki": "Wiki",
     "changelog": "Changelog",
-    "soundEnabled": "Sons activés",
-    "soundDisabled": "Sons désactivés",
     "toggleSound": "Activer / désactiver les sons",
     "soundVolume": "Volume"
   },
@@ -63,7 +58,6 @@
     "sidebarSubtitle": "Notes de version.",
     "sidebarSubtitleTesting": "Changements disponibles en test.",
     "selectVersion": "Sélectionne une version",
-    "loading": "Chargement du changelog…",
     "unavailable": "Changelog indisponible (URL non configurée ou échec du téléchargement).",
     "empty": "Aucune note de version pour l'instant.",
     "noEntries": "Aucune entrée pour cette version.",
@@ -83,18 +77,16 @@
   "friendStatus": {
     "online": "En ligne",
     "offline": "Hors ligne",
-    "ingame": "En jeu",
-    "ingameWithGame": "En jeu • {{game}}"
+    "mission": "En mission",
+    "missionIn": "En mission • {{system}}"
   },
   "universe": {
-    "title": "Universe",
     "account": {
       "title": "Compte",
       "disconnected": "Non connecté",
       "connectedAs": "Connecté en tant que {{username}}",
       "login": "Se connecter avec Discord",
       "logout": "Se déconnecter",
-      "subscription": "Abonnement",
       "loading": "Connexion en cours...",
       "cancel": "Annuler",
       "unavailable": "Authentification non disponible pour cet environnement.",
@@ -158,18 +150,13 @@
     "social": {
       "title": "Social",
       "noFriends": "Aucun ami",
-      "seeAll": "Voir tout",
-      "notifications": "{{count}} notifications"
+      "seeAll": "Voir tout"
     },
     "socialPage": {
       "sidebarTitle": "Social",
       "sidebarSubtitle": "Amis, organisations, demandes.",
-      "friends": "Amis",
-      "organizations": "Organisations",
-      "requests": "Demandes",
       "addFriend": "Ajouter un ami",
       "createOrga": "Créer une orga",
-      "createOrgaLong": "Créer une organisation",
       "joinOrga": "Rejoindre",
       "accept": "Accepter",
       "decline": "Refuser",
@@ -177,6 +164,10 @@
         "friends": {
           "label": "Amis",
           "subtitle": "Gère ta liste d'amis et ton statut."
+        },
+        "players": {
+          "label": "Trouver des joueurs",
+          "subtitle": "Cherche des joueurs par leur nom et envoie des demandes d'ami."
         },
         "organizations": {
           "label": "Organisations",
@@ -187,17 +178,68 @@
           "subtitle": "Demandes d'amis en attente."
         }
       },
-      "addFriendForm": {
-        "title": "Ajouter un ami",
-        "usernameLabel": "Pseudo exact",
-        "usernamePlaceholder": "Entrez un pseudo...",
-        "success": "Demande envoyée !"
-      },
       "createOrgaForm": {
         "title": "Créer une organisation",
         "nameLabel": "Nom de l'organisation",
         "namePlaceholder": "Entrez un nom unique...",
-        "success": "Organisation créée !"
+        "success": "Organisation créée !",
+        "tickerLabel": "Ticker (2 à 5 lettres ou chiffres)",
+        "tickerPlaceholder": "ex. NOVA"
+      },
+      "playerSearch": {
+        "label": "Nom du joueur",
+        "placeholder": "Commence à taper un nom...",
+        "minChars_one": "Tape au moins {{count}} caractère pour chercher.",
+        "minChars_other": "Tape au moins {{count}} caractères pour chercher.",
+        "empty": "Aucun joueur trouvé. Seuls les joueurs ayant déjà ouvert la page social peuvent être trouvés.",
+        "add": "Ajouter",
+        "addAria": "Envoyer une demande d'ami à {{name}}",
+        "requestSent": "Demande envoyée",
+        "friend": "Ami",
+        "you": "Toi"
+      },
+      "profile": {
+        "openAria": "Ouvrir la fiche de {{name}}",
+        "reputation": "Réputation",
+        "playtime": "Temps de jeu",
+        "hours_one": "{{count}} h",
+        "hours_other": "{{count}} h",
+        "memberSince": "Membre depuis",
+        "biography": "Biographie",
+        "rpSheet": "Fiche RP",
+        "characterName": "Personnage :",
+        "alignment": "Alignement :",
+        "corporations": "Organisations",
+        "politics": "Entités politiques",
+        "politicalTypes": {
+          "commune": "Commune",
+          "agglomeration": "Agglomération",
+          "department": "Département",
+          "region": "Région",
+          "country": "Pays",
+          "federation": "Fédération"
+        },
+        "empty": "Ce joueur n'a pas encore écrit de biographie.",
+        "noCorporation": "Aucune organisation."
+      },
+      "organisation": {
+        "openAria": "Ouvrir l'organisation {{name}}",
+        "members": "Membres",
+        "createdAt": "Fondée le",
+        "description": "Description",
+        "parent": "Maison mère",
+        "subsidiaries_one": "{{count}} filiale",
+        "subsidiaries_other": "{{count}} filiales",
+        "recruitment": {
+          "open": "Recrutement ouvert",
+          "apply": "Recrutement sur candidature",
+          "closed": "Ne recrute pas"
+        },
+        "ceoTitle": "PDG",
+        "memberList_one": "{{count}} membre",
+        "memberList_other": "{{count}} membres",
+        "loadMore_one": "Charger le dernier membre",
+        "loadMore_other": "Charger plus ({{count}} restants)"
       },
       "pendingRequests_one": "{{count}} demande en attente",
       "pendingRequests_other": "{{count}} demandes en attente",
@@ -208,16 +250,45 @@
         "members_one": "{{count}} membre",
         "members_other": "{{count}} membres",
         "memberBadge": "Membre",
-        "joinAria": "Rejoindre l'organisation {{name}}"
+        "joinAria": "Rejoindre l'organisation {{name}}",
+        "applicationBadge": "Candidature envoyée",
+        "closedBadge": "Fermée"
       },
       "request": {
         "acceptAria": "Accepter la demande de {{name}}",
-        "declineAria": "Refuser la demande de {{name}}"
+        "declineAria": "Refuser la demande de {{name}}",
+        "sent": "Envoyée",
+        "sentTitle": "Demandes envoyées",
+        "cancel": "Annuler la demande",
+        "cancelAria": "Annuler la demande à {{name}}"
       },
       "errors": {
-        "friendRequestFailed": "Utilisateur introuvable ou demande déjà envoyée.",
-        "orgaNameTaken": "Ce nom d'organisation est déjà pris.",
-        "joinOrgaFailed": "Erreur lors de la tentative."
+        "unavailable": "Le service social est injoignable. Réessaie plus tard.",
+        "notSignedIn": "Connecte-toi pour utiliser le social.",
+        "sessionExpired": "Ta session a expiré. Reconnecte-toi.",
+        "sanctioned": "Ton compte est suspendu : le social est bloqué.",
+        "playerNotFound": "Aucun joueur avec ce pseudo exact.",
+        "organisationNotFound": "Cette organisation n'existe plus.",
+        "alreadyFriendsOrPending": "Vous êtes déjà amis, ou une demande est déjà en attente.",
+        "blocked": "Tu ne peux pas ajouter ce joueur.",
+        "invalidTarget": "Tu ne peux pas t'ajouter toi-même en ami.",
+        "nameOrTickerTaken": "Ce nom ou ce ticker d'organisation est déjà pris.",
+        "alreadyMemberOrPending": "Tu es déjà membre, ou ta candidature est en attente.",
+        "recruitmentClosed": "Cette organisation ne recrute pas.",
+        "invalidInput": "Vérifie les champs : nom de 3 à 48 caractères, ticker de 2 à 5 lettres ou chiffres.",
+        "unknown": "Une erreur s'est produite. Réessaie."
+      },
+      "applyOrga": "Postuler",
+      "orgaSearch": {
+        "label": "Rechercher une organisation",
+        "placeholder": "Nom ou ticker...",
+        "action": "Rechercher"
+      },
+      "state": {
+        "unavailable": "Le social n'est pas encore disponible sur ce serveur.",
+        "notSignedIn": "Connecte-toi pour voir tes amis et tes organisations.",
+        "errorShort": "Social momentanément indisponible.",
+        "retry": "Réessayer"
       }
     }
   }

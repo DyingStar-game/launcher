@@ -9,6 +9,7 @@ import { registerChangelogHandlers } from './services/changelog'
 import { registerGameStatusHandlers } from './services/gameStatus'
 import { registerAuthHandlers, handleOAuthCallback } from './services/auth'
 import { registerWindowHandlers } from './services/window'
+import { registerSocialHandlers } from './services/social'
 import { WINDOW_BOUNDS } from './config/window'
 import { APP_PROTOCOL } from './config/constants'
 import { registerLinuxProtocolHandler } from './protocol/linuxDesktop'
@@ -76,8 +77,17 @@ function createWindow(): void {
   registerFilesHandlers(mainWindow)
   registerAuthHandlers(mainWindow)
 
+  /**
+   * Wayland does not paint a hidden window, so `ready-to-show` (first paint) never fires
+   * while `show: false` holds: also show once the page has loaded.
+   */
+  const showWindow = (): void => {
+    if (mainWindow && !mainWindow.isVisible()) mainWindow.show()
+  }
+  mainWindow.webContents.once('did-finish-load', showWindow)
+
   mainWindow.on('ready-to-show', () => {
-    mainWindow!.show()
+    showWindow()
     if (import.meta.env.VITE_ENABLE_DEVTOOLS === 'true') {
       mainWindow!.webContents.openDevTools()
     }
@@ -113,6 +123,7 @@ app.whenReady().then(() => {
   registerVersionHandlers()
   registerChangelogHandlers()
   registerGameStatusHandlers()
+  registerSocialHandlers()
   createWindow()
 
   app.on('activate', () => {

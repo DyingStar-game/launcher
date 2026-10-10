@@ -3,6 +3,12 @@
   "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }],
   "compilerOptions": {
     "strict": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    // Read by the shadcn CLI only (components.json aliases, ADR 0016); builds use tsconfig.web.json
+    "paths": {
+      "@components/*": ["./src/renderer/components/*"],
+      "@lib/*": ["./src/renderer/lib/*"],
+      "@hooks/*": ["./src/renderer/hooks/*"]
+    }
   }
 }

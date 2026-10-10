@@ -1,11 +1,6 @@
-/** Error codes thrown by the social store for i18n lookup in the UI. */
-export const SOCIAL_ERROR = {
-  ORGA_NAME_TAKEN: 'orgaNameTaken',
-  FRIEND_REQUEST_FAILED: 'friendRequestFailed'
-} as const
+import type { SocialErrorCode } from '@shared/types/social'
 
-export type SocialErrorCode = (typeof SOCIAL_ERROR)[keyof typeof SOCIAL_ERROR]
-
+/** Error thrown by the social store with the code main returned, for i18n lookup in the UI. */
 export class SocialStoreError extends Error {
   constructor(public readonly code: SocialErrorCode) {
     super(code)
@@ -13,17 +8,8 @@ export class SocialStoreError extends Error {
   }
 }
 
-/** Maps a social store error to a translated message, or uses the fallback i18n key. */
-export function getSocialErrorMessage(
-  err: unknown,
-  translate: (key: string) => string,
-  fallbackKey = 'universe.socialPage.errors.joinOrgaFailed'
-): string {
-  if (err instanceof SocialStoreError) {
-    return translate(`universe.socialPage.errors.${err.code}`)
-  }
-  if (err instanceof Error && err.message) {
-    return err.message
-  }
-  return translate(fallbackKey)
+/** Maps a social store error to a translated message (`universe.socialPage.errors.<code>`). */
+export function getSocialErrorMessage(err: unknown, translate: (key: string) => string): string {
+  const code: SocialErrorCode = err instanceof SocialStoreError ? err.code : 'unknown'
+  return translate(`universe.socialPage.errors.${code}`)
 }

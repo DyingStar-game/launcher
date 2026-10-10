@@ -12,13 +12,12 @@
   },
   "common": {
     "cancel": "Cancel",
-    "loading": "...",
+    "loadingContent": "Loading content",
     "close": "Close",
-    "send": "Send",
-    "create": "Create"
+    "create": "Create",
+    "back": "Back"
   },
   "navbar": {
-    "home": "Home",
     "social": "Social",
     "lore": "Lore",
     "support": "Donate",
@@ -27,22 +26,18 @@
     "openDiscord": "Open Discord",
     "openWiki": "Open wiki",
     "donateUnavailable": "Support link not configured",
-    "quit": "Quit application",
     "minimize": "Minimize",
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "close": "Close",
-    "languageFr": "Français",
+    "languageFr": "French",
     "languageEn": "English",
-    "switchToFrench": "Switch to French",
-    "switchToEnglish": "Switch to English",
+    "language": "Language",
     "envUniverse": "Universe",
     "envTesting": "Universe Testing",
     "brandDiscord": "Discord",
     "brandWiki": "Wiki",
     "changelog": "Changelog",
-    "soundEnabled": "Sounds enabled",
-    "soundDisabled": "Sounds disabled",
     "toggleSound": "Toggle sounds",
     "soundVolume": "Volume"
   },
@@ -63,7 +58,6 @@
     "sidebarSubtitle": "Release notes by version.",
     "sidebarSubtitleTesting": "New changes in testing.",
     "selectVersion": "Select a version",
-    "loading": "Loading changelog…",
     "unavailable": "Changelog is not available (URL not configured or fetch failed).",
     "empty": "No release notes yet.",
     "noEntries": "No entries for this version.",
@@ -83,18 +77,16 @@
   "friendStatus": {
     "online": "Online",
     "offline": "Offline",
-    "ingame": "In game",
-    "ingameWithGame": "In game • {{game}}"
+    "mission": "In mission",
+    "missionIn": "In mission • {{system}}"
   },
   "universe": {
-    "title": "Universe",
     "account": {
       "title": "Account",
       "disconnected": "Not connected",
       "connectedAs": "Logged in as {{username}}",
       "login": "Login with Discord",
       "logout": "Logout",
-      "subscription": "Subscription",
       "loading": "Connecting...",
       "cancel": "Cancel",
       "unavailable": "Authentication not available for this environment.",
@@ -158,18 +150,13 @@
     "social": {
       "title": "Social",
       "noFriends": "No friends",
-      "seeAll": "See all",
-      "notifications": "{{count}} notifications"
+      "seeAll": "See all"
     },
     "socialPage": {
       "sidebarTitle": "Social",
       "sidebarSubtitle": "Friends, organizations, requests.",
-      "friends": "Friends",
-      "organizations": "Organizations",
-      "requests": "Requests",
       "addFriend": "Add friend",
       "createOrga": "Create org",
-      "createOrgaLong": "Create organization",
       "joinOrga": "Join",
       "accept": "Accept",
       "decline": "Decline",
@@ -177,6 +164,10 @@
         "friends": {
           "label": "Friends",
           "subtitle": "Manage your friends and status."
+        },
+        "players": {
+          "label": "Find players",
+          "subtitle": "Search players by name and send friend requests."
         },
         "organizations": {
           "label": "Organizations",
@@ -187,17 +178,68 @@
           "subtitle": "Pending friend requests."
         }
       },
-      "addFriendForm": {
-        "title": "Add a friend",
-        "usernameLabel": "Exact username",
-        "usernamePlaceholder": "Enter a username...",
-        "success": "Request sent!"
-      },
       "createOrgaForm": {
         "title": "Create an organization",
         "nameLabel": "Organization name",
         "namePlaceholder": "Enter a unique name...",
-        "success": "Organization created!"
+        "success": "Organization created!",
+        "tickerLabel": "Ticker (2–5 letters or digits)",
+        "tickerPlaceholder": "e.g. NOVA"
+      },
+      "playerSearch": {
+        "label": "Player name",
+        "placeholder": "Start typing a name...",
+        "minChars_one": "Type at least {{count}} character to search.",
+        "minChars_other": "Type at least {{count}} characters to search.",
+        "empty": "No player found. Only players who opened the social page once can be found.",
+        "add": "Add",
+        "addAria": "Send a friend request to {{name}}",
+        "requestSent": "Request sent",
+        "friend": "Friend",
+        "you": "You"
+      },
+      "profile": {
+        "openAria": "Open the profile of {{name}}",
+        "reputation": "Reputation",
+        "playtime": "Playtime",
+        "hours_one": "{{count}} h",
+        "hours_other": "{{count}} h",
+        "memberSince": "Member since",
+        "biography": "Biography",
+        "rpSheet": "Role-play sheet",
+        "characterName": "Character:",
+        "alignment": "Alignment:",
+        "corporations": "Organizations",
+        "politics": "Political entities",
+        "politicalTypes": {
+          "commune": "Commune",
+          "agglomeration": "Agglomeration",
+          "department": "Department",
+          "region": "Region",
+          "country": "Country",
+          "federation": "Federation"
+        },
+        "empty": "This player has not written a biography yet.",
+        "noCorporation": "No organization."
+      },
+      "organisation": {
+        "openAria": "Open the organization {{name}}",
+        "members": "Members",
+        "createdAt": "Founded",
+        "description": "Description",
+        "parent": "Holding company",
+        "subsidiaries_one": "{{count}} subsidiary",
+        "subsidiaries_other": "{{count}} subsidiaries",
+        "recruitment": {
+          "open": "Open recruitment",
+          "apply": "Recruitment on application",
+          "closed": "Not recruiting"
+        },
+        "ceoTitle": "CEO",
+        "memberList_one": "{{count}} member",
+        "memberList_other": "{{count}} members",
+        "loadMore_one": "Load {{count}} more member",
+        "loadMore_other": "Load more ({{count}} left)"
       },
       "pendingRequests_one": "{{count}} pending request",
       "pendingRequests_other": "{{count}} pending requests",
@@ -208,16 +250,45 @@
         "members_one": "{{count}} member",
         "members_other": "{{count}} members",
         "memberBadge": "Member",
-        "joinAria": "Join organization {{name}}"
+        "joinAria": "Join organization {{name}}",
+        "applicationBadge": "Application sent",
+        "closedBadge": "Closed"
       },
       "request": {
         "acceptAria": "Accept request from {{name}}",
-        "declineAria": "Decline request from {{name}}"
+        "declineAria": "Decline request from {{name}}",
+        "sent": "Sent",
+        "sentTitle": "Sent requests",
+        "cancel": "Cancel request",
+        "cancelAria": "Cancel request to {{name}}"
       },
       "errors": {
-        "friendRequestFailed": "User not found or request already sent.",
-        "orgaNameTaken": "This organization name is already taken.",
-        "joinOrgaFailed": "Could not join this organization."
+        "unavailable": "The social service cannot be reached. Try again later.",
+        "notSignedIn": "Sign in to use social features.",
+        "sessionExpired": "Your session has expired. Sign in again.",
+        "sanctioned": "Your account is suspended: social features are blocked.",
+        "playerNotFound": "No player with this exact username.",
+        "organisationNotFound": "This organization no longer exists.",
+        "alreadyFriendsOrPending": "You are already friends, or a request is already pending.",
+        "blocked": "You cannot add this player.",
+        "invalidTarget": "You cannot add yourself as a friend.",
+        "nameOrTickerTaken": "This organization name or ticker is already taken.",
+        "alreadyMemberOrPending": "You are already a member, or your application is pending.",
+        "recruitmentClosed": "This organization is not recruiting.",
+        "invalidInput": "Check the fields: name 3–48 characters, ticker 2–5 letters or digits.",
+        "unknown": "Something went wrong. Try again."
+      },
+      "applyOrga": "Apply",
+      "orgaSearch": {
+        "label": "Search organizations",
+        "placeholder": "Name or ticker...",
+        "action": "Search"
+      },
+      "state": {
+        "unavailable": "Social is not available on this server yet.",
+        "notSignedIn": "Sign in to see your friends and organizations.",
+        "errorShort": "Social is unavailable right now.",
+        "retry": "Retry"
       }
     }
   }
