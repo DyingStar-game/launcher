@@ -7,6 +7,11 @@ import { cancelLogin, loadUserProfile, logout, setAuthEventSender, startLogin } 
 export function registerAuthHandlers(win: BrowserWindow): void {
   setAuthEventSender(win.webContents)
 
+  ipcMain.removeHandler('auth:login')
+  ipcMain.removeHandler('auth:cancel-login')
+  ipcMain.removeHandler('auth:logout')
+  ipcMain.removeHandler('auth:load-user')
+
   ipcMain.handle('auth:login', async (_event, env: Env) => {
     try {
       await startLogin(env, win)
