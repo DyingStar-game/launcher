@@ -1,34 +1,29 @@
 import type { ReactNode } from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@lib/cn'
 
-type Variant = 'info' | 'warning' | 'error'
+const panelMessageVariants = cva(
+  'rounded-lg border px-3 py-2 text-xs font-medium leading-snug shadow-sm',
+  {
+    variants: {
+      variant: {
+        info: 'border-sky-500/35 bg-sky-500/12 text-sky-100',
+        warning: 'border-amber-500/35 bg-amber-500/12 text-amber-100',
+        error: 'border-red-500/35 bg-red-500/12 text-red-200'
+      }
+    }
+  }
+)
 
-type Props = {
-  variant: Variant
+type Props = Required<VariantProps<typeof panelMessageVariants>> & {
   children: ReactNode
   className?: string
 }
 
-const STYLES: Record<Variant, string> = {
-  info: 'border-sky-500/35 bg-sky-500/12 text-sky-100',
-  warning: 'border-amber-500/35 bg-amber-500/12 text-amber-100',
-  error: 'border-red-500/35 bg-red-500/12 text-red-200'
-}
-
 /** Inline info/warning/error message box used inside universe panels. */
-export default function PanelMessage({
-  variant,
-  children,
-  className = ''
-}: Props): React.JSX.Element {
+export default function PanelMessage({ variant, children, className }: Props): React.JSX.Element {
   return (
-    <div
-      role="status"
-      className={[
-        'rounded-lg border px-3 py-2 text-xs font-medium leading-snug shadow-sm',
-        STYLES[variant],
-        className
-      ].join(' ')}
-    >
+    <div role="status" className={cn(panelMessageVariants({ variant }), className)}>
       {children}
     </div>
   )

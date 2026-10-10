@@ -1,4 +1,5 @@
 import type { ServerStatusValue } from '@shared/types/game'
+import { cn } from '@lib/cn'
 
 type Props = { status: ServerStatusValue }
 
@@ -19,10 +20,13 @@ export default function ServerStatus({ status }: Props): React.JSX.Element {
     <span className="relative inline-flex w-2.5 h-2.5 shrink-0">
       {pulse && (
         <span
-          className={`animate-ping absolute inline-flex h-full w-full rounded-full ${color} opacity-50`}
+          className={cn(
+            'animate-ping absolute inline-flex h-full w-full rounded-full opacity-50',
+            color
+          )}
         />
       )}
-      <span className={`relative inline-flex rounded-full w-2.5 h-2.5 ${color}`} />
+      <span className={cn('relative inline-flex rounded-full w-2.5 h-2.5', color)} />
     </span>
   )
 }

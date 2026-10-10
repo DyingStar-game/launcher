@@ -5,11 +5,9 @@ import { useEnvStore } from '@stores/env'
 import { navSection, useNavigationStore } from '@stores/navigation'
 import type { TopView } from '@stores/navigation'
 import { useChangelogStore } from '@stores/changelog'
-import { mergeSoundHandlers, useUiSound } from '@hooks/useUiSound'
-import { UiSoundProfile } from '@shared/types/sounds'
-import type { UiSoundProfile as UiSoundProfileType } from '@shared/types/sounds'
 import { useTranslation } from 'react-i18next'
 import Button from '@components/atoms/Button'
+import TabButton from '@components/atoms/TabButton'
 import DiscordIcon from '@components/atoms/icons/DiscordIcon'
 import SoundVolumeMenu from '@components/organisms/layout/SoundVolumeMenu'
 import NavbarMoreMenu from '@components/organisms/layout/NavbarMoreMenu'
@@ -17,29 +15,6 @@ import type { NavbarEnvOption } from '@components/organisms/layout/NavbarMoreMen
 import type { Env } from '@shared/types/env'
 import { navUrls } from '@lib/env'
 import type { ReactNode } from 'react'
-
-/** Wrapper for navbar icon buttons with hover border styling. */
-function Icon({
-  children,
-  className = ''
-}: {
-  children: ReactNode
-  className?: string
-}): React.JSX.Element {
-  return (
-    <span
-      className={[
-        'inline-flex items-center justify-center w-9 h-9 rounded-lg',
-        'border border-[var(--color-ds-border)] bg-white/0',
-        'hover:bg-[var(--color-ds-surface-hover)] hover:border-[var(--color-ds-border)]',
-        'transition-colors',
-        className
-      ].join(' ')}
-    >
-      {children}
-    </span>
-  )
-}
 
 /** Accessible inline SVG with title for screen readers. */
 function Svg({ children, title }: { children: ReactNode; title: string }): React.JSX.Element {
@@ -106,64 +81,11 @@ function HeartDonateIcon(): React.JSX.Element {
   )
 }
 
-type SoundIconButtonProps = {
-  onClick?: () => void
-  disabled?: boolean
-  title?: string
-  ariaLabel: string
-  className?: string
-  iconClassName?: string
-  soundProfile?: UiSoundProfileType
-  children: ReactNode
-}
-
-/** Navbar icon button with default UI hover/click sounds. */
-function SoundIconButton({
-  onClick,
-  disabled,
-  title,
-  ariaLabel,
-  className = 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-[var(--color-ds-muted)]',
-  iconClassName = '',
-  soundProfile = UiSoundProfile.Default,
-  children
-}: SoundIconButtonProps): React.JSX.Element {
-  const uiSound = useUiSound(soundProfile, { disabled })
-  const merged = mergeSoundHandlers(uiSound, {
-    onClick: onClick
-      ? (event) => {
-          if (
-            disabled ||
-            (event.currentTarget instanceof HTMLButtonElement && event.currentTarget.disabled)
-          ) {
-            return
-          }
-          onClick()
-        }
-      : undefined
-  })
-
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={merged.onClick}
-      onMouseEnter={merged.onMouseEnter}
-      className={className}
-      title={title}
-      aria-label={ariaLabel}
-    >
-      <Icon className={iconClassName}>{children}</Icon>
-    </button>
-  )
-}
-
 /** Top bar: env switcher, navigation, external links, language, and window controls. */
 export default function Navbar(): React.JSX.Element {
   const { activeEnv, setEnv } = useEnvStore()
   const { currentView, navigate } = useNavigationStore()
   const hasUnreadChangelog = useChangelogStore((s) => s.hasUnread(activeEnv))
-  const uiSound = useUiSound(UiSoundProfile.Default)
   const { t } = useTranslation()
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -303,140 +225,119 @@ export default function Navbar(): React.JSX.Element {
 
         {/* Env switch (narrow → menu hamburger) */}
         <div className="hidden min-[800px]:flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
-          {envOptions.map(({ env, label }) => {
-            const envHandlers = mergeSoundHandlers(uiSound, {
-              onClick: () => handleEnvSwitch(env)
-            })
-            return (
-              <button
-                key={env}
-                onClick={envHandlers.onClick}
-                onMouseEnter={envHandlers.onMouseEnter}
-                className={[
-                  'px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer',
-                  activeEnv === env
-                    ? 'bg-[var(--color-ds-accent)] text-black'
-                    : 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
-                ].join(' ')}
-              >
-                {label}
-              </button>
-            )
-          })}
+          {envOptions.map(({ env, label }) => (
+            <TabButton
+              key={env}
+              tone="accent"
+              selected={activeEnv === env}
+              onClick={() => handleEnvSwitch(env)}
+            >
+              {label}
+            </TabButton>
+          ))}
         </div>
 
         {/* Liens vues secondaires (compact → menu hamburger) */}
         <div className="hidden min-[1400px]:flex gap-1 p-1 rounded-xl bg-white/3 border border-[var(--color-ds-border)]">
-          {navLinks.map(({ label, view, badge }) => {
-            const linkHandlers = mergeSoundHandlers(uiSound, {
-              onClick: () => navigate(view)
-            })
-            return (
-              <button
-                key={view}
-                onClick={linkHandlers.onClick}
-                onMouseEnter={linkHandlers.onMouseEnter}
-                className={[
-                  'relative px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer',
-                  navSection(currentView) === view
-                    ? 'text-[var(--color-ds-text)] bg-white/10'
-                    : 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
-                ].join(' ')}
-              >
-                {label}
-                {badge && (
-                  <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm">
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="h-2.5 w-2.5 fill-current"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 22a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22zm6-6V11a6 6 0 00-5-5.91V4a1 1 0 10-2 0v1.09A6 6 0 006 11v5l-2 2v1h16v-1l-2-2z" />
-                    </svg>
-                  </span>
-                )}
-              </button>
-            )
-          })}
+          {navLinks.map(({ label, view, badge }) => (
+            <TabButton
+              key={view}
+              selected={navSection(currentView) === view}
+              onClick={() => navigate(view)}
+            >
+              {label}
+              {badge && (
+                <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm">
+                  <svg viewBox="0 0 24 24" className="h-2.5 w-2.5 fill-current" aria-hidden="true">
+                    <path d="M12 22a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22zm6-6V11a6 6 0 00-5-5.91V4a1 1 0 10-2 0v1.09A6 6 0 006 11v5l-2 2v1h16v-1l-2-2z" />
+                  </svg>
+                </span>
+              )}
+            </TabButton>
+          ))}
         </div>
       </div>
 
       {/* Droite : langues + liens externes + soutenir (compact → menu hamburger) ; never shrinks so the window controls stay visible */}
       <div className="app-no-drag flex shrink-0 items-center gap-3">
         <div className="hidden min-[1400px]:flex items-center gap-1 pr-2 border-r border-[var(--color-ds-border)]">
-          <SoundIconButton
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => void i18n.changeLanguage('en')}
             title={t('navbar.languageEn')}
-            ariaLabel={t('navbar.switchToEnglish')}
+            aria-label={t('navbar.switchToEnglish')}
           >
             <FlagEN />
-          </SoundIconButton>
-          <SoundIconButton
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => void i18n.changeLanguage('fr')}
             title={t('navbar.languageFr')}
-            ariaLabel={t('navbar.switchToFrench')}
+            aria-label={t('navbar.switchToFrench')}
           >
             <FlagFR />
-          </SoundIconButton>
+          </Button>
         </div>
 
         <div className="hidden min-[1400px]:contents">
-          <SoundIconButton
+          <Button
+            variant="outline"
+            size="icon"
             disabled={!navWebsite}
             onClick={() => navWebsite && window.open(navWebsite, '_blank')}
             title={navWebsite ? t('navbar.openWebsite') : undefined}
-            ariaLabel={t('navbar.openWebsite')}
-            iconClassName={!navWebsite ? 'opacity-60' : ''}
+            aria-label={t('navbar.openWebsite')}
           >
             <Svg title={t('navbar.openWebsite')}>
               <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.5 9h-3.2a15.7 15.7 0 00-1.1-5 8.04 8.04 0 014.3 5zM12 4c1 1.5 1.8 3.8 2.1 7H9.9C10.2 7.8 11 5.5 12 4zM4.5 13h3.2c.2 1.9.7 3.7 1.1 5a8.04 8.04 0 01-4.3-5zm0-2a8.04 8.04 0 014.3-5c-.4 1.3-.9 3.1-1.1 5H4.5zm7.5 9c-1-1.5-1.8-3.8-2.1-7h4.2c-.3 3.2-1.1 5.5-2.1 7zm3.2-2c.4-1.3.9-3.1 1.1-5h3.2a8.04 8.04 0 01-4.3 5z" />
             </Svg>
-          </SoundIconButton>
+          </Button>
 
-          <SoundIconButton
+          <Button
+            variant="outline"
+            size="icon"
             disabled={!navDiscord}
             onClick={() => navDiscord && window.open(navDiscord, '_blank')}
             title={navDiscord ? t('navbar.brandDiscord') : undefined}
-            ariaLabel={t('navbar.openDiscord')}
-            iconClassName={!navDiscord ? 'opacity-60' : ''}
+            aria-label={t('navbar.openDiscord')}
           >
             <DiscordIcon className="w-4.5 h-4.5" title={t('navbar.brandDiscord')} />
-          </SoundIconButton>
+          </Button>
 
-          <SoundIconButton
+          <Button
+            variant="outline"
+            size="icon"
             disabled={!navWiki}
             onClick={() => navWiki && window.open(navWiki, '_blank')}
             title={navWiki ? t('navbar.brandWiki') : undefined}
-            ariaLabel={t('navbar.openWiki')}
-            iconClassName={!navWiki ? 'opacity-60' : ''}
+            aria-label={t('navbar.openWiki')}
           >
             <Svg title={t('navbar.brandWiki')}>
               <path d="M6 4h11a2 2 0 012 2v12a2 2 0 01-2 2H6a3 3 0 01-3-3V6a2 2 0 012-2h1zm0 2H5v11a1 1 0 001 1h11V6H6zm2 2h7v2H8V8zm0 4h7v2H8v-2z" />
             </Svg>
-          </SoundIconButton>
+          </Button>
         </div>
 
         <div className="ml-2">
           <SoundVolumeMenu />
         </div>
 
-        {/* Wrapper owns the display: Button's own inline-flex would override `hidden` */}
-        <div className="ml-1 hidden min-[1400px]:flex">
-          <Button
-            disabled={!navDonate}
-            onClick={() => navDonate && window.open(navDonate, '_blank')}
-            variant="primary"
-            size="sm"
-            title={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
-            aria-label={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
-            className="rounded-full px-4 shadow-none overflow-visible"
-          >
-            <span className="inline-flex items-center gap-2 overflow-visible">
-              <HeartDonateIcon />
-              {t('navbar.support')}
-            </span>
-          </Button>
-        </div>
+        <Button
+          disabled={!navDonate}
+          onClick={() => navDonate && window.open(navDonate, '_blank')}
+          variant="primary"
+          size="sm"
+          title={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
+          aria-label={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
+          className="ml-1 hidden min-[1400px]:inline-flex rounded-full px-4 shadow-none overflow-visible"
+        >
+          <span className="inline-flex items-center gap-2 overflow-visible">
+            <HeartDonateIcon />
+            {t('navbar.support')}
+          </span>
+        </Button>
 
         <div className="min-[1400px]:hidden">
           <NavbarMoreMenu
@@ -450,23 +351,27 @@ export default function Navbar(): React.JSX.Element {
         </div>
 
         <div className="flex items-center gap-1 pl-2 border-l border-[var(--color-ds-border)]">
-          <SoundIconButton
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => {
               void window.api.minimizeWindow()
             }}
             title={t('navbar.minimize')}
-            ariaLabel={t('navbar.minimize')}
+            aria-label={t('navbar.minimize')}
           >
             <Svg title={t('navbar.minimize')}>
               <path d="M5 19h14v-2H5v2z" />
             </Svg>
-          </SoundIconButton>
-          <SoundIconButton
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => {
               void window.api.toggleFullscreen().then(setIsFullscreen)
             }}
             title={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}
-            ariaLabel={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}
+            aria-label={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}
           >
             <Svg title={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}>
               {isFullscreen ? (
@@ -475,20 +380,21 @@ export default function Navbar(): React.JSX.Element {
                 <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
               )}
             </Svg>
-          </SoundIconButton>
-          <SoundIconButton
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => {
               void window.api.closeWindow()
             }}
             title={t('navbar.close')}
-            ariaLabel={t('navbar.close')}
-            className="text-[var(--color-ds-muted)] hover:text-red-300 transition-colors cursor-pointer"
-            iconClassName="hover:border-red-500/40"
+            aria-label={t('navbar.close')}
+            className="hover:text-red-300 hover:border-red-500/40"
           >
             <Svg title={t('navbar.close')}>
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
             </Svg>
-          </SoundIconButton>
+          </Button>
         </div>
       </div>
     </nav>

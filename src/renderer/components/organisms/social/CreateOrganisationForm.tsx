@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSocialStore } from '@stores/social'
+import Button from '@components/atoms/Button'
 import InputField from '@components/molecules/InputField'
 import { socialPanelAutoCloseMs } from '@lib/env'
 import { getSocialErrorMessage } from '@lib/socialErrors'
@@ -63,12 +64,9 @@ export default function CreateOrganisationForm({
         </p>
       )}
       {status === 'error' && <p className="text-xs text-red-400">{errorMsg}</p>}
-      <button
-        onClick={onClose}
-        className="text-xs text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] transition-colors text-left"
-      >
+      <Button variant="link" size="none" onClick={onClose} className="self-start text-xs">
         {t('common.cancel')}
-      </button>
+      </Button>
     </div>
   )
 }

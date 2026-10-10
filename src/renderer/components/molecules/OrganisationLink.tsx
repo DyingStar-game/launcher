@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { OrganisationRef } from '@shared/types/social'
+import { UiSoundProfile } from '@shared/types/sounds'
+import Button from '@components/atoms/Button'
 
 type Props = {
   organisation: OrganisationRef
@@ -12,16 +14,18 @@ export default function OrganisationLink({ organisation, onOpen }: Props): React
   const { t } = useTranslation()
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="bare"
+      size="none"
+      soundProfile={UiSoundProfile.None}
       onClick={onOpen}
       aria-label={t('universe.socialPage.organisation.openAria', { name: organisation.name })}
-      className="min-w-0 truncate text-left text-sm font-medium text-[var(--color-ds-text)] hover:underline cursor-pointer"
+      className="block min-w-0 truncate text-left text-sm font-medium text-[var(--color-ds-text)] hover:underline"
     >
       {organisation.name}{' '}
       <span className="text-xs font-normal text-[var(--color-ds-muted)]">
         [{organisation.ticker}]
       </span>
-    </button>
+    </Button>
   )
 }

@@ -9,6 +9,7 @@ import SheetStat from '@components/molecules/SheetStat'
 import PlayerAffiliations from '@components/organisms/social/PlayerAffiliations'
 import PlayerHeader from '@components/organisms/social/PlayerHeader'
 import DetailPageLayout from '@components/templates/DetailPageLayout'
+import { cn } from '@lib/cn'
 
 /** Player page (ADR 0012): identity and friend action, figures, about, affiliations. */
 export default function PlayerPage(): React.JSX.Element {
@@ -26,7 +27,10 @@ export default function PlayerPage(): React.JSX.Element {
         header={null}
         placeholder={
           <p
-            className={`text-sm ${state.kind === 'error' ? 'text-red-400' : 'text-[var(--color-ds-muted)]'}`}
+            className={cn(
+              'text-sm',
+              state.kind === 'error' ? 'text-red-400' : 'text-[var(--color-ds-muted)]'
+            )}
           >
             {state.kind === 'error' ? state.message : t('universe.socialPage.state.loading')}
           </p>

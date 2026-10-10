@@ -33,3 +33,4 @@ on the model of [`DyingStar-game/adminpanel`](https://github.com/DyingStar-game/
 | [0012](./0012-sheets-as-pages.md)               | Player and organisation sheets as pages                                   | Accepted                                 | 2026-10-10 |
 | [0013](./0013-back-restores-page-state.md)      | Back restores where the player was                                        | Accepted                                 | 2026-10-10 |
 | [0014](./0014-bbcode-player-texts.md)           | BBCode in player texts                                                    | Accepted                                 | 2026-10-10 |
+| [0015](./0015-component-variants-cva-cn.md)     | Component variants with `cva` and `cn()`; buttons only through atoms      | Accepted                                 | 2026-10-10 |

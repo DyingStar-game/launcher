@@ -36,9 +36,10 @@ describe('Navbar', () => {
 
   it('hides the donate button below the wide breakpoint', () => {
     render(<Navbar />)
-    expect(
-      screen.getByRole('button', { name: /^(Donate|Support link not configured)$/ }).parentElement
-    ).toHaveClass('hidden', 'min-[1400px]:flex')
+    const donate = screen.getByRole('button', { name: /^(Donate|Support link not configured)$/ })
+    // cn() drops the atom's own inline-flex, so `hidden` really applies
+    expect(donate).toHaveClass('hidden', 'min-[1400px]:inline-flex')
+    expect(donate).not.toHaveClass('inline-flex')
   })
 
   it('folds the section links into the menu below the wide breakpoint', () => {

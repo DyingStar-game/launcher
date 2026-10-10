@@ -1,5 +1,7 @@
 import { useEffect, useId } from 'react'
 import { useTranslation } from 'react-i18next'
+import Button from '@components/atoms/Button'
+import { cn } from '@lib/cn'
 
 type Props = {
   title: string
@@ -37,17 +39,12 @@ export default function Modal({
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className={`ds-modal ${width} w-full max-h-[min(85vh,720px)] flex flex-col`}>
+      <div className={cn('ds-modal w-full max-h-[min(85vh,720px)] flex flex-col', width)}>
         <header className="shrink-0 flex items-center justify-between gap-4 px-5 py-4 border-b border-[var(--color-ds-border)]">
           <h2 id={titleId} className="text-sm font-semibold text-[var(--color-ds-text)]">
             {title}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={t('common.close')}
-            className="shrink-0 rounded-lg p-1.5 text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-[var(--color-ds-border)]/40 transition-colors"
-          >
+          <Button variant="ghost" size="icon-xs" onClick={onClose} aria-label={t('common.close')}>
             <svg
               viewBox="0 0 16 16"
               className="w-4 h-4 fill-none stroke-current stroke-[1.8]"
@@ -55,7 +52,7 @@ export default function Modal({
             >
               <path d="M4 4l8 8M12 4l-8 8" />
             </svg>
-          </button>
+          </Button>
         </header>
         <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">{children}</div>
       </div>

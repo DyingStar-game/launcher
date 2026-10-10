@@ -38,12 +38,12 @@ export default function OrganisationAction({ id, name, recruitment }: Props): Re
     }
   }
 
-  const badge = memberOf.includes(id)
-    ? t('universe.socialPage.orga.memberBadge')
+  const badge: { label: string; icon: 'check' | 'pending' | 'lock' } | null = memberOf.includes(id)
+    ? { label: t('universe.socialPage.orga.memberBadge'), icon: 'check' }
     : appliedTo.includes(id)
-      ? t('universe.socialPage.orga.applicationBadge')
+      ? { label: t('universe.socialPage.orga.applicationBadge'), icon: 'pending' }
       : recruitment === 'closed'
-        ? t('universe.socialPage.orga.closedBadge')
+        ? { label: t('universe.socialPage.orga.closedBadge'), icon: 'lock' }
         : null
   const joinLabel =
     recruitment === 'open' ? t('universe.socialPage.joinOrga') : t('universe.socialPage.applyOrga')
@@ -51,7 +51,9 @@ export default function OrganisationAction({ id, name, recruitment }: Props): Re
   return (
     <div className="shrink-0 flex flex-col items-end gap-1">
       {badge ? (
-        <Badge variant={memberOf.includes(id) ? 'accent' : 'muted'}>{badge}</Badge>
+        <Badge variant={badge.icon === 'check' ? 'accent' : 'muted'} icon={badge.icon}>
+          {badge.label}
+        </Badge>
       ) : (
         <Button
           variant="outline"

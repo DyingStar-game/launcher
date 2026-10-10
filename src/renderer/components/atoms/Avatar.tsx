@@ -1,5 +1,7 @@
+import { cva } from 'class-variance-authority'
 import type { FriendStatus } from '@shared/types/social'
 import { PRESENCE_COLOR } from '@lib/presence'
+import { cn } from '@lib/cn'
 
 type Props = {
   /** Name whose first letter is shown, unless `label` is given. */
@@ -13,10 +15,17 @@ type Props = {
   status?: FriendStatus
 }
 
-const sizes = {
-  sm: { box: 'w-8 h-8 text-xs', dot: 'w-2.5 h-2.5' },
-  lg: { box: 'w-14 h-14 text-lg', dot: 'w-3 h-3' }
-} as const
+const avatarVariants = cva('bg-[var(--color-ds-border)] flex items-center justify-center', {
+  variants: {
+    size: { sm: 'w-8 h-8 text-xs', lg: 'w-14 h-14 text-lg' },
+    shape: { circle: 'rounded-full', square: 'rounded-xl' }
+  }
+})
+
+const dotVariants = cva(
+  'absolute bottom-0 right-0 rounded-full border border-[var(--color-ds-surface)]',
+  { variants: { size: { sm: 'w-2.5 h-2.5', lg: 'w-3 h-3' } } }
+)
 
 /** Initial (or short label) in a placeholder avatar, with an optional presence dot. */
 export default function Avatar({
@@ -28,9 +37,7 @@ export default function Avatar({
 }: Props): React.JSX.Element {
   return (
     <div className="relative shrink-0">
-      <div
-        className={`${sizes[size].box} ${shape === 'circle' ? 'rounded-full' : 'rounded-xl'} bg-[var(--color-ds-border)] flex items-center justify-center`}
-      >
+      <div className={avatarVariants({ size, shape })}>
         <span className="font-semibold text-[var(--color-ds-muted)] select-none uppercase">
           {label ?? name.charAt(0)}
         </span>
@@ -39,7 +46,7 @@ export default function Avatar({
         <span
           data-testid="presence-dot"
           data-status={status}
-          className={`absolute bottom-0 right-0 ${sizes[size].dot} rounded-full border border-[var(--color-ds-surface)] ${PRESENCE_COLOR[status]}`}
+          className={cn(dotVariants({ size }), PRESENCE_COLOR[status])}
         />
       )}
     </div>

@@ -13,6 +13,7 @@ import { formatReleaseDateDisplay } from '@lib/formatReleaseDate'
 import { formatInstallProgress } from '@lib/formatInstallProgress'
 import { isGameUpdateAvailable } from '@lib/isGameUpdateAvailable'
 import { toastDurationMs } from '@lib/env'
+import { cn } from '@lib/cn'
 
 /** Files panel: install path, install/update progress, and cache clear. */
 export default function FilesPanel(): React.JSX.Element {
@@ -171,7 +172,7 @@ export default function FilesPanel(): React.JSX.Element {
         <div
           role="status"
           aria-live="polite"
-          className={[
+          className={cn(
             'pointer-events-none absolute bottom-4 right-4 z-10 max-w-[min(calc(100%-2rem),22rem)]',
             'rounded-lg border px-3 py-2 text-right text-xs font-medium shadow-lg',
             cacheToast === 'success'
@@ -179,7 +180,7 @@ export default function FilesPanel(): React.JSX.Element {
               : cacheToast === 'partial'
                 ? 'border-amber-500/35 bg-amber-500/12 text-amber-100'
                 : 'border-red-500/35 bg-red-500/12 text-red-200'
-          ].join(' ')}
+          )}
         >
           {cacheToast === 'success' && t('universe.files.clearCacheToastOk')}
           {cacheToast === 'partial' && t('universe.files.clearCacheToastPartial')}

@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { formatGameVersionDisplay } from '@shared/gameVersion'
 import { launcherReleaseTagUrl } from '@lib/launcherRelease'
+import { cn } from '@lib/cn'
+import Button from '@components/atoms/Button'
 
 type Variant = 'launcher' | 'game'
 
@@ -87,16 +89,19 @@ export default function UpdateAlert({
 
   return (
     <div
-      className={`flex items-start gap-3 px-4 py-3 rounded-xl border ${cls.wrapper} transition-all`}
+      className={cn(
+        'flex items-start gap-3 px-4 py-3 rounded-xl border transition-all',
+        cls.wrapper
+      )}
     >
       {/* Icône */}
       <span className={cls.icon}>{cfg.icon}</span>
 
       {/* Texte */}
       <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-        <span className={`text-xs font-semibold ${cls.title}`}>{title}</span>
+        <span className={cn('text-xs font-semibold', cls.title)}>{title}</span>
 
-        <div className={`flex flex-col gap-1 text-[11px] ${cls.text}`}>
+        <div className={cn('flex flex-col gap-1 text-[11px]', cls.text)}>
           <div className="flex flex-wrap items-center gap-1.5">
             {currentVersion && (
               <span className="font-mono opacity-60">
@@ -105,7 +110,10 @@ export default function UpdateAlert({
             )}
             {currentVersion && <span>→</span>}
             <span
-              className={`inline-flex items-center px-1.5 py-0.5 rounded border font-mono font-semibold text-[10px] ${cls.badge}`}
+              className={cn(
+                'inline-flex items-center px-1.5 py-0.5 rounded border font-mono font-semibold text-[10px]',
+                cls.badge
+              )}
             >
               {formatGameVersionDisplay(latestVersion)}
             </span>
@@ -133,10 +141,12 @@ export default function UpdateAlert({
 
       {/* Fermer (optionnel) */}
       {onDismiss && (
-        <button
+        <Button
+          variant="bare"
+          size="none"
           onClick={onDismiss}
           aria-label={t('universe.updateAlert.dismiss')}
-          className={`shrink-0 transition-colors ${cls.dismiss}`}
+          className={cn('shrink-0', cls.dismiss)}
         >
           <svg
             viewBox="0 0 16 16"
@@ -145,7 +155,7 @@ export default function UpdateAlert({
           >
             <path d="M4 4l8 8M12 4l-8 8" />
           </svg>
-        </button>
+        </Button>
       )}
     </div>
   )

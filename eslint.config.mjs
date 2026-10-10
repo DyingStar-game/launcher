@@ -75,5 +75,24 @@ export default defineConfig(
     files: ['src/renderer/components/templates/**/*.{ts,tsx}'],
     rules: levelRules([...upward('pages'), noStores], true)
   },
+  {
+    // ADR 0015: buttons only through atoms, so every button shares the same variants
+    files: ['src/renderer/**/*.tsx'],
+    ignores: ['src/renderer/components/atoms/**', 'src/renderer/**/*.test.tsx'],
+    rules: {
+      'react/forbid-elements': [
+        'error',
+        {
+          forbid: [
+            {
+              element: 'button',
+              message:
+                'ADR 0015: use an atom (Button, TabButton, MenuItemButton, SidebarItemButton) instead of a raw <button>.'
+            }
+          ]
+        }
+      ]
+    }
+  },
   eslintConfigPrettier
 )

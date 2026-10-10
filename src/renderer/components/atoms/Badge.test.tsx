@@ -12,4 +12,16 @@ describe('Badge', () => {
     render(<Badge variant="accent">Member</Badge>)
     expect(screen.getByText('Member')).toHaveClass('text-[var(--color-ds-accent)]')
   })
+
+  it('has no frame, so it never looks like a chip button', () => {
+    render(<Badge>Closed</Badge>)
+    expect(screen.getByText('Closed')).not.toHaveClass('border')
+  })
+
+  it('shows an icon only when asked', () => {
+    const { container, rerender } = render(<Badge>Request sent</Badge>)
+    expect(container.querySelector('svg')).toBeNull()
+    rerender(<Badge icon="pending">Request sent</Badge>)
+    expect(container.querySelector('svg')).toBeInTheDocument()
+  })
 })
