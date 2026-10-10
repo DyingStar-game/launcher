@@ -33,3 +33,8 @@ ehthumbs.db
 
 # Electron legacy
 app/
+
+# Claude Code: personal settings and the check hook's state (ADR 0019)
+.claude/settings.local.json
+.claude/.check-ok
+.claude/.check-failed

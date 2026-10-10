@@ -37,3 +37,4 @@ on the model of [`DyingStar-game/adminpanel`](https://github.com/DyingStar-game/
 | [0016](./0016-shadcn-radix-interactive-primitives.md) | shadcn/ui on Radix for interactive primitives                             | Accepted                                       | 2026-10-10 |
 | [0017](./0017-classname-layout-only.md)               | `className` on components is for layout only; looks are variants          | Accepted                                       | 2026-10-10 |
 | [0018](./0018-loading-states.md)                      | Loading states: skeletons for content, a spinner in action buttons        | Accepted                                       | 2026-10-10 |
+| [0019](./0019-claude-code-shared-setup.md)            | Claude Code: shared instructions, hooks and skills in the repository      | Accepted                                       | 2026-10-10 |

@@ -11,6 +11,17 @@ Electron desktop launcher for the game _Dying Star_ (electron-vite, React 19, Ta
 - **Never commit, amend, tag or push on your own.** The maintainer creates every commit; do it only when explicitly asked, for that change.
 - Never add `Co-Authored-By` or any AI attribution to commits or PR descriptions.
 - Allowed otherwise: creating/switching branches and read-only commands (`git status`, `git diff`, `git log`).
+- When asked to commit: thematic commits (`type(scope): subject`, a body per topic or ADR), each passing `make check` on its own — order them so no intermediate commit breaks, and say so when shared files force grouping. Leave personal files out (e.g. `.vscode/settings.json`).
+- When asked to push or open/update a PR: keep its description current, including the `CHANGELOG_EN` / `CHANGELOG_FR` sections. `gh pr edit` fails on this repository (Projects classic deprecation): update the body with `gh api -X PATCH repos/DyingStar-game/launcher/pulls/<n> -F body=@<file>`.
+
+## Claude Code setup (ADR 0019)
+
+The rules are enforced, not only written. Do not disable or bypass them (no `--no-verify`, no editing `.claude/settings.json` to skip a hook); personal settings go in `.claude/settings.local.json`.
+
+- After each `Edit` / `Write`, a hook formats and lints the file: fix what it reports before going on.
+- Before handing back, a hook runs the `make check` steps when code changed since the last passing run: the turn is not done while it fails.
+- Skill `verify-ui`: how to run, capture, measure and drive the launcher to check a renderer change.
+- A new rule goes into an ADR and this file, lint-enforced when possible; a repeatable procedure becomes a skill in `.claude/skills/`. Nothing project-related belongs in personal memory.
 
 ## Commands
 
@@ -52,6 +63,13 @@ Path aliases (`electron.vite.config.ts` + tsconfigs): main/preload only get `@sh
 - While data loads, show a skeleton of the content (`ListSkeleton`, `DetailHeaderSkeleton` / `StatsSkeleton`, `TextSkeleton`, built on `ui/skeleton`), only after 150 ms (`useDelayedFlag`); an action button that waits uses `Button loading` (spinner, same width). No "Loading…" text placeholders (ADR 0018).
 - Interactive primitives (menus, popovers, tooltips, tabs; `Dialog` when a modal is needed) come from shadcn/ui on Radix in `components/ui/` (ADR 0016), at the atom level, triggered by our atoms through `asChild`: `DropdownMenu` (burger), `Popover` + `Slider` (volume), `LabelTooltip` (icon buttons, instead of `title`), `Tabs` (social page). Their portalled content carries `app-no-drag`. Add one with `make pnpm dlx shadcn@4.21.4 add <name> --view <path>` and copy it in: the CLI resolves `utils` to a bogus `cn` package (import `cn` from `@lib/cn`), and the `shadcn` package is not installed (its `data-*` variants live in `assets/shadcn.css`; animations come from `tw-animate-css`).
 
+### Checking a UI change
+
+- Component tests (jsdom) check behaviour, not layout or computed styles: also run the launcher (skill `verify-ui`) (`make dev`, `PLATFORM=x11|wayland` on Linux) and look at it at ≥1400px, below 1400px (burger menu) and below 800px (universe switch in the menu).
+- Same kind, same look: text and icon buttons are 36px high (`h-9`), spacing comes from the parent's `gap`, never from per-call margins or classes (ADR 0017); icons share the same visual size; every tooltip is Radix (`LabelTooltip`).
+- A behaviour players rely on (e.g. a click on the speaker mutes) does not change without the maintainer's agreement, even when an ADR seems to suggest it.
+- After fixing a defect, look for its other occurrences (every native `title`, every `asChild` wrapper overriding our atoms' classes…).
+
 ### Adding an IPC call
 
 1. Handler in a `src/main/services/**` module, using the `ipcMain.removeHandler(ch); ipcMain.handle(ch, …)` pattern (handlers can be re-registered when the window is recreated). Channels are namespaced: `files:*`, `game:*`, `auth:*`, `window:*`, `version:*`, `changelog:*`, `env:*`, `app:*`.
@@ -81,7 +99,7 @@ Significant decisions are recorded in [`docs/adr/`](./docs/adr/) (Nygard format,
   - any IPC, main or preload change: [0003](./docs/adr/0003-process-boundaries-ipc.md);
   - anything env-dependent, any `VITE_*` variable: [0004](./docs/adr/0004-two-game-environments.md);
   - sign-in, tokens, game launch: [0005](./docs/adr/0005-keycloak-pkce-authentication.md);
-  - tooling, Makefile, CI setup: [0002](./docs/adr/0002-makefile-tooling.md); dependency and toolchain versions: [0006](./docs/adr/0006-toolchain-versions.md);
+  - tooling, Makefile, CI setup: [0002](./docs/adr/0002-makefile-tooling.md); Claude Code hooks, skills and instructions: [0019](./docs/adr/0019-claude-code-shared-setup.md); dependency and toolchain versions: [0006](./docs/adr/0006-toolchain-versions.md);
   - social (friends, requests, organisations), tests: [0007](./docs/adr/0007-social-player-side.md); player search screen: [0008](./docs/adr/0008-player-search-screen.md); player sheet: [0009](./docs/adr/0009-player-profile-sheet.md); organisation sheet: [0010](./docs/adr/0010-organisation-sheet.md); both as pages with back history: [0012](./docs/adr/0012-sheets-as-pages.md); Back restoring tab, search, scroll: [0013](./docs/adr/0013-back-restores-page-state.md); BBCode in player texts: [0014](./docs/adr/0014-bbcode-player-texts.md);
   - any renderer component: [0011](./docs/adr/0011-atomic-design.md); classes, variants and buttons: [0015](./docs/adr/0015-component-variants-cva-cn.md); menus, popovers, dialogs, tooltips, tabs (`components/ui/`): [0016](./docs/adr/0016-shadcn-radix-interactive-primitives.md); `className` layout only: [0017](./docs/adr/0017-classname-layout-only.md); loading states: [0018](./docs/adr/0018-loading-states.md).
 - A rule that cannot be followed is raised with the maintainer, never skipped silently. An accepted ADR is never rewritten: a new ADR supersedes it.
