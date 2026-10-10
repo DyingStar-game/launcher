@@ -77,8 +77,17 @@ function createWindow(): void {
   registerFilesHandlers(mainWindow)
   registerAuthHandlers(mainWindow)
 
+  /**
+   * Wayland does not paint a hidden window, so `ready-to-show` (first paint) never fires
+   * while `show: false` holds: also show once the page has loaded.
+   */
+  const showWindow = (): void => {
+    if (mainWindow && !mainWindow.isVisible()) mainWindow.show()
+  }
+  mainWindow.webContents.once('did-finish-load', showWindow)
+
   mainWindow.on('ready-to-show', () => {
-    mainWindow!.show()
+    showWindow()
     if (import.meta.env.VITE_ENABLE_DEVTOOLS === 'true') {
       mainWindow!.webContents.openDevTools()
     }
