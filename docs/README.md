@@ -7,4 +7,6 @@ Bilingual documentation for contributors and maintainers.
 | English  | [en/ONBOARDING.md](en/ONBOARDING.md) | [en/CONTRIBUTING.md](en/CONTRIBUTING.md) | [en/CODE_OF_CONDUCT.md](en/CODE_OF_CONDUCT.md) | [en/SECURITY.md](en/SECURITY.md) | [en/CHANGELOG.md](en/CHANGELOG.md) |
 | Français | [fr/ONBOARDING.md](fr/ONBOARDING.md) | [fr/CONTRIBUTING.md](fr/CONTRIBUTING.md) | [fr/CODE_OF_CONDUCT.md](fr/CODE_OF_CONDUCT.md) | [fr/SECURITY.md](fr/SECURITY.md) | [fr/CHANGELOG.md](fr/CHANGELOG.md) |
 
+Architecture decisions (English only): [adr/README.md](adr/README.md).
+
 **Default development branch:** `develop` (create feature branches from `develop`, not `main`).

@@ -1,0 +1,49 @@
+# 0006. Toolchain versions: Node 24, pnpm 12, Electron 44
+
+- **Status:** Proposed
+- **Date:** 2026-10-10
+- **Scope:** Project-wide (tooling, dependencies)
+- **Supersedes:** the "Versions" row of [ADR 0002](./0002-makefile-tooling.md)
+
+## Context
+
+The dependencies had not been updated for a while: pnpm 10, Node `>=20` (CI on 22),
+TypeScript 5.9, and Electron not even declared in `package.json` — it was only installed as a
+peer of `@electron-toolkit/*`, so its version followed whatever the lockfile resolved (42.1.0).
+Several upgrades are blocked by peer ranges of the tools around them, so "latest everywhere" is
+not possible today.
+
+State on 2026-10-10: Node 24 is the active LTS (26 becomes LTS at the end of October), pnpm
+12.10.1 is `latest`, Electron 44.7.0 is `latest` (bundles Node 24.21), electron-vite 5.0.0 is
+the latest stable (6.0 in beta).
+
+## Decision
+
+| Element                       | Version                                  | Notes                                                                                                                                                                                                                                                                                                |
+| ----------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node                          | `.nvmrc` = 24, `engines.node` = `>=24`   | Active LTS, same major as Electron 44's embedded Node. CI reads `.nvmrc`.                                                                                                                                                                                                                            |
+| pnpm                          | `12.10.1` via `packageManager`           | pnpm 11+ reads only auth / registry from `.npmrc`: `shamefullyHoist` moves to `pnpm-workspace.yaml` and `.npmrc` is removed. Default `minimumReleaseAge` (1 day) is kept.                                                                                                                            |
+| Electron                      | `^44.7.0`, declared in `devDependencies` | Electron 43–44 breaking changes reviewed: none affects our code (no `clipboard`, `net.request`, ia32 build). Electron 44 has no postinstall: `dev` and `start` run `install-electron` first (no-op once downloaded), since electron-vite reads `node_modules/electron/path.txt` without downloading. |
+| TypeScript                    | `^6.0`                                   | `baseUrl` removed from the tsconfigs (deprecated in 6.0): `paths` are relative (`./src/...`).                                                                                                                                                                                                        |
+| `@types/node`                 | `^24`                                    | Matches the Node major.                                                                                                                                                                                                                                                                              |
+| `eslint-plugin-react-refresh` | `^0.5`                                   | Named `reactRefresh` export, configs are functions (`reactRefresh.configs.vite()`).                                                                                                                                                                                                                  |
+| Everything else               | Latest within the current major          | `pnpm up`.                                                                                                                                                                                                                                                                                           |
+| `@types/extract-zip`          | Removed                                  | Deprecated: `extract-zip` ships its own types.                                                                                                                                                                                                                                                       |
+
+Held back, with the blocker to watch:
+
+| Package                                             | Stays on  | Blocked by                                                                                                                                   |
+| --------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vite` 8, `@vitejs/plugin-react` 6                  | 7, 5      | `electron-vite` 5 peers `vite ^5 \|\| ^6 \|\| ^7`; wait for electron-vite 6 stable.                                                          |
+| `typescript` 7                                      | 6         | `typescript-eslint` peers `typescript <6.1`.                                                                                                 |
+| `eslint` 10, `@electron-toolkit/eslint-config-ts` 4 | 9, 3      | `eslint-plugin-react` 7.37.5 peers `eslint ^9.7` (no release since 2025-04).                                                                 |
+| `get-stream`, `yauzl`, `buffer-crc32` majors        | 5, 2, 0.2 | They are `extract-zip` 2's own dependencies, listed directly so they are packaged; their versions must stay the ones `extract-zip` asks for. |
+
+## Consequences
+
+- Contributors need Node 24 (`nvm use`) and get pnpm 12 automatically through `packageManager`.
+- A newly published package is not resolved for 24 h (`minimumReleaseAge`); a fix needed sooner
+  must be allowed explicitly.
+- Electron 45 deprecates the synchronous `safeStorage` API used by `tokenStorage.ts`, and
+  Electron 46 removes it: migrating to the async API will be needed before going past 44.
+- The held-back packages are revisited when their blocker moves.

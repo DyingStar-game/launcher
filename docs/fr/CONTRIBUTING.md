@@ -8,20 +8,20 @@ Merci de contribuer au Dying Star Launcher.
 - [Code de conduite](CODE_OF_CONDUCT.md)
 - [Politique de sécurité](SECURITY.md)
 - [Changelog](CHANGELOG.md)
+- [Architecture Decision Records](../adr/README.md)
 
 ## Workflow
 
 1. Fork (contributeur externe) et clone
 2. Se placer sur **`develop`**, créer une branche : `feature/description` ou `fix/description`
-3. Installer avec **pnpm uniquement** : `pnpm install`
-4. Copier `.env.example` → `.env`
+3. Installer avec **pnpm uniquement** : `make install` (crée `.env` depuis `.env.example` ; sinon `pnpm install` + copie manuelle)
+4. Configurer `.env` si besoin
 5. Implémenter les changements
 6. Vérifications :
    ```bash
-   pnpm run format
-   pnpm run typecheck
-   pnpm run lint
+   make check
    ```
+   (sans `make` : `pnpm run format && pnpm run lint && pnpm run typecheck`)
 7. Ouvrir une Pull Request **vers `develop`**
 
 ## Conventions de code
@@ -31,6 +31,12 @@ Merci de contribuer au Dying Star Launcher.
 - **Textes UI** uniquement via i18n (`src/renderer/i18n/*.json`)
 - **IPC** : handler dans `src/main`, exposition dans `preload`, types dans `@shared/types` si partagés
 - PRs courtes et ciblées
+
+## Décisions d’architecture
+
+Les décisions importantes sont consignées en ADR dans [`docs/adr/`](../adr/README.md) (en anglais) :
+rédigées en `Proposed` dans la PR, `Accepted` avant l’implémentation. Un ADR accepté fait foi :
+relire les ADR de la zone touchée et vérifier son changement par rapport à eux avant la revue.
 
 ## Messages de commit
 
@@ -43,9 +49,9 @@ Sujets clairs à l’impératif, par ex. :
 ## Checklist PR
 
 - [ ] Basée sur `develop` à jour
-- [ ] `pnpm run typecheck` OK
-- [ ] `pnpm run lint` OK
-- [ ] Changelog EN + FR mis à jour si changement visible
+- [ ] `make check` OK
+- [ ] Changement conforme aux ADR acceptés de la zone ; nouvelle décision importante consignée en ADR
+- [ ] Changement visible décrit dans les sections `CHANGELOG_EN` / `CHANGELOG_FR` de la description de PR (enregistré à la fusion)
 - [ ] Pas de secrets ni de `.env` commité
 - [ ] Captures d’écran pour changements UI (optionnel)
 
