@@ -80,7 +80,11 @@ Le `Makefile` à la racine est le point d’entrée commun, comme dans les autre
 | `make check`      | Format, lint, typecheck, vérification du format — avant un commit |
 | `make build`      | Build production dans `out/`                                      |
 | `make package`    | Installeur pour l’OS courant dans `release/`                      |
-| `make clean`      | Supprime `out/`, `release/` et le cache ESLint                    |
+
+Sous Linux, Electron choisit X11 ou Wayland selon la session. Pour reproduire un bug d’affichage
+sur l’autre backend, forcez-le avec `make dev PLATFORM=wayland` ou `make dev PLATFORM=x11`
+(idem pour `make start`). Sous WSLg, le socket Wayland est trouvé automatiquement.
+| `make clean` | Supprime `out/`, `release/` et le cache ESLint |
 
 Sans `make` (ex. Windows sans Git Bash), appeler directement les scripts pnpm : `pnpm run dev`,
 `pnpm run typecheck`, `pnpm run lint`, `pnpm run format`, `pnpm run build`.

@@ -80,7 +80,11 @@ The root `Makefile` is the common entry point, as in the other DyingStar reposit
 | `make check`      | Format, lint, typecheck, format check — before every commit |
 | `make build`      | Production build to `out/`                                  |
 | `make package`    | Installer for the current OS in `release/`                  |
-| `make clean`      | Remove `out/`, `release/` and the ESLint cache              |
+
+On Linux, Electron picks X11 or Wayland from the session. To reproduce a display bug on the
+other backend, force it with `make dev PLATFORM=wayland` or `make dev PLATFORM=x11` (same for
+`make start`). Under WSLg, the Wayland socket is found automatically.
+| `make clean` | Remove `out/`, `release/` and the ESLint cache |
 
 Without `make` (e.g. plain Windows), call the pnpm scripts directly: `pnpm run dev`,
 `pnpm run typecheck`, `pnpm run lint`, `pnpm run format`, `pnpm run build`.

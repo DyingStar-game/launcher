@@ -19,7 +19,7 @@ Go through the root `Makefile` (ADR 0002): a thin, host-side wrapper over the pn
 | Need                         | Command                                                                                            |
 | ---------------------------- | -------------------------------------------------------------------------------------------------- |
 | Install (creates `.env`)     | `make install` — `.env` comes from `.env.example`; `VITE_*` vars are baked in at build time        |
-| Hot-reload dev               | `make dev`                                                                                         |
+| Hot-reload dev               | `make dev` (`PLATFORM=x11` or `PLATFORM=wayland` forces the Linux display backend; default: auto)  |
 | Production preview (testers) | `make start`                                                                                       |
 | Any pnpm script              | `make pnpm <cmd>`, flags via `ARGS`, e.g. `make pnpm typecheck:web`, `make pnpm add zod ARGS="-D"` |
 | Checks before committing     | `make check` (format, lint, typecheck, test, format check); a change is done only when it passes   |
