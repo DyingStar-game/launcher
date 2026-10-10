@@ -1,7 +1,7 @@
 import type React from 'react'
 import { useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import SpeakerIcon from '@components/ui/primitives/icons/SpeakerIcon'
+import SpeakerIcon from '@components/atoms/icons/SpeakerIcon'
 import { useSoundStore } from '@stores/sound'
 
 const CLOSE_DELAY_MS = 120

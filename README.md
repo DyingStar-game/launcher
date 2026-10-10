@@ -19,13 +19,13 @@ Launcher desktop open source pour le jeu **Dying Star**, basé sur [Electron](ht
 src/
 ├── main/           # Process principal Electron (IPC, auth, téléchargement, jeu)
 ├── preload/        # Pont sécurisé contextBridge → window.api
-├── renderer/       # Application React (composants, vues, stores, i18n)
+├── renderer/       # Application React en atomic design (atoms → molecules → organisms → templates → pages), stores, i18n
 └── shared/         # Types TypeScript partagés (main, preload, renderer)
 docs/               # Documentation contributeur (en/ et fr/)
 resources/          # Icônes et entitlements macOS (versionnés)
 ```
 
-Alias TypeScript / Vite : `@shared`, `@components`, `@views`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+Alias TypeScript / Vite : `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
 
 ## Prérequis
 

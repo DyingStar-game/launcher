@@ -1,17 +1,26 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { FriendRequest } from '@stores/social'
+import type { FriendRequest } from '@shared/types/social'
+import PlayerIdentity from './PlayerIdentity'
 
 type Props = {
   req: FriendRequest
   /** Incoming requests can be accepted or declined; outgoing ones can only be cancelled. */
   direction: 'incoming' | 'outgoing'
+  /** Opens the player's sheet. */
+  onOpen: () => void
   onAccept?: () => Promise<void>
   onDecline: () => Promise<void>
 }
 
 /** Friend request row: accept/decline (incoming) or cancel (outgoing). */
-export function RequestRow({ req, direction, onAccept, onDecline }: Props): React.JSX.Element {
+export default function RequestRow({
+  req,
+  direction,
+  onOpen,
+  onAccept,
+  onDecline
+}: Props): React.JSX.Element {
   const { t } = useTranslation()
   const [status, setStatus] = useState<'idle' | 'accepting' | 'declining' | 'done'>('idle')
 
@@ -40,17 +49,7 @@ export function RequestRow({ req, direction, onAccept, onDecline }: Props): Reac
 
   return (
     <div className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/4 transition-colors">
-      {/* Avatar placeholder */}
-      <div className="w-8 h-8 shrink-0 rounded-full bg-[var(--color-ds-border)] flex items-center justify-center">
-        <span className="text-xs font-semibold text-[var(--color-ds-muted)] select-none uppercase">
-          {req.name[0]}
-        </span>
-      </div>
-
-      {/* Nom */}
-      <span className="flex-1 min-w-0 text-sm font-medium text-[var(--color-ds-text)] truncate">
-        {req.name}
-      </span>
+      <PlayerIdentity name={req.name} onOpen={onOpen} />
 
       {direction === 'outgoing' && (
         <span className="shrink-0 text-[10px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.15em]">

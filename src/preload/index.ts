@@ -8,6 +8,9 @@ import type { GlobalChangelog } from '@shared/types/changelog'
 import type {
   FriendRequestOutcome,
   JoinOutcome,
+  OrganisationMembersPage,
+  OrganisationProfile,
+  PlayerProfile,
   PlayerSearchResult,
   SocialResult,
   SocialSnapshot
@@ -139,6 +142,25 @@ const api = {
   /** Finds players whose display name contains `query` (2 characters minimum). */
   socialSearchPlayers: (env: Env, query: string): Promise<SocialResult<PlayerSearchResult[]>> =>
     ipcRenderer.invoke('social:search-players', env, query),
+
+  /** Loads a player's public sheet. */
+  socialGetPlayer: (env: Env, playerId: string): Promise<SocialResult<PlayerProfile>> =>
+    ipcRenderer.invoke('social:get-player', env, playerId),
+
+  /** Loads an organisation's public sheet. */
+  socialGetOrganisation: (
+    env: Env,
+    corporationId: string
+  ): Promise<SocialResult<OrganisationProfile>> =>
+    ipcRenderer.invoke('social:get-organisation', env, corporationId),
+
+  /** Loads one page of an organisation's members, highest rank first. */
+  socialGetOrganisationMembers: (
+    env: Env,
+    corporationId: string,
+    offset: number
+  ): Promise<SocialResult<OrganisationMembersPage>> =>
+    ipcRenderer.invoke('social:get-organisation-members', env, corporationId, offset),
 
   /** Sends a friend request (accepts a pending one from that player instead). */
   socialSendFriendRequest: (

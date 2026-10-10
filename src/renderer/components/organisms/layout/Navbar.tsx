@@ -2,17 +2,17 @@ import type React from 'react'
 import { useEffect, useId, useState } from 'react'
 import i18n from '@i18n'
 import { useEnvStore } from '@stores/env'
-import { useNavigationStore } from '@stores/navigation'
-import type { View } from '@stores/navigation'
+import { navSection, useNavigationStore } from '@stores/navigation'
+import type { TopView } from '@stores/navigation'
 import { useChangelogStore } from '@stores/changelog'
 import { mergeSoundHandlers, useUiSound } from '@hooks/useUiSound'
 import { UiSoundProfile } from '@shared/types/sounds'
 import type { UiSoundProfile as UiSoundProfileType } from '@shared/types/sounds'
 import { useTranslation } from 'react-i18next'
-import Button from '@components/ui/primitives/Button'
-import DiscordIcon from '@components/ui/primitives/icons/DiscordIcon'
-import SoundVolumeMenu from '@components/ui/sound/SoundVolumeMenu'
-import NavbarMoreMenu from './NavbarMoreMenu'
+import Button from '@components/atoms/Button'
+import DiscordIcon from '@components/atoms/icons/DiscordIcon'
+import SoundVolumeMenu from '@components/organisms/layout/SoundVolumeMenu'
+import NavbarMoreMenu from '@components/organisms/layout/NavbarMoreMenu'
 import { navUrls } from '@lib/env'
 import type { ReactNode } from 'react'
 
@@ -178,7 +178,7 @@ export default function Navbar(): React.JSX.Element {
     navigate(env)
   }
 
-  const navLinks: { label: string; view: View; badge?: boolean }[] = [
+  const navLinks: { label: string; view: TopView; badge?: boolean }[] = [
     { label: t('navbar.social'), view: 'social' },
     { label: t('navbar.lore'), view: 'lore' },
     { label: t('navbar.changelog'), view: 'changelog', badge: hasUnreadChangelog }
@@ -330,7 +330,7 @@ export default function Navbar(): React.JSX.Element {
                 onMouseEnter={linkHandlers.onMouseEnter}
                 className={[
                   'relative px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer',
-                  currentView === view
+                  navSection(currentView) === view
                     ? 'text-[var(--color-ds-text)] bg-white/10'
                     : 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
                 ].join(' ')}

@@ -4,6 +4,9 @@ import {
   acceptFriendRequest,
   createOrganisation,
   declineFriendRequest,
+  getOrganisation,
+  getOrganisationMembers,
+  getPlayer,
   joinOrganisation,
   loadSocial,
   removeFriend,
@@ -15,6 +18,9 @@ import {
 export function registerSocialHandlers(): void {
   ipcMain.removeHandler('social:load')
   ipcMain.removeHandler('social:search-players')
+  ipcMain.removeHandler('social:get-player')
+  ipcMain.removeHandler('social:get-organisation')
+  ipcMain.removeHandler('social:get-organisation-members')
   ipcMain.removeHandler('social:send-friend-request')
   ipcMain.removeHandler('social:remove-friend')
   ipcMain.removeHandler('social:accept-request')
@@ -25,6 +31,17 @@ export function registerSocialHandlers(): void {
   ipcMain.handle('social:load', (_event, env: Env, search?: string) => loadSocial(env, search))
   ipcMain.handle('social:search-players', (_event, env: Env, query: string) =>
     searchPlayers(env, query)
+  )
+  ipcMain.handle('social:get-player', (_event, env: Env, playerId: string) =>
+    getPlayer(env, playerId)
+  )
+  ipcMain.handle('social:get-organisation', (_event, env: Env, corporationId: string) =>
+    getOrganisation(env, corporationId)
+  )
+  ipcMain.handle(
+    'social:get-organisation-members',
+    (_event, env: Env, corporationId: string, offset: number) =>
+      getOrganisationMembers(env, corporationId, offset)
   )
   ipcMain.handle('social:send-friend-request', (_event, env: Env, playerId: string) =>
     sendFriendRequest(env, playerId)

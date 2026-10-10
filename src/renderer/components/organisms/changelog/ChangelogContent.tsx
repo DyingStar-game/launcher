@@ -2,7 +2,7 @@ import type React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
-import ChangelogEntryItem from '@components/ui/changelog/ChangelogEntryItem'
+import ChangelogEntryItem from '@components/molecules/ChangelogEntryItem'
 import { resolveChangelogEntries } from '@lib/changelogEntries'
 
 /** Renders the selected changelog version entries as left-aligned bullet list. */

@@ -15,7 +15,8 @@
     "loading": "...",
     "close": "Close",
     "send": "Send",
-    "create": "Create"
+    "create": "Create",
+    "back": "Back"
   },
   "navbar": {
     "home": "Home",
@@ -212,6 +213,49 @@
         "friend": "Friend",
         "you": "You"
       },
+      "profile": {
+        "openAria": "Open the profile of {{name}}",
+        "reputation": "Reputation",
+        "playtime": "Playtime",
+        "hours_one": "{{count}} h",
+        "hours_other": "{{count}} h",
+        "memberSince": "Member since",
+        "biography": "Biography",
+        "rpSheet": "Role-play sheet",
+        "characterName": "Character:",
+        "alignment": "Alignment:",
+        "corporations": "Organizations",
+        "politics": "Political entities",
+        "politicalTypes": {
+          "commune": "Commune",
+          "agglomeration": "Agglomeration",
+          "department": "Department",
+          "region": "Region",
+          "country": "Country",
+          "federation": "Federation"
+        },
+        "empty": "This player has not written a biography yet.",
+        "noCorporation": "No organization."
+      },
+      "organisation": {
+        "openAria": "Open the organization {{name}}",
+        "members": "Members",
+        "createdAt": "Founded",
+        "description": "Description",
+        "parent": "Holding company",
+        "subsidiaries_one": "{{count}} subsidiary",
+        "subsidiaries_other": "{{count}} subsidiaries",
+        "recruitment": {
+          "open": "Open recruitment",
+          "apply": "Recruitment on application",
+          "closed": "Not recruiting"
+        },
+        "ceoTitle": "CEO",
+        "memberList_one": "{{count}} member",
+        "memberList_other": "{{count}} members",
+        "loadMore_one": "Load {{count}} more member",
+        "loadMore_other": "Load more ({{count}} left)"
+      },
       "pendingRequests_one": "{{count}} pending request",
       "pendingRequests_other": "{{count}} pending requests",
       "emptyFriends": "No friends yet.",
@@ -239,6 +283,7 @@
         "sessionExpired": "Your session has expired. Sign in again.",
         "sanctioned": "Your account is suspended: social features are blocked.",
         "playerNotFound": "No player with this exact username.",
+        "organisationNotFound": "This organization no longer exists.",
         "alreadyFriendsOrPending": "You are already friends, or a request is already pending.",
         "blocked": "You cannot add this player.",
         "invalidTarget": "You cannot add yourself as a friend.",

@@ -2,6 +2,9 @@ import { create } from 'zustand'
 import type {
   FriendRequestOutcome,
   JoinOutcome,
+  OrganisationMembersPage,
+  OrganisationProfile,
+  PlayerProfile,
   PlayerSearchResult,
   SocialErrorCode,
   SocialResult,
@@ -25,6 +28,16 @@ type EnvSocialData = SocialSnapshot & {
 
 type SocialState = {
   data: Record<Env, EnvSocialData>
+  /** Loads a player's public sheet from the given env; does not touch the store. */
+  getPlayer: (env: Env, playerId: string) => Promise<PlayerProfile>
+  /** Loads an organisation's public sheet from the given env; does not touch the store. */
+  getOrganisation: (env: Env, corporationId: string) => Promise<OrganisationProfile>
+  /** Loads one page of an organisation's members (ADR 0012); does not touch the store. */
+  getOrganisationMembers: (
+    env: Env,
+    corporationId: string,
+    offset: number
+  ) => Promise<OrganisationMembersPage>
   /** Loads friends, requests and organisations of the active env from `social` (ADR 0007). */
   fetchAll: () => Promise<void>
   /** Finds players by part of their name (2 characters minimum); does not touch the store. */
@@ -48,6 +61,8 @@ const emptyEnvData: EnvSocialData = {
   incoming: [],
   outgoing: [],
   organisations: [],
+  memberOf: [],
+  appliedTo: [],
   status: 'idle',
   orgaSearch: ''
 }
@@ -115,6 +130,14 @@ export const useSocialStore = create<SocialState>((set, get) => {
 
   return {
     data: { universe: { ...emptyEnvData }, 'universe-testing': { ...emptyEnvData } },
+
+    getPlayer: async (env, playerId) => unwrap(await window.api.socialGetPlayer(env, playerId)),
+
+    getOrganisation: async (env, corporationId) =>
+      unwrap(await window.api.socialGetOrganisation(env, corporationId)),
+
+    getOrganisationMembers: async (env, corporationId, offset) =>
+      unwrap(await window.api.socialGetOrganisationMembers(env, corporationId, offset)),
 
     fetchAll: () => load(useEnvStore.getState().activeEnv),
 

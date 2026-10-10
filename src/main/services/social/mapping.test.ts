@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import type { ApiCorporation, ApiFriend } from '@shared/types/social'
+import type {
+  ApiCorporation,
+  ApiCorporationPage,
+  ApiFriend,
+  ApiPublicProfile
+} from '@shared/types/social'
 import {
   toFriend,
   toFriendRequest,
+  toOrganisationMember,
+  toOrganisationProfile,
   toOrganisations,
+  toPlayerProfile,
   toPlayerSearchResult,
   toSocialErrorCode
 } from './mapping'
@@ -88,6 +96,112 @@ describe('toPlayerSearchResult', () => {
   })
 })
 
+describe('toPlayerProfile', () => {
+  const profile: ApiPublicProfile = {
+    playerId: 'p1',
+    displayName: 'Kira',
+    avatarUrl: null,
+    faction: 'Free traders',
+    biography: '  ',
+    role: null,
+    reputation: 12,
+    playtimeSeconds: 2 * 3600 + 59 * 60,
+    rpSheet: { characterName: 'Kira Vel', story: '' },
+    createdAt: '2026-10-01T10:00:00.000Z',
+    status: 'mission',
+    corporations: [{ id: 'c1', name: 'Nova Corp', ticker: 'NOVA' }],
+    politics: [{ id: 'e1', type: 'commune', name: 'Haven' }]
+  }
+
+  it('keeps filled fields and drops empty ones', () => {
+    const sheet = toPlayerProfile(profile)
+    expect(sheet).toMatchObject({
+      id: 'p1',
+      name: 'Kira',
+      status: 'mission',
+      faction: 'Free traders',
+      characterName: 'Kira Vel',
+      reputation: 12,
+      memberSince: '2026-10-01T10:00:00.000Z',
+      corporations: [{ id: 'c1', name: 'Nova Corp', ticker: 'NOVA' }],
+      politics: [{ id: 'e1', type: 'commune', name: 'Haven' }]
+    })
+    for (const key of ['avatar', 'biography', 'role', 'alignment', 'story']) {
+      expect(sheet).not.toHaveProperty(key)
+    }
+  })
+
+  it('rounds playtime down to whole hours', () => {
+    expect(toPlayerProfile(profile).playtimeHours).toBe(2)
+  })
+
+  it('accepts a profile without a role-play sheet', () => {
+    expect(toPlayerProfile({ ...profile, rpSheet: null })).not.toHaveProperty('characterName')
+  })
+})
+
+describe('toOrganisationProfile', () => {
+  const member = (
+    playerId: string,
+    displayName: string,
+    rank: { name: string; priority: number; isCeo: boolean }
+  ): ApiCorporationPage['members'][number] => ({
+    playerId,
+    displayName,
+    avatarUrl: null,
+    rank,
+    status: 'offline'
+  })
+  const page: ApiCorporationPage = {
+    ...corporation('n', { name: 'Nova Corp', ticker: 'NOVA', memberCount: 3 }),
+    description: ' ',
+    logoUrl: null,
+    ceoId: 'ceo',
+    createdAt: '2026-10-01T10:00:00.000Z',
+    parent: { id: 'h', name: 'Holding', ticker: 'HOLD' },
+    subsidiaries: [corporation('s', { memberCount: 2 })],
+    subsidiaryCount: 1,
+    members: [
+      member('m2', 'Zed', { name: 'Member', priority: 0, isCeo: false }),
+      member('ceo', 'Aurel', { name: 'CEO', priority: 100, isCeo: true }),
+      member('m1', 'Kira', { name: 'Member', priority: 0, isCeo: false })
+    ]
+  }
+
+  it('finds the CEO among the listed members', () => {
+    expect(toOrganisationProfile(page).ceo).toEqual({ id: 'ceo', name: 'Aurel' })
+    expect(toOrganisationProfile(page)).not.toHaveProperty('memberList')
+  })
+
+  it('maps a member to its rank name and presence', () => {
+    expect(toOrganisationMember(page.members[1])).toEqual({
+      id: 'ceo',
+      name: 'Aurel',
+      rank: 'CEO',
+      status: 'offline'
+    })
+  })
+
+  it('keeps parent and subsidiaries, drops an empty description', () => {
+    const sheet = toOrganisationProfile(page)
+    expect(sheet).toMatchObject({
+      name: 'Nova Corp',
+      ticker: 'NOVA',
+      members: 3,
+      recruitment: 'apply',
+      parent: { id: 'h', name: 'Holding', ticker: 'HOLD' },
+      subsidiaries: [{ id: 's', name: 'Corp s', ticker: 'S', members: 2 }],
+      subsidiaryCount: 1
+    })
+    expect(sheet).not.toHaveProperty('description')
+    expect(sheet).not.toHaveProperty('logo')
+  })
+
+  it('has no CEO when they are not among the listed members', () => {
+    expect(toOrganisationProfile({ ...page, ceoId: 'elsewhere' })).not.toHaveProperty('ceo')
+  })
+})
+
 describe('toSocialErrorCode', () => {
   it.each([
     [401, undefined, 'load', 'sessionExpired'],
@@ -102,6 +216,8 @@ describe('toSocialErrorCode', () => {
     [403, 'FORBIDDEN', 'joinOrganisation', 'recruitmentClosed'],
     [404, 'NOT_FOUND', 'addFriend', 'playerNotFound'],
     [400, 'VALIDATION_ERROR', 'searchPlayers', 'invalidInput'],
+    [404, 'NOT_FOUND', 'viewPlayer', 'playerNotFound'],
+    [404, 'NOT_FOUND', 'viewOrganisation', 'organisationNotFound'],
     [404, 'NOT_FOUND', 'answerRequest', 'unknown'],
     [403, 'FORBIDDEN', 'answerRequest', 'unknown']
   ] as const)('%i %s on %s → %s', (status, code, action, expected) => {

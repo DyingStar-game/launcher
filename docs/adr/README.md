@@ -27,3 +27,9 @@ on the model of [`DyingStar-game/adminpanel`](https://github.com/DyingStar-game/
 | [0006](./0006-toolchain-versions.md)            | Toolchain versions: Node 24, pnpm 12, Electron 44                         | Proposed                                 | 2026-10-10 |
 | [0007](./0007-social-player-side.md)            | Social, player side: wire the existing UI to the `social` service         | Accepted (add friend superseded by 0008) | 2026-10-10 |
 | [0008](./0008-player-search-screen.md)          | Player search screen to add friends                                       | Accepted                                 | 2026-10-10 |
+| [0009](./0009-player-profile-sheet.md)          | Player profile sheet                                                      | Accepted (modal superseded by 0012)      | 2026-10-10 |
+| [0010](./0010-organisation-sheet.md)            | Organisation sheet, with join / apply                                     | Accepted (modal superseded by 0012)      | 2026-10-10 |
+| [0011](./0011-atomic-design.md)                 | Renderer components: atomic design                                        | Accepted                                 | 2026-10-10 |
+| [0012](./0012-sheets-as-pages.md)               | Player and organisation sheets as pages                                   | Accepted                                 | 2026-10-10 |
+| [0013](./0013-back-restores-page-state.md)      | Back restores where the player was                                        | Accepted                                 | 2026-10-10 |
+| [0014](./0014-bbcode-player-texts.md)           | BBCode in player texts                                                    | Accepted                                 | 2026-10-10 |

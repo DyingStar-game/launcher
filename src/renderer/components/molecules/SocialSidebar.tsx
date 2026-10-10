@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import SidebarItemButton from '@components/ui/primitives/SidebarItemButton'
+import SidebarItemButton from '@components/atoms/SidebarItemButton'
 
 type Props = {
   current: string

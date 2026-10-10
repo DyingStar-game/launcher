@@ -1,51 +1,32 @@
 import { useTranslation } from 'react-i18next'
-import type { Friend } from '@stores/social'
+import type { Friend } from '@shared/types/social'
+import PlayerIdentity from './PlayerIdentity'
 
 type Props = {
   friend: Friend
+  /** Opens the friend's sheet. */
+  onOpen: () => void
 }
 
-/** Compact friend row for the universe social preview panel. */
-export default function FriendItem({ friend }: Props): React.JSX.Element {
-  const { t } = useTranslation()
+const STATUS_TEXT = {
+  online: 'text-green-400',
+  mission: 'text-orange-400',
+  offline: 'text-[var(--color-ds-muted)]'
+} as const
 
-  const statusColor =
-    friend.status === 'online'
-      ? 'bg-green-500'
-      : friend.status === 'mission'
-        ? 'bg-orange-400'
-        : 'bg-gray-500'
+/** Compact friend row for the universe social panel, status coloured. */
+export default function FriendItem({ friend, onOpen }: Props): React.JSX.Element {
+  const { t } = useTranslation()
+  const statusLabel =
+    friend.status === 'mission' && friend.system
+      ? t('friendStatus.missionIn', { system: friend.system })
+      : t(`friendStatus.${friend.status}`)
 
   return (
-    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--color-ds-surface-hover)] transition-colors cursor-pointer">
-      <div className="relative">
-        <div className="w-8 h-8 rounded-full bg-[var(--color-ds-border)] flex items-center justify-center text-xs">
-          {friend.name.charAt(0)}
-        </div>
-        <span
-          className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-[var(--color-ds-surface)] ${statusColor}`}
-        />
-      </div>
-
-      <div className="flex flex-col leading-tight">
-        <span className="text-sm text-[var(--color-ds-text)]">{friend.name}</span>
-
-        {friend.status === 'mission' && (
-          <span className="text-xs text-orange-400">
-            {friend.system
-              ? t('friendStatus.missionIn', { system: friend.system })
-              : t('friendStatus.mission')}
-          </span>
-        )}
-
-        {friend.status === 'online' && (
-          <span className="text-xs text-green-400">{t('friendStatus.online')}</span>
-        )}
-
-        {friend.status === 'offline' && (
-          <span className="text-xs text-[var(--color-ds-muted)]">{t('friendStatus.offline')}</span>
-        )}
-      </div>
+    <div className="flex items-center p-2 rounded-lg hover:bg-[var(--color-ds-surface-hover)] transition-colors">
+      <PlayerIdentity name={friend.name} status={friend.status} onOpen={onOpen}>
+        <span className={`text-xs ${STATUS_TEXT[friend.status]}`}>{statusLabel}</span>
+      </PlayerIdentity>
     </div>
   )
 }

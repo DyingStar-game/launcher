@@ -1,7 +1,7 @@
 import type React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLoreStore } from '@stores/lore'
-import SidebarItemButton from '@components/ui/primitives/SidebarItemButton'
+import SidebarItemButton from '@components/atoms/SidebarItemButton'
 
 /** Sidebar list of lore articles from the lore store. */
 export default function LoreSidebar(): React.JSX.Element {
