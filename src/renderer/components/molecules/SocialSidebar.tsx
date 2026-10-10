@@ -1,15 +1,16 @@
 import { useTranslation } from 'react-i18next'
 import SidebarItemButton from '@components/atoms/SidebarItemButton'
+import { TabsList, TabsTrigger } from '@components/ui/tabs'
 
 type Props = {
+  /** Current tab, highlighted; switching goes through the enclosing `Tabs` (ADR 0016). */
   current: string
-  setCurrent: (v: string) => void
 }
 
 const TAB_KEYS = ['friends', 'players', 'requests', 'organizations'] as const
 
-/** Tab sidebar for the social page (friends / player search / requests / orgs). */
-export default function SocialSidebar({ current, setCurrent }: Props): React.JSX.Element {
+/** Tab list of the social page (friends / player search / requests / orgs), in a `Tabs`. */
+export default function SocialSidebar({ current }: Props): React.JSX.Element {
   const { t } = useTranslation()
 
   return (
@@ -23,11 +24,19 @@ export default function SocialSidebar({ current, setCurrent }: Props): React.JSX
         </p>
       </div>
 
-      {TAB_KEYS.map((item) => (
-        <SidebarItemButton key={item} active={current === item} onClick={() => setCurrent(item)}>
-          {t(`universe.socialPage.tabs.${item}.label`)}
-        </SidebarItemButton>
-      ))}
+      <TabsList
+        aria-label={t('universe.socialPage.sidebarTitle')}
+        variant="plain"
+        className="flex h-auto w-full flex-col items-stretch gap-1"
+      >
+        {TAB_KEYS.map((item) => (
+          <TabsTrigger key={item} value={item} asChild>
+            <SidebarItemButton active={current === item}>
+              {t(`universe.socialPage.tabs.${item}.label`)}
+            </SidebarItemButton>
+          </TabsTrigger>
+        ))}
+      </TabsList>
     </div>
   )
 }

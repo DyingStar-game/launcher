@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+@import './shadcn.css';
 
 @font-face {
   font-family: 'Poppins';
@@ -51,6 +53,29 @@
   --shadow-ds-card: 0 8px 24px rgba(0, 0, 0, 0.3);
   --shadow-ds-modal: 0 24px 64px rgba(0, 0, 0, 0.55);
   --radius-ds-panel: 0.75rem;
+}
+
+/*
+ * shadcn/ui variables (ADR 0016) mapped onto the launcher tokens: the components in
+ * components/ui keep the launcher look (night surfaces, gold text and accent).
+ */
+@theme inline {
+  --color-background: var(--color-ds-bg);
+  --color-foreground: var(--color-ds-text);
+  --color-popover: var(--color-ds-surface);
+  --color-popover-foreground: var(--color-ds-text);
+  --color-primary: var(--color-ds-accent);
+  --color-primary-foreground: #000;
+  --color-secondary: var(--color-ds-surface-hover);
+  --color-secondary-foreground: var(--color-ds-text);
+  --color-muted: var(--color-ds-surface-hover);
+  --color-muted-foreground: var(--color-ds-muted);
+  --color-accent: var(--color-ds-surface-hover);
+  --color-accent-foreground: var(--color-ds-text);
+  --color-destructive: var(--color-ds-danger);
+  --color-border: var(--color-ds-border);
+  --color-input: var(--color-ds-border);
+  --color-ring: var(--color-ds-accent);
 }
 
 html,
@@ -274,47 +299,4 @@ body {
   padding: 2px 6px;
   border-radius: 6px;
   font-size: 0.9em;
-}
-
-.sound-volume-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 0.35rem;
-  border-radius: 9999px;
-  background: var(--color-ds-border);
-  cursor: pointer;
-}
-
-.sound-volume-slider:focus {
-  outline: none;
-}
-
-.sound-volume-slider:focus-visible {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-ds-accent) 35%, transparent);
-}
-
-.sound-volume-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 0.85rem;
-  height: 0.85rem;
-  border-radius: 9999px;
-  background: var(--color-ds-accent);
-  border: 1px solid color-mix(in srgb, var(--color-ds-accent) 60%, black);
-  cursor: pointer;
-}
-
-.sound-volume-slider::-moz-range-thumb {
-  width: 0.85rem;
-  height: 0.85rem;
-  border-radius: 9999px;
-  background: var(--color-ds-accent);
-  border: 1px solid color-mix(in srgb, var(--color-ds-accent) 60%, black);
-  cursor: pointer;
-}
-
-.sound-volume-slider::-moz-range-track {
-  height: 0.35rem;
-  border-radius: 9999px;
-  background: var(--color-ds-border);
 }

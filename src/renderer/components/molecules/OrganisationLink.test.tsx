@@ -17,4 +17,17 @@ describe('OrganisationLink', () => {
     await userEvent.click(link)
     expect(onOpen).toHaveBeenCalledOnce()
   })
+
+  it('uses the name look of the Button atom', () => {
+    render(
+      <OrganisationLink
+        organisation={{ id: 'c1', name: 'Nova Corp', ticker: 'NOVA' }}
+        onOpen={vi.fn()}
+      />
+    )
+    expect(screen.getByRole('button', { name: 'Open the organization Nova Corp' })).toHaveClass(
+      'font-medium',
+      'hover:underline'
+    )
+  })
 })

@@ -19,6 +19,17 @@ vi.mock('@lib/sounds/engine', async (importOriginal) => {
   )
 })
 
+// Radix primitives (ADR 0016) use browser APIs jsdom lacks.
+globalThis.ResizeObserver ??= class {
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+}
+Element.prototype.hasPointerCapture ??= () => false
+Element.prototype.setPointerCapture ??= () => {}
+Element.prototype.releasePointerCapture ??= () => {}
+Element.prototype.scrollIntoView ??= () => {}
+
 const api: Record<string, ReturnType<typeof vi.fn>> = {}
 Object.defineProperty(window, 'api', {
   configurable: true,

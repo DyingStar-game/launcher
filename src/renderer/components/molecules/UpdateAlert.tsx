@@ -52,7 +52,7 @@ const COLOR_CLASSES = {
     title: 'text-amber-300',
     text: 'text-sky-200/70',
     badge: 'border-amber-500/30 bg-amber-500/15 text-amber-300',
-    dismiss: 'text-amber-400/50 hover:text-amber-300'
+    dismiss: 'text-amber-400'
   },
   sky: {
     wrapper: 'border-sky-500/30 bg-sky-500/8',
@@ -60,7 +60,7 @@ const COLOR_CLASSES = {
     title: 'text-sky-300',
     text: 'text-sky-200/70',
     badge: 'border-sky-500/30 bg-sky-500/15 text-sky-300',
-    dismiss: 'text-sky-400/50 hover:text-sky-300'
+    dismiss: 'text-sky-400'
   }
 }
 
@@ -141,21 +141,23 @@ export default function UpdateAlert({
 
       {/* Fermer (optionnel) */}
       {onDismiss && (
-        <Button
-          variant="bare"
-          size="none"
-          onClick={onDismiss}
-          aria-label={t('universe.updateAlert.dismiss')}
-          className={cn('shrink-0', cls.dismiss)}
-        >
-          <svg
-            viewBox="0 0 16 16"
-            className="w-3.5 h-3.5 fill-none stroke-current stroke-[1.8]"
-            strokeLinecap="round"
+        // The button takes the alert's colour from this wrapper (variant `subtle`, ADR 0017)
+        <span className={cn('flex shrink-0', cls.dismiss)}>
+          <Button
+            variant="subtle"
+            size="none"
+            onClick={onDismiss}
+            aria-label={t('universe.updateAlert.dismiss')}
           >
-            <path d="M4 4l8 8M12 4l-8 8" />
-          </svg>
-        </Button>
+            <svg
+              viewBox="0 0 16 16"
+              className="w-3.5 h-3.5 fill-none stroke-current stroke-[1.8]"
+              strokeLinecap="round"
+            >
+              <path d="M4 4l8 8M12 4l-8 8" />
+            </svg>
+          </Button>
+        </span>
       )}
     </div>
   )

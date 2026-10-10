@@ -1,11 +1,22 @@
 import type React from 'react'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import i18n from '@i18n'
 import { useTranslation } from 'react-i18next'
+import { BookOpenIcon, CheckIcon } from 'lucide-react'
 import Button from '@components/atoms/Button'
 import MenuItemButton from '@components/atoms/MenuItemButton'
 import DiscordIcon from '@components/atoms/icons/DiscordIcon'
+import LabelTooltip from '@components/molecules/LabelTooltip'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@components/ui/dropdown-menu'
 import { navUrls } from '@lib/env'
+import { LANGUAGES, currentLanguage } from '@lib/languages'
 import type { TopView, View } from '@stores/navigation'
 import type { Env } from '@shared/types/env'
 
@@ -64,196 +75,129 @@ export default function NavbarMoreMenu({
 }: Props): React.JSX.Element {
   const { t, i18n: i18nInstance } = useTranslation()
   const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
   const { website, discord, wiki, donate } = navUrls()
-  const currentLang = (i18nInstance.resolvedLanguage ?? i18nInstance.language).startsWith('fr')
-    ? 'fr'
-    : 'en'
+  const currentLang = currentLanguage(i18nInstance)
   const hasBadge = sections.some((section) => section.badge)
 
+  // Radix handles outside clicks, Escape, focus and the keyboard; the menu only closes itself
+  // when the window grows past the breakpoint where it is hidden.
   useEffect(() => {
     if (!open) return
-
-    const onPointerDown = (event: PointerEvent): void => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false)
-      }
-    }
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') setOpen(false)
-    }
     const media = window.matchMedia('(min-width: 1400px)')
     const onBreakpoint = (): void => {
       if (media.matches) setOpen(false)
     }
-
-    document.addEventListener('pointerdown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
     media.addEventListener('change', onBreakpoint)
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-      media.removeEventListener('change', onBreakpoint)
-    }
+    return () => media.removeEventListener('change', onBreakpoint)
   }, [open])
 
-  const runAndClose = (action: () => void): void => {
-    action()
-    setOpen(false)
-  }
-
   return (
-    <div ref={rootRef} className="relative ml-1">
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => setOpen((value) => !value)}
-        className="relative"
-        title={t('navbar.more')}
-        aria-label={t('navbar.more')}
-        aria-expanded={open}
-        aria-haspopup="menu"
-      >
-        <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4.5 h-4.5 fill-current">
-          <title>{t('navbar.more')}</title>
-          <path d="M4 7h16v2H4V7zm0 4h16v2H4v-2zm0 4h16v2H4v-2z" />
-        </svg>
-        {hasBadge && (
-          <span
-            data-testid="navbar-more-badge"
-            className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 shadow-sm"
-          />
-        )}
-      </Button>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <LabelTooltip label={t('navbar.more')}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon" className="relative" aria-label={t('navbar.more')}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4.5 h-4.5 fill-current">
+              <path d="M4 7h16v2H4V7zm0 4h16v2H4v-2zm0 4h16v2H4v-2z" />
+            </svg>
+            {hasBadge && (
+              <span
+                data-testid="navbar-more-badge"
+                className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 shadow-sm"
+              />
+            )}
+          </Button>
+        </DropdownMenuTrigger>
+      </LabelTooltip>
 
-      {open && (
-        <div className="absolute right-0 top-full pt-1 z-[300]">
-          <div
-            role="menu"
-            aria-label={t('navbar.more')}
-            className="min-w-[13.5rem] rounded-xl border border-[var(--color-ds-border)] bg-[var(--color-ds-surface)] shadow-[var(--shadow-ds-modal)] p-1.5 flex flex-col gap-0.5"
-          >
-            {/* Env switch: in the bar from the narrow breakpoint up */}
-            <div className="flex flex-col gap-0.5 min-[800px]:hidden">
-              {envs.map(({ env, label }) => (
-                <MenuItemButton
-                  key={env}
-                  selected={activeEnv === env}
-                  onClick={() => runAndClose(() => onEnvSwitch(env))}
-                >
-                  <span className="flex-1">{label}</span>
-                </MenuItemButton>
-              ))}
-              <div className="my-1 h-px bg-[var(--color-ds-border)]" role="separator" />
-            </div>
-
-            {sections.map(({ label, view, badge }) => (
-              <MenuItemButton
-                key={view}
-                selected={currentSection === view}
-                onClick={() => runAndClose(() => onNavigate(view))}
-              >
+      <DropdownMenuContent align="end" aria-label={t('navbar.more')} className="min-w-[13.5rem]">
+        {/* Env switch: in the bar from the narrow breakpoint up */}
+        <DropdownMenuGroup className="flex flex-col gap-0.5 min-[800px]:hidden">
+          {envs.map(({ env, label }) => (
+            <DropdownMenuItem asChild key={env}>
+              <MenuItemButton selected={activeEnv === env} onClick={() => onEnvSwitch(env)}>
+                {' '}
                 <span className="flex-1">{label}</span>
-                {badge && <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />}
               </MenuItemButton>
-            ))}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+        </DropdownMenuGroup>
 
-            <div className="my-1 h-px bg-[var(--color-ds-border)]" role="separator" />
+        {sections.map(({ label, view, badge }) => (
+          <DropdownMenuItem asChild key={view}>
+            <MenuItemButton selected={currentSection === view} onClick={() => onNavigate(view)}>
+              {' '}
+              <span className="flex-1">{label}</span>
+              {badge && <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />}
+            </MenuItemButton>
+          </DropdownMenuItem>
+        ))}
 
+        <DropdownMenuSeparator />
+
+        {LANGUAGES.map(({ code, labelKey }) => (
+          <DropdownMenuItem asChild key={code}>
             <MenuItemButton
-              selected={currentLang === 'en'}
-              onClick={() => runAndClose(() => void i18n.changeLanguage('en'))}
+              selected={currentLang === code}
+              onClick={() => void i18n.changeLanguage(code)}
             >
-              <span className="inline-flex w-4.5 h-4.5 items-center justify-center shrink-0">
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4 h-4">
-                  <rect x="3" y="6" width="18" height="12" rx="2" fill="#1b4db1" />
-                  <path
-                    d="M4 7.2l6.4 4.2L4 15.6v-1.8l4.2-2.4L4 9V7.2zm16 0V9l-4.2 2.4 4.2 2.4v1.8l-6.4-4.2L20 7.2z"
-                    fill="#ffffff"
-                    opacity="0.95"
-                  />
-                  <path d="M10.7 6h2.6v12h-2.6z" fill="#ffffff" />
-                  <path d="M3 10.7h18v2.6H3z" fill="#ffffff" />
-                  <path d="M11.25 6h1.5v12h-1.5z" fill="#d22f27" />
-                  <path d="M3 11.25h18v1.5H3z" fill="#d22f27" />
-                </svg>
-              </span>
-              <span className="flex-1">{t('navbar.languageEn')}</span>
-              {currentLang === 'en' && (
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="w-4 h-4 shrink-0 fill-[var(--color-ds-accent)]"
-                >
-                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                </svg>
+              <span className="flex-1">{t(labelKey)}</span>
+              {currentLang === code && (
+                <span className="shrink-0 text-[var(--color-ds-accent)]">
+                  <CheckIcon className="w-4 h-4" aria-hidden="true" />
+                </span>
               )}
             </MenuItemButton>
-            <MenuItemButton
-              selected={currentLang === 'fr'}
-              onClick={() => runAndClose(() => void i18n.changeLanguage('fr'))}
-            >
-              <span className="inline-flex w-4.5 h-4.5 items-center justify-center shrink-0">
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4 h-4">
-                  <rect x="3" y="6" width="6" height="12" rx="2" fill="#1b4db1" />
-                  <rect x="9" y="6" width="6" height="12" rx="0" fill="#ffffff" />
-                  <rect x="15" y="6" width="6" height="12" rx="2" fill="#d22f27" />
-                </svg>
-              </span>
-              <span className="flex-1">{t('navbar.languageFr')}</span>
-              {currentLang === 'fr' && (
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="w-4 h-4 shrink-0 fill-[var(--color-ds-accent)]"
-                >
-                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                </svg>
-              )}
-            </MenuItemButton>
+          </DropdownMenuItem>
+        ))}
 
-            <div className="my-1 h-px bg-[var(--color-ds-border)]" role="separator" />
+        <DropdownMenuSeparator />
 
-            <MenuItemButton
-              disabled={!website}
-              onClick={() => website && runAndClose(() => window.open(website, '_blank'))}
-            >
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4 h-4 fill-current shrink-0">
-                <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.5 9h-3.2a15.7 15.7 0 00-1.1-5 8.04 8.04 0 014.3 5zM12 4c1 1.5 1.8 3.8 2.1 7H9.9C10.2 7.8 11 5.5 12 4zM4.5 13h3.2c.2 1.9.7 3.7 1.1 5a8.04 8.04 0 01-4.3-5zm0-2a8.04 8.04 0 014.3-5c-.4 1.3-.9 3.1-1.1 5H4.5zm7.5 9c-1-1.5-1.8-3.8-2.1-7h4.2c-.3 3.2-1.1 5.5-2.1 7zm3.2-2c.4-1.3.9-3.1 1.1-5h3.2a8.04 8.04 0 01-4.3 5z" />
-              </svg>
-              {t('navbar.openWebsite')}
-            </MenuItemButton>
-            <MenuItemButton
-              disabled={!discord}
-              onClick={() => discord && runAndClose(() => window.open(discord, '_blank'))}
-            >
-              <DiscordIcon className="w-4 h-4 shrink-0" title={t('navbar.brandDiscord')} />
-              {t('navbar.brandDiscord')}
-            </MenuItemButton>
-            <MenuItemButton
-              disabled={!wiki}
-              onClick={() => wiki && runAndClose(() => window.open(wiki, '_blank'))}
-            >
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4 h-4 fill-current shrink-0">
-                <path d="M6 4h11a2 2 0 012 2v12a2 2 0 01-2 2H6a3 3 0 01-3-3V6a2 2 0 012-2h1zm0 2H5v11a1 1 0 001 1h11V6H6zm2 2h7v2H8V8zm0 4h7v2H8v-2z" />
-              </svg>
-              {t('navbar.brandWiki')}
-            </MenuItemButton>
+        <DropdownMenuItem asChild disabled={!website}>
+          <MenuItemButton
+            disabled={!website}
+            onClick={() => website && window.open(website, '_blank')}
+          >
+            {' '}
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4 h-4 fill-current shrink-0">
+              <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.5 9h-3.2a15.7 15.7 0 00-1.1-5 8.04 8.04 0 014.3 5zM12 4c1 1.5 1.8 3.8 2.1 7H9.9C10.2 7.8 11 5.5 12 4zM4.5 13h3.2c.2 1.9.7 3.7 1.1 5a8.04 8.04 0 01-4.3-5zm0-2a8.04 8.04 0 014.3-5c-.4 1.3-.9 3.1-1.1 5H4.5zm7.5 9c-1-1.5-1.8-3.8-2.1-7h4.2c-.3 3.2-1.1 5.5-2.1 7zm3.2-2c.4-1.3.9-3.1 1.1-5h3.2a8.04 8.04 0 01-4.3 5z" />
+            </svg>
+            {t('navbar.openWebsite')}
+          </MenuItemButton>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild disabled={!discord}>
+          <MenuItemButton
+            disabled={!discord}
+            onClick={() => discord && window.open(discord, '_blank')}
+          >
+            {' '}
+            <DiscordIcon className="w-4 h-4 shrink-0" />
+            {t('navbar.brandDiscord')}
+          </MenuItemButton>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild disabled={!wiki}>
+          <MenuItemButton disabled={!wiki} onClick={() => wiki && window.open(wiki, '_blank')}>
+            {' '}
+            <BookOpenIcon className="w-4 h-4 shrink-0" aria-hidden="true" />
+            {t('navbar.brandWiki')}
+          </MenuItemButton>
+        </DropdownMenuItem>
 
-            <div className="my-1 h-px bg-[var(--color-ds-border)]" role="separator" />
+        <DropdownMenuSeparator />
 
-            <MenuItemButton
-              disabled={!donate}
-              onClick={() => donate && runAndClose(() => window.open(donate, '_blank'))}
-            >
-              <HeartIcon />
-              <span className="font-semibold text-[var(--color-ds-accent)]">
-                {donate ? t('navbar.support') : t('navbar.donateUnavailable')}
-              </span>
-            </MenuItemButton>
-          </div>
-        </div>
-      )}
-    </div>
+        <DropdownMenuItem asChild disabled={!donate}>
+          <MenuItemButton
+            disabled={!donate}
+            onClick={() => donate && window.open(donate, '_blank')}
+          >
+            {' '}
+            <HeartIcon />
+            <span className="font-semibold text-[var(--color-ds-accent)]">
+              {donate ? t('navbar.support') : t('navbar.donateUnavailable')}
+            </span>
+          </MenuItemButton>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

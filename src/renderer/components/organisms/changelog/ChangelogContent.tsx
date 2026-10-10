@@ -4,6 +4,9 @@ import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
 import ChangelogEntryItem from '@components/molecules/ChangelogEntryItem'
 import { resolveChangelogEntries } from '@lib/changelogEntries'
+import TextSkeleton from '@components/molecules/TextSkeleton'
+import { Skeleton } from '@components/ui/skeleton'
+import { useDelayedFlag } from '@hooks/useDelayedFlag'
 
 /** Renders the selected changelog version entries as left-aligned bullet list. */
 export default function ChangelogContent(): React.JSX.Element {
@@ -11,15 +14,28 @@ export default function ChangelogContent(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data, getEntries, getCurrentId, loading, fetched } = useChangelogStore()
 
+  const showSkeleton = useDelayedFlag(loading && !data)
   const entries = getEntries(activeEnv)
   const currentId = getCurrentId(activeEnv)
   const current = entries.find((e) => e.id === currentId)
 
   if (loading && !data) {
+    // Skeleton of an entry while the changelog loads, after a short delay (ADR 0018)
     return (
       <div className="flex min-h-0 flex-1 flex-col min-w-0 p-6">
-        <div className="ds-panel flex h-full flex-1 items-center justify-center text-[var(--color-ds-muted)]">
-          {t('changelog.loading')}
+        <div
+          role="status"
+          aria-busy="true"
+          aria-label={t('common.loadingContent')}
+          className="ds-panel flex h-full flex-1 flex-col gap-6 p-6"
+        >
+          {showSkeleton && (
+            <>
+              <Skeleton shape="line" className="h-6 w-56" />
+              <TextSkeleton lines={4} />
+              <TextSkeleton lines={3} />
+            </>
+          )}
         </div>
       </div>
     )

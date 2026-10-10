@@ -85,4 +85,21 @@ describe('OrganisationMembers', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Load 1 more member' }))
     await waitFor(() => expect(useNavigationStore.getState().pageState.membersShown).toBe(2))
   })
+
+  it('shows a skeleton first, then a spinner in Load more while the next page loads', async () => {
+    seedSocial({})
+    let resolveFirst: (value: unknown) => void = () => {}
+    vi.mocked(window.api.socialGetOrganisationMembers)
+      .mockReturnValueOnce(new Promise((resolve) => (resolveFirst = resolve)) as never)
+      .mockReturnValueOnce(new Promise(() => {}))
+    render(<OrganisationMembers subject={subject} />)
+    expect(await screen.findByRole('status', { name: 'Loading content' })).toBeInTheDocument()
+
+    await act(async () =>
+      resolveFirst({ ok: true, data: { members: [0, 1].map(member), total: 3 } })
+    )
+    const more = await screen.findByRole('button', { name: 'Load 1 more member' })
+    await userEvent.click(more)
+    await waitFor(() => expect(more).toHaveAttribute('aria-busy', 'true'))
+  })
 })

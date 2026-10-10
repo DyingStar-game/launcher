@@ -41,4 +41,20 @@ describe('RequestRow', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Open the profile of Zed' }))
     expect(onOpen).toHaveBeenCalledOnce()
   })
+
+  it('labels its icon buttons with a tooltip', async () => {
+    render(
+      <RequestRow
+        req={req}
+        direction="incoming"
+        onOpen={vi.fn()}
+        onAccept={vi.fn(() => Promise.resolve())}
+        onDecline={vi.fn(() => Promise.resolve())}
+      />
+    )
+    const accept = screen.getByRole('button', { name: 'Accept request from Zed' })
+    expect(accept).not.toHaveAttribute('title')
+    await userEvent.hover(accept)
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Accept')
+  })
 })

@@ -1,58 +1,39 @@
 import type React from 'react'
 import { useEffect, useId, useState } from 'react'
-import i18n from '@i18n'
 import { useEnvStore } from '@stores/env'
 import { navSection, useNavigationStore } from '@stores/navigation'
 import type { TopView } from '@stores/navigation'
 import { useChangelogStore } from '@stores/changelog'
 import { useTranslation } from 'react-i18next'
+import { BookOpenIcon } from 'lucide-react'
 import Button from '@components/atoms/Button'
 import TabButton from '@components/atoms/TabButton'
 import DiscordIcon from '@components/atoms/icons/DiscordIcon'
 import SoundVolumeMenu from '@components/organisms/layout/SoundVolumeMenu'
+import LabelTooltip from '@components/molecules/LabelTooltip'
+import LanguageMenu from '@components/organisms/layout/LanguageMenu'
 import NavbarMoreMenu from '@components/organisms/layout/NavbarMoreMenu'
 import type { NavbarEnvOption } from '@components/organisms/layout/NavbarMoreMenu'
 import type { Env } from '@shared/types/env'
 import { navUrls } from '@lib/env'
+import { cn } from '@lib/cn'
 import type { ReactNode } from 'react'
 
-/** Accessible inline SVG with title for screen readers. */
-function Svg({ children, title }: { children: ReactNode; title: string }): React.JSX.Element {
+/** Vertical rule between two groups of the bar; the bar's gap gives it the same space each side. */
+function GroupDivider({ className }: { className?: string }): React.JSX.Element {
+  return (
+    <div
+      aria-hidden="true"
+      className={cn('h-6 w-px shrink-0 bg-[var(--color-ds-border)]', className)}
+    />
+  )
+}
+
+/** Decorative inline SVG icon (the button carries the label and the tooltip). */
+function Svg({ children }: { children: ReactNode }): React.JSX.Element {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4.5 h-4.5 fill-current">
-      <title>{title}</title>
       {children}
-    </svg>
-  )
-}
-
-function FlagFR(): React.JSX.Element {
-  const { t } = useTranslation()
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4.5 h-4.5">
-      <title>{t('navbar.languageFr')}</title>
-      <rect x="3" y="6" width="6" height="12" rx="2" fill="#1b4db1" />
-      <rect x="9" y="6" width="6" height="12" rx="0" fill="#ffffff" />
-      <rect x="15" y="6" width="6" height="12" rx="2" fill="#d22f27" />
-    </svg>
-  )
-}
-
-function FlagEN(): React.JSX.Element {
-  const { t } = useTranslation()
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4.5 h-4.5">
-      <title>{t('navbar.languageEn')}</title>
-      <rect x="3" y="6" width="18" height="12" rx="2" fill="#1b4db1" />
-      <path
-        d="M4 7.2l6.4 4.2L4 15.6v-1.8l4.2-2.4L4 9V7.2zm16 0V9l-4.2 2.4 4.2 2.4v1.8l-6.4-4.2L20 7.2z"
-        fill="#ffffff"
-        opacity="0.95"
-      />
-      <path d="M10.7 6h2.6v12h-2.6z" fill="#ffffff" />
-      <path d="M3 10.7h18v2.6H3z" fill="#ffffff" />
-      <path d="M11.25 6h1.5v12h-1.5z" fill="#d22f27" />
-      <path d="M3 11.25h18v1.5H3z" fill="#d22f27" />
     </svg>
   )
 }
@@ -260,141 +241,147 @@ export default function Navbar(): React.JSX.Element {
 
       {/* Droite : langues + liens externes + soutenir (compact → menu hamburger) ; never shrinks so the window controls stay visible */}
       <div className="app-no-drag flex shrink-0 items-center gap-3">
-        <div className="hidden min-[1400px]:flex items-center gap-1 pr-2 border-r border-[var(--color-ds-border)]">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => void i18n.changeLanguage('en')}
-            title={t('navbar.languageEn')}
-            aria-label={t('navbar.switchToEnglish')}
-          >
-            <FlagEN />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => void i18n.changeLanguage('fr')}
-            title={t('navbar.languageFr')}
-            aria-label={t('navbar.switchToFrench')}
-          >
-            <FlagFR />
-          </Button>
+        {/* Groups: language | links | sound + donate (burger below 1400px) | window, 8px inside,
+            one divider between two groups (the bar's 12px gap on each side) */}
+        <div className="hidden min-[1400px]:flex items-center gap-2">
+          <LanguageMenu />
         </div>
 
-        <div className="hidden min-[1400px]:contents">
-          <Button
-            variant="outline"
-            size="icon"
-            disabled={!navWebsite}
-            onClick={() => navWebsite && window.open(navWebsite, '_blank')}
-            title={navWebsite ? t('navbar.openWebsite') : undefined}
-            aria-label={t('navbar.openWebsite')}
-          >
-            <Svg title={t('navbar.openWebsite')}>
-              <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.5 9h-3.2a15.7 15.7 0 00-1.1-5 8.04 8.04 0 014.3 5zM12 4c1 1.5 1.8 3.8 2.1 7H9.9C10.2 7.8 11 5.5 12 4zM4.5 13h3.2c.2 1.9.7 3.7 1.1 5a8.04 8.04 0 01-4.3-5zm0-2a8.04 8.04 0 014.3-5c-.4 1.3-.9 3.1-1.1 5H4.5zm7.5 9c-1-1.5-1.8-3.8-2.1-7h4.2c-.3 3.2-1.1 5.5-2.1 7zm3.2-2c.4-1.3.9-3.1 1.1-5h3.2a8.04 8.04 0 01-4.3 5z" />
-            </Svg>
-          </Button>
+        <GroupDivider className="hidden min-[1400px]:block" />
 
-          <Button
-            variant="outline"
-            size="icon"
-            disabled={!navDiscord}
-            onClick={() => navDiscord && window.open(navDiscord, '_blank')}
-            title={navDiscord ? t('navbar.brandDiscord') : undefined}
-            aria-label={t('navbar.openDiscord')}
-          >
-            <DiscordIcon className="w-4.5 h-4.5" title={t('navbar.brandDiscord')} />
-          </Button>
+        <div className="hidden min-[1400px]:flex items-center gap-2">
+          <LabelTooltip label={t('navbar.openWebsite')}>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={!navWebsite}
+              onClick={() => navWebsite && window.open(navWebsite, '_blank')}
+              aria-label={t('navbar.openWebsite')}
+            >
+              <Svg>
+                <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.5 9h-3.2a15.7 15.7 0 00-1.1-5 8.04 8.04 0 014.3 5zM12 4c1 1.5 1.8 3.8 2.1 7H9.9C10.2 7.8 11 5.5 12 4zM4.5 13h3.2c.2 1.9.7 3.7 1.1 5a8.04 8.04 0 01-4.3-5zm0-2a8.04 8.04 0 014.3-5c-.4 1.3-.9 3.1-1.1 5H4.5zm7.5 9c-1-1.5-1.8-3.8-2.1-7h4.2c-.3 3.2-1.1 5.5-2.1 7zm3.2-2c.4-1.3.9-3.1 1.1-5h3.2a8.04 8.04 0 01-4.3 5z" />
+              </Svg>
+            </Button>
+          </LabelTooltip>
 
-          <Button
-            variant="outline"
-            size="icon"
-            disabled={!navWiki}
-            onClick={() => navWiki && window.open(navWiki, '_blank')}
-            title={navWiki ? t('navbar.brandWiki') : undefined}
-            aria-label={t('navbar.openWiki')}
-          >
-            <Svg title={t('navbar.brandWiki')}>
-              <path d="M6 4h11a2 2 0 012 2v12a2 2 0 01-2 2H6a3 3 0 01-3-3V6a2 2 0 012-2h1zm0 2H5v11a1 1 0 001 1h11V6H6zm2 2h7v2H8V8zm0 4h7v2H8v-2z" />
-            </Svg>
-          </Button>
+          <LabelTooltip label={t('navbar.brandDiscord')}>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={!navDiscord}
+              onClick={() => navDiscord && window.open(navDiscord, '_blank')}
+              aria-label={t('navbar.openDiscord')}
+            >
+              <DiscordIcon className="w-4.5 h-4.5" />
+            </Button>
+          </LabelTooltip>
+
+          <LabelTooltip label={t('navbar.brandWiki')}>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={!navWiki}
+              onClick={() => navWiki && window.open(navWiki, '_blank')}
+              aria-label={t('navbar.openWiki')}
+            >
+              <BookOpenIcon className="w-4.5 h-4.5" aria-hidden="true" />
+            </Button>
+          </LabelTooltip>
         </div>
 
-        <div className="ml-2">
+        <GroupDivider className="hidden min-[1400px]:block" />
+
+        <div className="flex items-center gap-2">
           <SoundVolumeMenu />
+
+          {navDonate ? (
+            <Button
+              onClick={() => window.open(navDonate, '_blank')}
+              variant="primary"
+              size="sm"
+              className="hidden min-[1400px]:inline-flex"
+            >
+              <HeartDonateIcon />
+              {t('navbar.support')}
+            </Button>
+          ) : (
+            // A disabled button gets no pointer events: the tooltip sits on a focusable wrapper
+            <LabelTooltip label={t('navbar.donateUnavailable')}>
+              <span tabIndex={0} className="hidden min-[1400px]:inline-flex rounded-lg">
+                <Button
+                  disabled
+                  variant="primary"
+                  size="sm"
+                  aria-label={t('navbar.donateUnavailable')}
+                >
+                  <HeartDonateIcon />
+                  {t('navbar.support')}
+                </Button>
+              </span>
+            </LabelTooltip>
+          )}
+
+          <div className="min-[1400px]:hidden">
+            <NavbarMoreMenu
+              sections={navLinks}
+              currentSection={navSection(currentView)}
+              onNavigate={navigate}
+              envs={envOptions}
+              activeEnv={activeEnv}
+              onEnvSwitch={handleEnvSwitch}
+            />
+          </div>
         </div>
 
-        <Button
-          disabled={!navDonate}
-          onClick={() => navDonate && window.open(navDonate, '_blank')}
-          variant="primary"
-          size="sm"
-          title={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
-          aria-label={navDonate ? t('navbar.support') : t('navbar.donateUnavailable')}
-          className="ml-1 hidden min-[1400px]:inline-flex rounded-full px-4 shadow-none overflow-visible"
-        >
-          <span className="inline-flex items-center gap-2 overflow-visible">
-            <HeartDonateIcon />
-            {t('navbar.support')}
-          </span>
-        </Button>
+        <GroupDivider />
 
-        <div className="min-[1400px]:hidden">
-          <NavbarMoreMenu
-            sections={navLinks}
-            currentSection={navSection(currentView)}
-            onNavigate={navigate}
-            envs={envOptions}
-            activeEnv={activeEnv}
-            onEnvSwitch={handleEnvSwitch}
-          />
-        </div>
-
-        <div className="flex items-center gap-1 pl-2 border-l border-[var(--color-ds-border)]">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              void window.api.minimizeWindow()
-            }}
-            title={t('navbar.minimize')}
-            aria-label={t('navbar.minimize')}
-          >
-            <Svg title={t('navbar.minimize')}>
-              <path d="M5 19h14v-2H5v2z" />
-            </Svg>
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              void window.api.toggleFullscreen().then(setIsFullscreen)
-            }}
-            title={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}
-            aria-label={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}
-          >
-            <Svg title={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}>
-              {isFullscreen ? (
-                <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
-              ) : (
-                <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
-              )}
-            </Svg>
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              void window.api.closeWindow()
-            }}
-            title={t('navbar.close')}
-            aria-label={t('navbar.close')}
-            className="hover:text-red-300 hover:border-red-500/40"
-          >
-            <Svg title={t('navbar.close')}>
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-            </Svg>
-          </Button>
+        <div className="flex items-center gap-2">
+          <LabelTooltip label={t('navbar.minimize')}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                void window.api.minimizeWindow()
+              }}
+              aria-label={t('navbar.minimize')}
+            >
+              <Svg>
+                <path d="M5 19h14v-2H5v2z" />
+              </Svg>
+            </Button>
+          </LabelTooltip>
+          <LabelTooltip label={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                void window.api.toggleFullscreen().then(setIsFullscreen)
+              }}
+              aria-label={isFullscreen ? t('navbar.exitFullscreen') : t('navbar.fullscreen')}
+            >
+              <Svg>
+                {isFullscreen ? (
+                  <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+                ) : (
+                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                )}
+              </Svg>
+            </Button>
+          </LabelTooltip>
+          <LabelTooltip label={t('navbar.close')}>
+            <Button
+              variant="outline-danger"
+              size="icon"
+              onClick={() => {
+                void window.api.closeWindow()
+              }}
+              aria-label={t('navbar.close')}
+            >
+              <Svg>
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+              </Svg>
+            </Button>
+          </LabelTooltip>
         </div>
       </div>
     </nav>

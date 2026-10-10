@@ -12,14 +12,12 @@
   },
   "common": {
     "cancel": "Cancel",
-    "loading": "...",
+    "loadingContent": "Loading content",
     "close": "Close",
-    "send": "Send",
     "create": "Create",
     "back": "Back"
   },
   "navbar": {
-    "home": "Home",
     "social": "Social",
     "lore": "Lore",
     "support": "Donate",
@@ -28,22 +26,18 @@
     "openDiscord": "Open Discord",
     "openWiki": "Open wiki",
     "donateUnavailable": "Support link not configured",
-    "quit": "Quit application",
     "minimize": "Minimize",
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "close": "Close",
-    "languageFr": "Français",
+    "languageFr": "French",
     "languageEn": "English",
-    "switchToFrench": "Switch to French",
-    "switchToEnglish": "Switch to English",
+    "language": "Language",
     "envUniverse": "Universe",
     "envTesting": "Universe Testing",
     "brandDiscord": "Discord",
     "brandWiki": "Wiki",
     "changelog": "Changelog",
-    "soundEnabled": "Sounds enabled",
-    "soundDisabled": "Sounds disabled",
     "toggleSound": "Toggle sounds",
     "soundVolume": "Volume"
   },
@@ -64,7 +58,6 @@
     "sidebarSubtitle": "Release notes by version.",
     "sidebarSubtitleTesting": "New changes in testing.",
     "selectVersion": "Select a version",
-    "loading": "Loading changelog…",
     "unavailable": "Changelog is not available (URL not configured or fetch failed).",
     "empty": "No release notes yet.",
     "noEntries": "No entries for this version.",
@@ -88,14 +81,12 @@
     "missionIn": "In mission • {{system}}"
   },
   "universe": {
-    "title": "Universe",
     "account": {
       "title": "Account",
       "disconnected": "Not connected",
       "connectedAs": "Logged in as {{username}}",
       "login": "Login with Discord",
       "logout": "Logout",
-      "subscription": "Subscription",
       "loading": "Connecting...",
       "cancel": "Cancel",
       "unavailable": "Authentication not available for this environment.",
@@ -159,18 +150,13 @@
     "social": {
       "title": "Social",
       "noFriends": "No friends",
-      "seeAll": "See all",
-      "notifications": "{{count}} notifications"
+      "seeAll": "See all"
     },
     "socialPage": {
       "sidebarTitle": "Social",
       "sidebarSubtitle": "Friends, organizations, requests.",
-      "friends": "Friends",
-      "organizations": "Organizations",
-      "requests": "Requests",
       "addFriend": "Add friend",
       "createOrga": "Create org",
-      "createOrgaLong": "Create organization",
       "joinOrga": "Join",
       "accept": "Accept",
       "decline": "Decline",
@@ -205,7 +191,6 @@
         "placeholder": "Start typing a name...",
         "minChars_one": "Type at least {{count}} character to search.",
         "minChars_other": "Type at least {{count}} characters to search.",
-        "searching": "Searching...",
         "empty": "No player found. Only players who opened the social page once can be found.",
         "add": "Add",
         "addAria": "Send a friend request to {{name}}",
@@ -300,7 +285,6 @@
         "action": "Search"
       },
       "state": {
-        "loading": "Loading...",
         "unavailable": "Social is not available on this server yet.",
         "notSignedIn": "Sign in to see your friends and organizations.",
         "errorShort": "Social is unavailable right now.",

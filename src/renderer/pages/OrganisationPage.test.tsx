@@ -10,12 +10,16 @@ beforeEach(() => {
 })
 
 describe('OrganisationPage', () => {
-  it('shows a muted loading line while the organisation loads', () => {
+  it('shows a skeleton of the page while the organisation loads, after a short delay', async () => {
     act(() =>
       useSocialStore.setState({ getOrganisation: vi.fn(() => new Promise<never>(() => {})) })
     )
     render(<OrganisationPage />)
-    expect(screen.getByText('Loading...')).toHaveClass('text-[var(--color-ds-muted)]')
+    expect(screen.queryByRole('status', { name: 'Loading content' })).not.toBeInTheDocument()
+    expect(await screen.findByRole('status', { name: 'Loading content' })).toHaveAttribute(
+      'aria-busy',
+      'true'
+    )
   })
 
   it('shows the translated error in red', async () => {

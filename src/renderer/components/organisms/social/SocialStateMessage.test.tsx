@@ -40,4 +40,11 @@ describe('SocialStateMessage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
     expect(window.api.socialLoad).toHaveBeenCalled()
   })
+
+  it('shows a list skeleton while loading, after a short delay', async () => {
+    seedSocial({})
+    render(<SocialStateMessage status="loading" avatar="square" />)
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(await screen.findByRole('status', { name: 'Loading content' })).toBeInTheDocument()
+  })
 })

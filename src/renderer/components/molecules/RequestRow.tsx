@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { FriendRequest } from '@shared/types/social'
 import Button from '@components/atoms/Button'
+import LabelTooltip from './LabelTooltip'
 import PlayerIdentity from './PlayerIdentity'
 
 type Props = {
@@ -62,37 +63,43 @@ export default function RequestRow({
       <div className="flex items-center gap-1.5 shrink-0">
         {/* Accepter */}
         {direction === 'incoming' && (
-          <Button
-            variant="success"
-            size="icon-sm"
-            onClick={handleAccept}
-            disabled={busy}
-            title={t('universe.socialPage.accept')}
-            aria-label={t('universe.socialPage.request.acceptAria', { name: req.name })}
-          >
-            {status === 'accepting' ? <SpinnerIcon /> : <CheckIcon />}
-          </Button>
+          <LabelTooltip label={t('universe.socialPage.accept')}>
+            <Button
+              variant="success"
+              size="icon-sm"
+              onClick={handleAccept}
+              disabled={busy}
+              loading={status === 'accepting'}
+              aria-label={t('universe.socialPage.request.acceptAria', { name: req.name })}
+            >
+              <CheckIcon />
+            </Button>
+          </LabelTooltip>
         )}
 
         {/* Refuser */}
-        <Button
-          variant="danger"
-          size="icon-sm"
-          onClick={handleDecline}
-          disabled={busy}
-          title={
+        <LabelTooltip
+          label={
             direction === 'incoming'
               ? t('universe.socialPage.decline')
               : t('universe.socialPage.request.cancel')
           }
-          aria-label={
-            direction === 'incoming'
-              ? t('universe.socialPage.request.declineAria', { name: req.name })
-              : t('universe.socialPage.request.cancelAria', { name: req.name })
-          }
         >
-          {status === 'declining' ? <SpinnerIcon /> : <XIcon />}
-        </Button>
+          <Button
+            variant="danger"
+            size="icon-sm"
+            onClick={handleDecline}
+            disabled={busy}
+            loading={status === 'declining'}
+            aria-label={
+              direction === 'incoming'
+                ? t('universe.socialPage.request.declineAria', { name: req.name })
+                : t('universe.socialPage.request.cancelAria', { name: req.name })
+            }
+          >
+            <XIcon />
+          </Button>
+        </LabelTooltip>
       </div>
     </div>
   )
@@ -122,19 +129,6 @@ function XIcon(): React.JSX.Element {
       strokeLinejoin="round"
     >
       <path d="M4 4l8 8M12 4l-8 8" />
-    </svg>
-  )
-}
-
-function SpinnerIcon(): React.JSX.Element {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      className="w-3.5 h-3.5 fill-none stroke-current stroke-[1.8] animate-spin"
-      strokeLinecap="round"
-    >
-      <circle cx="8" cy="8" r="5.5" strokeOpacity="0.25" />
-      <path d="M8 2.5A5.5 5.5 0 0113.5 8" />
     </svg>
   )
 }

@@ -17,6 +17,7 @@ import OrganisationSearch from '@components/organisms/social/OrganisationSearch'
 import PlayerSearch from '@components/organisms/social/PlayerSearch'
 import SocialStateMessage from '@components/organisms/social/SocialStateMessage'
 import SidebarPageLayout from '@components/templates/SidebarPageLayout'
+import { Tabs, TabsContent } from '@components/ui/tabs'
 
 type Tab = 'friends' | 'players' | 'organizations' | 'requests'
 
@@ -45,112 +46,120 @@ export default function SocialPage(): React.JSX.Element {
   }
 
   return (
-    <SidebarPageLayout sidebar={<SocialSidebar current={tab} setCurrent={handleTabChange} />}>
-      <PageHeader
-        title={t(`universe.socialPage.tabs.${tab}.label`)}
-        subtitle={t(`universe.socialPage.tabs.${tab}.subtitle`)}
-        actions={
-          ready && tab === 'friends' ? (
-            <Button variant="primary" onClick={() => handleTabChange('players')}>
-              {t('universe.socialPage.addFriend')}
-            </Button>
-          ) : ready && tab === 'organizations' ? (
-            <Button variant="primary" onClick={() => setShowCreateOrga((v) => !v)}>
-              {showCreateOrga ? t('common.cancel') : t('universe.socialPage.createOrga')}
-            </Button>
-          ) : null
-        }
-      />
+    // Radix tabs (ADR 0016): the sidebar is the tab list, the content column the tab panel
+    <Tabs value={tab} onValueChange={handleTabChange} orientation="vertical" className="contents">
+      <SidebarPageLayout sidebar={<SocialSidebar current={tab} />}>
+        <TabsContent value={tab} className="flex min-h-0 flex-col gap-4">
+          <PageHeader
+            title={t(`universe.socialPage.tabs.${tab}.label`)}
+            subtitle={t(`universe.socialPage.tabs.${tab}.subtitle`)}
+            actions={
+              ready && tab === 'friends' ? (
+                <Button variant="primary" onClick={() => handleTabChange('players')}>
+                  {t('universe.socialPage.addFriend')}
+                </Button>
+              ) : ready && tab === 'organizations' ? (
+                <Button variant="primary" onClick={() => setShowCreateOrga((v) => !v)}>
+                  {showCreateOrga ? t('common.cancel') : t('universe.socialPage.createOrga')}
+                </Button>
+              ) : null
+            }
+          />
 
-      {ready && showCreateOrga && tab === 'organizations' && (
-        <CreateOrganisationForm onClose={() => setShowCreateOrga(false)} />
-      )}
-      {ready && tab === 'organizations' && !showCreateOrga && (
-        <OrganisationSearch key={activeEnv} />
-      )}
+          {ready && showCreateOrga && tab === 'organizations' && (
+            <CreateOrganisationForm onClose={() => setShowCreateOrga(false)} />
+          )}
+          {ready && tab === 'organizations' && !showCreateOrga && (
+            <OrganisationSearch key={activeEnv} />
+          )}
 
-      {ready && tab === 'requests' && incoming.length > 0 && (
-        <p className="text-xs text-[var(--color-ds-muted)]">
-          {t('universe.socialPage.pendingRequests', { count: incoming.length })}
-        </p>
-      )}
+          {ready && tab === 'requests' && incoming.length > 0 && (
+            <p className="text-xs text-[var(--color-ds-muted)]">
+              {t('universe.socialPage.pendingRequests', { count: incoming.length })}
+            </p>
+          )}
 
-      {ready && tab === 'players' && <PlayerSearch key={activeEnv} />}
+          {ready && tab === 'players' && <PlayerSearch key={activeEnv} />}
 
-      {!(ready && tab === 'players') && (
-        <div className="ds-panel flex-1 min-h-0 overflow-hidden">
-          <div ref={listRef} className="h-full overflow-y-auto p-3 flex flex-col gap-2">
-            <SocialStateMessage status={status} />
+          {!(ready && tab === 'players') && (
+            <div className="ds-panel flex-1 min-h-0 overflow-hidden">
+              <div ref={listRef} className="h-full overflow-y-auto p-3 flex flex-col gap-2">
+                <SocialStateMessage
+                  status={status}
+                  avatar={tab === 'organizations' ? 'square' : 'circle'}
+                />
 
-            {ready && tab === 'friends' && (
-              <>
-                {friends.length === 0 && (
-                  <p className="text-sm text-[var(--color-ds-muted)] p-2">
-                    {t('universe.socialPage.emptyFriends')}
-                  </p>
+                {ready && tab === 'friends' && (
+                  <>
+                    {friends.length === 0 && (
+                      <p className="text-sm text-[var(--color-ds-muted)] p-2">
+                        {t('universe.socialPage.emptyFriends')}
+                      </p>
+                    )}
+                    {friends.map((f) => (
+                      <FriendRow key={f.id} friend={f} onOpen={() => openPlayer(f.id)} />
+                    ))}
+                  </>
                 )}
-                {friends.map((f) => (
-                  <FriendRow key={f.id} friend={f} onOpen={() => openPlayer(f.id)} />
-                ))}
-              </>
-            )}
 
-            {ready && tab === 'organizations' && (
-              <>
-                {organisations.length === 0 && (
-                  <p className="text-sm text-[var(--color-ds-muted)] p-2">
-                    {t('universe.socialPage.emptyOrganizations')}
-                  </p>
+                {ready && tab === 'organizations' && (
+                  <>
+                    {organisations.length === 0 && (
+                      <p className="text-sm text-[var(--color-ds-muted)] p-2">
+                        {t('universe.socialPage.emptyOrganizations')}
+                      </p>
+                    )}
+                    {organisations.map((o) => (
+                      <OrgaRow
+                        key={o.id}
+                        orga={o}
+                        onOpen={() => openOrganisation(o.id)}
+                        action={
+                          <OrganisationAction id={o.id} name={o.name} recruitment={o.recruitment} />
+                        }
+                      />
+                    ))}
+                  </>
                 )}
-                {organisations.map((o) => (
-                  <OrgaRow
-                    key={o.id}
-                    orga={o}
-                    onOpen={() => openOrganisation(o.id)}
-                    action={
-                      <OrganisationAction id={o.id} name={o.name} recruitment={o.recruitment} />
-                    }
-                  />
-                ))}
-              </>
-            )}
 
-            {ready && tab === 'requests' && (
-              <>
-                {incoming.length === 0 && outgoing.length === 0 && (
-                  <p className="text-sm text-[var(--color-ds-muted)] p-2">
-                    {t('universe.socialPage.emptyRequests')}
-                  </p>
+                {ready && tab === 'requests' && (
+                  <>
+                    {incoming.length === 0 && outgoing.length === 0 && (
+                      <p className="text-sm text-[var(--color-ds-muted)] p-2">
+                        {t('universe.socialPage.emptyRequests')}
+                      </p>
+                    )}
+                    {incoming.map((r) => (
+                      <RequestRow
+                        key={r.id}
+                        req={r}
+                        direction="incoming"
+                        onOpen={() => openPlayer(r.playerId)}
+                        onAccept={() => acceptRequest(r.id)}
+                        onDecline={() => declineRequest(r.id)}
+                      />
+                    ))}
+                    {outgoing.length > 0 && (
+                      <p className="ds-section-label px-3 pt-2">
+                        {t('universe.socialPage.request.sentTitle')}
+                      </p>
+                    )}
+                    {outgoing.map((r) => (
+                      <RequestRow
+                        key={r.id}
+                        req={r}
+                        direction="outgoing"
+                        onOpen={() => openPlayer(r.playerId)}
+                        onDecline={() => declineRequest(r.id)}
+                      />
+                    ))}
+                  </>
                 )}
-                {incoming.map((r) => (
-                  <RequestRow
-                    key={r.id}
-                    req={r}
-                    direction="incoming"
-                    onOpen={() => openPlayer(r.playerId)}
-                    onAccept={() => acceptRequest(r.id)}
-                    onDecline={() => declineRequest(r.id)}
-                  />
-                ))}
-                {outgoing.length > 0 && (
-                  <p className="ds-section-label px-3 pt-2">
-                    {t('universe.socialPage.request.sentTitle')}
-                  </p>
-                )}
-                {outgoing.map((r) => (
-                  <RequestRow
-                    key={r.id}
-                    req={r}
-                    direction="outgoing"
-                    onOpen={() => openPlayer(r.playerId)}
-                    onDecline={() => declineRequest(r.id)}
-                  />
-                ))}
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </SidebarPageLayout>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+      </SidebarPageLayout>
+    </Tabs>
   )
 }

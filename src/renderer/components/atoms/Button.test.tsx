@@ -55,4 +55,50 @@ describe('Button', () => {
     expect(button).toHaveClass('hidden')
     expect(button).not.toHaveClass('inline-flex')
   })
+
+  it('does not move when pressed', () => {
+    render(<Button variant="primary">Play</Button>)
+    expect(screen.getByRole('button', { name: 'Play' }).className).not.toMatch(/translate/)
+  })
+
+  it.each([
+    ['outline-danger', 'hover:text-red-300'],
+    ['link', 'text-xs'],
+    ['name', 'hover:underline'],
+    ['subtle', 'text-current']
+  ] as const)('has a %s variant', (variant, cls) => {
+    render(<Button variant={variant}>Go</Button>)
+    expect(screen.getByRole('button', { name: 'Go' })).toHaveClass(cls)
+  })
+
+  it('gives text and icon buttons the same height', () => {
+    render(
+      <>
+        <Button size="sm">Donate</Button>
+        <Button size="md">Play</Button>
+        <Button size="icon" aria-label="Close">
+          ×
+        </Button>
+      </>
+    )
+    for (const name of ['Donate', 'Play', 'Close']) {
+      expect(screen.getByRole('button', { name })).toHaveClass('h-9')
+    }
+  })
+
+  it('keeps its size and shows a spinner while loading, disabled and busy', async () => {
+    const onClick = vi.fn()
+    render(
+      <Button onClick={onClick} loading>
+        Join
+      </Button>
+    )
+    const button = screen.getByRole('button', { name: 'Join' })
+    expect(button).toBeDisabled()
+    expect(button).toHaveAttribute('aria-busy', 'true')
+    expect(button.querySelector('.animate-spin')).toBeInTheDocument()
+    expect(screen.getByText('Join')).toHaveClass('opacity-0')
+    await userEvent.click(button)
+    expect(onClick).not.toHaveBeenCalled()
+  })
 })

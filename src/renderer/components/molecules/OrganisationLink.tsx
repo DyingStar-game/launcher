@@ -15,12 +15,12 @@ export default function OrganisationLink({ organisation, onOpen }: Props): React
 
   return (
     <Button
-      variant="bare"
+      variant="name"
       size="none"
       soundProfile={UiSoundProfile.None}
       onClick={onOpen}
       aria-label={t('universe.socialPage.organisation.openAria', { name: organisation.name })}
-      className="block min-w-0 truncate text-left text-sm font-medium text-[var(--color-ds-text)] hover:underline"
+      className="block min-w-0 truncate text-left"
     >
       {organisation.name}{' '}
       <span className="text-xs font-normal text-[var(--color-ds-muted)]">
