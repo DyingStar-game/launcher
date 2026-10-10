@@ -10,7 +10,7 @@ Un **launcher Electron** pour le jeu _Dying Star_. Il gère notamment :
 - Téléchargement, installation et mises à jour du jeu (ZIP via URLs configurables)
 - Statut serveur et nombre de joueurs
 - Vérification des mises à jour du launcher (GitHub Releases)
-- Articles de lore (markdown embarqué) et une **UI social** (données mock pour l’instant)
+- Articles de lore (markdown embarqué) et une **UI social** (amis, demandes, organisations) sur le service de jeu `social`
 
 ## Arborescence
 
@@ -148,9 +148,9 @@ La progression d’installation utilise des **clés structurées** (`InstallProg
 
 ## Points importants
 
-### Page Social (mock)
+### Page Social
 
-`src/renderer/stores/social.ts` utilise des **données mock** en attendant les APIs. Les erreurs passent par `SocialStoreError` et `src/renderer/lib/socialErrors.ts`.
+Le process main appelle le service `social` (`src/main/services/social/`, [ADR 0007](../adr/0007-social-player-side.md)) avec le jeton Keycloak du joueur. Il est disponible sur `universe-testing` (service preprod par défaut, `VITE_SOCIAL_BASE_TESTING`) et affiche « indisponible » sur `universe` tant que la prod n’est pas déployée. Connecte-toi sur `universe-testing` pour l’essayer. Les erreurs remontent sous forme de codes, traduits sous `universe.socialPage.errors.*`.
 
 ### Deux environnements jeu
 

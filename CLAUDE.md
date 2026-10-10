@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Electron desktop launcher for the game _Dying Star_ (electron-vite, React 19, Tailwind CSS v4, Zustand, i18next, electron-builder). It handles Keycloak/Discord login, game ZIP download/install/update, game launch, server status, launcher update checks, changelog, lore, and a social UI (currently mock data).
+Electron desktop launcher for the game _Dying Star_ (electron-vite, React 19, Tailwind CSS v4, Zustand, i18next, electron-builder). It handles Keycloak/Discord login, game ZIP download/install/update, game launch, server status, launcher update checks, changelog, lore, and a player-side social UI (friends, requests, organisations) on the `social` game service.
 
 ## Golden rule — Git
 
@@ -22,13 +22,13 @@ Go through the root `Makefile` (ADR 0002): a thin, host-side wrapper over the pn
 | Hot-reload dev               | `make dev`                                                                                         |
 | Production preview (testers) | `make start`                                                                                       |
 | Any pnpm script              | `make pnpm <cmd>`, flags via `ARGS`, e.g. `make pnpm typecheck:web`, `make pnpm add zod ARGS="-D"` |
-| Checks before committing     | `make check` (format, lint, typecheck, format check); a change is done only when it passes         |
+| Checks before committing     | `make check` (format, lint, typecheck, test, format check); a change is done only when it passes   |
 | Build / installer            | `make build` (→ `out/`), `make package` (current OS → `release/`), `make package-dir`              |
 | Clean                        | `make clean`                                                                                       |
 
 `typecheck` covers main/preload (`tsconfig.node.json`) and renderer (`tsconfig.web.json`); `typecheck:node` / `typecheck:web` check one side. Prettier: single quotes, no semicolons, width 100, no trailing commas.
 
-There is no test suite. CI (`.github/workflows/build.yaml`) runs `lint` and `typecheck` on every push/PR, then builds Linux and Windows.
+Tests: Vitest in Node (`vitest.config.ts`), `src/**/*.test.ts` next to the code; run one file with `make pnpm test src/main/services/social/mapping.test.ts`, or `make pnpm exec vitest` to watch. Only main/shared logic is tested (no renderer component tests yet). CI (`.github/workflows/build.yaml`) runs lint, typecheck and test on every push/PR, then builds Linux and Windows.
 
 ## Architecture
 
@@ -60,7 +60,7 @@ Path aliases (`electron.vite.config.ts` + tsconfigs): main/preload only get `@sh
 - **Launch** (`main/services/game/`): fetches a fresh JWT and spawns the executable with `--token=<jwt>`; `processWatch` tracks the child and pushes `game:running-changed`. A `SESSION_EXPIRED` error means re-login is needed.
 - **Startup** (`renderer/App.tsx`): env availability check, version check (launcher vs GitHub Releases, game vs API), changelog fetch.
 - Persisted renderer state uses `zustand/persist` (`stores/files.ts` install metadata, `stores/changelog.ts` read-state with a `migrate`, `stores/sound.ts`).
-- `stores/social.ts` is in-memory mock data; errors use `SocialStoreError` codes mapped in `lib/socialErrors.ts`.
+- **Social** (`main/services/social/`, ADR 0007): main calls the `social` service (`VITE_SOCIAL_BASE_*`; preprod by default for testing, none for prod) with the player's Keycloak access token. `social:*` handlers resolve to `SocialResult` (`{ ok, data } | { ok: false, error: SocialErrorCode }`) instead of throwing; the store turns errors into `SocialStoreError`, translated as `universe.socialPage.errors.<code>`. The service README (`DyingStar-game/services/social`) is the reference; check its code too before relying on a shape.
 
 ## ADRs are binding
 
@@ -72,7 +72,8 @@ Significant decisions are recorded in [`docs/adr/`](./docs/adr/) (Nygard format,
   - any IPC, main or preload change: [0003](./docs/adr/0003-process-boundaries-ipc.md);
   - anything env-dependent, any `VITE_*` variable: [0004](./docs/adr/0004-two-game-environments.md);
   - sign-in, tokens, game launch: [0005](./docs/adr/0005-keycloak-pkce-authentication.md);
-  - tooling, Makefile, CI setup: [0002](./docs/adr/0002-makefile-tooling.md); dependency and toolchain versions: [0006](./docs/adr/0006-toolchain-versions.md).
+  - tooling, Makefile, CI setup: [0002](./docs/adr/0002-makefile-tooling.md); dependency and toolchain versions: [0006](./docs/adr/0006-toolchain-versions.md);
+  - social (friends, requests, organisations), tests: [0007](./docs/adr/0007-social-player-side.md); player search screen: [0008](./docs/adr/0008-player-search-screen.md).
 - A rule that cannot be followed is raised with the maintainer, never skipped silently. An accepted ADR is never rewritten: a new ADR supersedes it.
 
 ## Conventions

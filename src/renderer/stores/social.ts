@@ -1,59 +1,55 @@
 import { create } from 'zustand'
+import type {
+  FriendRequestOutcome,
+  JoinOutcome,
+  PlayerSearchResult,
+  SocialErrorCode,
+  SocialResult,
+  SocialSnapshot
+} from '@shared/types/social'
+import { SocialStoreError } from '@lib/socialErrors'
 import { useEnvStore, type Env } from './env'
-import { SOCIAL_ERROR, SocialStoreError } from '@lib/socialErrors'
 
-export type FriendStatus = 'online' | 'offline' | 'ingame'
+export type { Friend, FriendRequest, Organisation } from '@shared/types/social'
 
-export type Friend = {
-  id: string
-  name: string
-  status: FriendStatus
-  game?: string
-  avatar?: string
-}
+/** Load state of the social data for one environment. */
+export type SocialStatus = 'idle' | 'loading' | 'ready' | 'unavailable' | 'notSignedIn' | 'error'
 
-export type Orga = {
-  id: string
-  name: string
-  members: number
-  /** Whether the current user is already a member (from API). */
-  isMember: boolean
-}
-
-export type FriendRequest = {
-  id: string
-  name: string
-}
-
-type EnvSocialData = {
-  friends: Friend[]
-  orgas: Orga[]
-  requests: FriendRequest[]
-  loaded: boolean
+type EnvSocialData = SocialSnapshot & {
+  status: SocialStatus
+  /** Last load error, when `status` is `error`. */
+  error?: SocialErrorCode
+  /** Organisation directory filter (name or ticker). */
+  orgaSearch: string
 }
 
 type SocialState = {
   data: Record<Env, EnvSocialData>
-  /** Loads friends, orgs, and requests for the active env (mock until API wired). */
+  /** Loads friends, requests and organisations of the active env from `social` (ADR 0007). */
   fetchAll: () => Promise<void>
-  addFriend: (username: string) => Promise<void>
-  removeFriend: (id: string) => void
-  acceptRequest: (id: string) => Promise<void>
-  declineRequest: (id: string) => Promise<void>
-  joinOrga: (id: string) => Promise<void>
-  createOrga: (name: string) => Promise<void>
+  /** Finds players by part of their name (2 characters minimum); does not touch the store. */
+  searchPlayers: (query: string) => Promise<PlayerSearchResult[]>
+  /** Sends a friend request; resolves to whether it was accepted at once. */
+  sendFriendRequest: (playerId: string) => Promise<FriendRequestOutcome>
+  removeFriend: (playerId: string) => Promise<void>
+  acceptRequest: (requestId: number) => Promise<void>
+  /** Declines an incoming request or cancels an outgoing one. */
+  declineRequest: (requestId: number) => Promise<void>
+  /** Joins an open organisation or applies to one. */
+  joinOrga: (id: string) => Promise<JoinOutcome>
+  createOrga: (name: string, ticker: string) => Promise<void>
+  /** Filters the organisation directory and reloads. */
+  searchOrgas: (search: string) => Promise<void>
 }
 
-const defaultEnvData: EnvSocialData = {
+const emptyEnvData: EnvSocialData = {
+  selfId: '',
   friends: [],
-  orgas: [],
-  requests: [],
-  loaded: false
-}
-
-const defaultData: Record<Env, EnvSocialData> = {
-  universe: { ...defaultEnvData },
-  'universe-testing': { ...defaultEnvData }
+  incoming: [],
+  outgoing: [],
+  organisations: [],
+  status: 'idle',
+  orgaSearch: ''
 }
 
 type SetFn = (fn: (s: SocialState) => Partial<SocialState>) => void
@@ -65,135 +61,84 @@ function patchEnv(set: SetFn, env: Env, patch: Partial<EnvSocialData>): void {
   }))
 }
 
+/** Load status shown for an error that prevents loading. */
+function statusForError(error: SocialErrorCode): SocialStatus {
+  if (error === 'unavailable') return 'unavailable'
+  if (error === 'notSignedIn' || error === 'sessionExpired') return 'notSignedIn'
+  return 'error'
+}
+
+/** Returns the data of a successful result, or throws its error code for the UI. */
+function unwrap<T>(result: SocialResult<T>): T {
+  if (!result.ok) throw new SocialStoreError(result.error)
+  return result.data
+}
+
+/** Latest load per env: a slower, older response must not overwrite a newer one. */
+const loadSeq: Record<Env, number> = { universe: 0, 'universe-testing': 0 }
+
 /**
- * Social graph state per environment (friends, orgs, requests).
- * Currently backed by mock data; replace with API calls when available.
+ * Social graph state per environment (friends, requests, organisations), from the `social`
+ * service through main (ADR 0007). Actions apply to the active env and reload after success.
  */
-export const useSocialStore = create<SocialState>((set, get) => ({
-  data: defaultData,
+export const useSocialStore = create<SocialState>((set, get) => {
+  /** Reloads one env; a failed reload keeps the data already shown. */
+  const load = async (env: Env): Promise<void> => {
+    const seq = ++loadSeq[env]
+    const current = get().data[env]
+    if (current.status !== 'ready') patchEnv(set, env, { status: 'loading' })
 
-  fetchAll: async () => {
-    const env = useEnvStore.getState().activeEnv
+    const result = await window.api.socialLoad(env, current.orgaSearch)
+    if (seq !== loadSeq[env]) return
 
-    // TODO: replace with real API calls per env
-    await new Promise((r) => setTimeout(r, 500))
-
-    const mockData: Record<Env, EnvSocialData> = {
-      universe: {
-        friends: [
-          { id: '1', name: 'Aurel', status: 'online' },
-          { id: '2', name: 'Kira', status: 'ingame', game: 'Universe' },
-          { id: '3', name: 'Noah', status: 'offline' }
-        ],
-        orgas: [
-          { id: '1', name: 'Nova Corp', members: 12, isMember: true },
-          { id: '2', name: 'Galaxy Team', members: 5, isMember: false },
-          { id: '3', name: 'Void Squad', members: 8, isMember: false }
-        ],
-        requests: [
-          { id: '1', name: 'Zed' },
-          { id: '2', name: 'Mira' }
-        ],
-        loaded: true
-      },
-      'universe-testing': {
-        friends: [
-          { id: '1', name: 'TestUser1', status: 'online' },
-          { id: '2', name: 'TestUser2', status: 'ingame', game: 'Universe Testing' }
-        ],
-        orgas: [{ id: '1', name: 'Test Squad', members: 3, isMember: false }],
-        requests: [],
-        loaded: true
-      }
+    if (result.ok) {
+      patchEnv(set, env, { ...result.data, status: 'ready', error: undefined })
+    } else if (current.status === 'ready' && statusForError(result.error) === 'error') {
+      patchEnv(set, env, { error: result.error })
+    } else {
+      patchEnv(set, env, {
+        ...emptyEnvData,
+        orgaSearch: current.orgaSearch,
+        status: statusForError(result.error),
+        error: result.error
+      })
     }
-
-    patchEnv(set, env, mockData[env])
-  },
-
-  addFriend: async (username: string) => {
-    const env = useEnvStore.getState().activeEnv
-    const trimmed = username.trim()
-    if (!trimmed) return
-
-    const { friends, requests } = get().data[env]
-    const nameTaken =
-      friends.some((f) => f.name.toLowerCase() === trimmed.toLowerCase()) ||
-      requests.some((r) => r.name.toLowerCase() === trimmed.toLowerCase())
-
-    // TODO: POST friend request API
-    await new Promise((r) => setTimeout(r, 600))
-
-    if (nameTaken) {
-      throw new SocialStoreError(SOCIAL_ERROR.FRIEND_REQUEST_FAILED)
-    }
-
-    console.log(`[SocialStore] Friend request sent to "${trimmed}" on env:`, env)
-  },
-
-  removeFriend: (id: string) => {
-    const env = useEnvStore.getState().activeEnv
-    const { friends } = get().data[env]
-    // TODO: DELETE /friends/:id
-    patchEnv(set, env, { friends: friends.filter((f) => f.id !== id) })
-  },
-
-  acceptRequest: async (id: string) => {
-    const env = useEnvStore.getState().activeEnv
-    const { friends, requests } = get().data[env]
-    const req = requests.find((r) => r.id === id)
-    if (!req) return
-
-    // TODO: POST /friend-requests/:id/accept
-    await new Promise((r) => setTimeout(r, 400))
-
-    patchEnv(set, env, {
-      requests: requests.filter((r) => r.id !== id),
-      friends: [...friends, { id: req.id, name: req.name, status: 'offline' }]
-    })
-  },
-
-  declineRequest: async (id: string) => {
-    const env = useEnvStore.getState().activeEnv
-    const { requests } = get().data[env]
-
-    // TODO: POST /friend-requests/:id/decline
-    await new Promise((r) => setTimeout(r, 300))
-
-    patchEnv(set, env, { requests: requests.filter((r) => r.id !== id) })
-  },
-
-  joinOrga: async (id: string) => {
-    const env = useEnvStore.getState().activeEnv
-    const { orgas } = get().data[env]
-
-    // TODO: POST /organizations/:id/join
-    await new Promise((r) => setTimeout(r, 500))
-
-    patchEnv(set, env, {
-      orgas: orgas.map((o) => (o.id === id ? { ...o, isMember: true, members: o.members + 1 } : o))
-    })
-  },
-
-  createOrga: async (name: string) => {
-    const env = useEnvStore.getState().activeEnv
-    const trimmed = name.trim()
-    if (!trimmed) return
-
-    // TODO: POST /organizations
-    await new Promise((r) => setTimeout(r, 600))
-
-    if (trimmed.toLowerCase() === 'dyingstar') {
-      throw new SocialStoreError(SOCIAL_ERROR.ORGA_NAME_TAKEN)
-    }
-
-    const { orgas } = get().data[env]
-    const newOrga: Orga = {
-      id: `orga-${Date.now()}`,
-      name: trimmed,
-      members: 1,
-      isMember: true
-    }
-
-    patchEnv(set, env, { orgas: [...orgas, newOrga] })
   }
-}))
+
+  /** Runs an action on the active env, then reloads it. */
+  const act = async <T>(run: (env: Env) => Promise<SocialResult<T>>): Promise<T> => {
+    const env = useEnvStore.getState().activeEnv
+    const data = unwrap(await run(env))
+    await load(env)
+    return data
+  }
+
+  return {
+    data: { universe: { ...emptyEnvData }, 'universe-testing': { ...emptyEnvData } },
+
+    fetchAll: () => load(useEnvStore.getState().activeEnv),
+
+    searchPlayers: async (query) =>
+      unwrap(await window.api.socialSearchPlayers(useEnvStore.getState().activeEnv, query)),
+
+    sendFriendRequest: (playerId) =>
+      act((env) => window.api.socialSendFriendRequest(env, playerId)),
+
+    removeFriend: (playerId) => act((env) => window.api.socialRemoveFriend(env, playerId)),
+
+    acceptRequest: (requestId) => act((env) => window.api.socialAcceptRequest(env, requestId)),
+
+    declineRequest: (requestId) => act((env) => window.api.socialDeclineRequest(env, requestId)),
+
+    joinOrga: (id) => act((env) => window.api.socialJoinOrganisation(env, id)),
+
+    createOrga: (name, ticker) =>
+      act((env) => window.api.socialCreateOrganisation(env, name, ticker)),
+
+    searchOrgas: async (search) => {
+      const env = useEnvStore.getState().activeEnv
+      patchEnv(set, env, { orgaSearch: search })
+      await load(env)
+    }
+  }
+})

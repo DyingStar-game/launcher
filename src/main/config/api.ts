@@ -26,6 +26,26 @@ export function getDownloadBase(env: Env): string | null {
   return trimmed || getApiBase(env)
 }
 
+/** Default `social` base URL per environment (ADR 0007); production is not deployed yet. */
+const SOCIAL_BASE_DEFAULTS: Record<Env, string> = {
+  universe: '',
+  'universe-testing': 'https://services-preprod.dyingstar-game.space/social'
+}
+
+/**
+ * `social` service base URL (without `/api`), or null when the service is not available for
+ * this environment.
+ */
+export function getSocialBase(env: Env): string | null {
+  const raw =
+    env === 'universe'
+      ? import.meta.env.VITE_SOCIAL_BASE_UNIVERSE
+      : import.meta.env.VITE_SOCIAL_BASE_TESTING
+
+  const trimmed = (raw ?? SOCIAL_BASE_DEFAULTS[env]).trim().replace(/\/$/, '')
+  return trimmed || null
+}
+
 /** Picks the platform-specific ZIP URL from env overrides. */
 function pickZipUrlForPlatform(
   platform: NodeJS.Platform,

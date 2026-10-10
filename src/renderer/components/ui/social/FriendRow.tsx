@@ -1,30 +1,23 @@
 import { useTranslation } from 'react-i18next'
+import type { Friend } from '@stores/social'
 
-type FriendLike = {
-  name: string
-  status: string
-  game?: string
-}
-
-/** Friend list row with online/ingame/offline status indicator. */
-export function FriendRow({ friend }: { friend: FriendLike }): React.JSX.Element {
+/** Friend list row with online/mission/offline status indicator. */
+export function FriendRow({ friend }: { friend: Friend }): React.JSX.Element {
   const { t } = useTranslation()
 
   const color =
     friend.status === 'online'
       ? 'bg-green-500'
-      : friend.status === 'ingame'
+      : friend.status === 'mission'
         ? 'bg-orange-400'
         : 'bg-gray-500'
 
   const statusLabel =
-    friend.status === 'ingame' && friend.game
-      ? t('friendStatus.ingameWithGame', { game: friend.game })
-      : friend.status === 'online'
-        ? t('friendStatus.online')
-        : friend.status === 'offline'
-          ? t('friendStatus.offline')
-          : friend.status
+    friend.status === 'mission'
+      ? friend.system
+        ? t('friendStatus.missionIn', { system: friend.system })
+        : t('friendStatus.mission')
+      : t(`friendStatus.${friend.status}`)
 
   return (
     <div className="flex items-center p-2 rounded-lg hover:bg-[var(--color-ds-surface-hover)]">

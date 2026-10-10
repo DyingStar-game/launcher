@@ -1,0 +1,1 @@
+export { registerSocialHandlers } from './handlers'

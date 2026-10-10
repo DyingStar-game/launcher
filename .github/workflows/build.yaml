@@ -11,7 +11,7 @@ on:
 
 jobs:
   check:
-    name: Lint & Typecheck
+    name: Lint, Typecheck & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,6 +34,9 @@ jobs:
 
       - name: Typecheck
         run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm run test
 
   build:
     name: Build (${{ matrix.os }})

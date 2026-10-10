@@ -6,9 +6,9 @@ type Props = {
   setCurrent: (v: string) => void
 }
 
-const TAB_KEYS = ['friends', 'organizations', 'requests'] as const
+const TAB_KEYS = ['friends', 'players', 'requests', 'organizations'] as const
 
-/** Tab sidebar for the social page (friends / orgs / requests). */
+/** Tab sidebar for the social page (friends / player search / requests / orgs). */
 export default function SocialSidebar({ current, setCurrent }: Props): React.JSX.Element {
   const { t } = useTranslation()
 

@@ -61,11 +61,12 @@ pnpm: ## Run any pnpm command (usage: make pnpm typecheck:web, make pnpm add zod
 	@$(PNPM) $(PNPM_ARGS)
 
 .PHONY: check
-check: node_modules ## Format, then lint, typecheck and check formatting (run before every commit)
-	@echo "$(CYAN)🔎 Format, lint, typecheck, format check...$(RESET)"
+check: node_modules ## Format, then lint, typecheck, test and check formatting (run before every commit)
+	@echo "$(CYAN)🔎 Format, lint, typecheck, test, format check...$(RESET)"
 	@$(PNPM) format
 	@$(PNPM) lint
 	@$(PNPM) typecheck
+	@$(PNPM) test
 	@$(PNPM) format:check
 	@echo "$(GREEN)✅ All checks passed$(RESET)"
 
@@ -136,6 +137,7 @@ help: ## Show this help message
 	@echo "  $(CYAN)make dev$(RESET)                 # Hot-reload development"
 	@echo "  $(CYAN)make check$(RESET)               # Every check before a commit"
 	@echo "  $(CYAN)make pnpm typecheck:web$(RESET)  # Typecheck the renderer only"
+	@echo "  $(CYAN)make pnpm test$(RESET)           # Run the unit tests"
 	@echo "  $(CYAN)make package$(RESET)             # Installer for the current OS"
 
 # Default target
