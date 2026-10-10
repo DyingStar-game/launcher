@@ -59,10 +59,10 @@ export default function OrganisationAction({ id, name, recruitment }: Props): Re
           variant="outline"
           size="chip"
           onClick={handleJoin}
-          disabled={status === 'loading'}
+          loading={status === 'loading'}
           aria-label={t('universe.socialPage.orga.joinAria', { name })}
         >
-          {status === 'loading' ? '...' : joinLabel}
+          {joinLabel}
         </Button>
       )}
       {status === 'error' && <span className="text-xs text-red-400 text-right">{errorMsg}</span>}

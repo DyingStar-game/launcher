@@ -8,6 +8,8 @@ import InputField from '@components/molecules/InputField'
 import { getSocialErrorMessage } from '@lib/socialErrors'
 import FriendAction from './FriendAction'
 import PlayerIdentity from '@components/molecules/PlayerIdentity'
+import ListSkeleton from '@components/molecules/ListSkeleton'
+import { useDelayedFlag } from '@hooks/useDelayedFlag'
 
 /** Characters needed before searching, and delay after the last keystroke (ADR 0008). */
 const MIN_QUERY = 2
@@ -51,6 +53,7 @@ export default function PlayerSearch(): React.JSX.Element {
         ? outcome
         : { kind: 'searching' }
   const resultsRef = useScrollMemory<HTMLDivElement>('scroll:players', state.kind === 'results')
+  const showSkeleton = useDelayedFlag(state.kind === 'searching')
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
@@ -68,11 +71,7 @@ export default function PlayerSearch(): React.JSX.Element {
               {t('universe.socialPage.playerSearch.minChars', { count: MIN_QUERY })}
             </p>
           )}
-          {state.kind === 'searching' && (
-            <p className="text-sm text-[var(--color-ds-muted)] p-2">
-              {t('universe.socialPage.playerSearch.searching')}
-            </p>
-          )}
+          {showSkeleton && <ListSkeleton action />}
           {state.kind === 'error' && <p className="text-sm text-red-400 p-2">{state.message}</p>}
           {state.kind === 'results' && state.players.length === 0 && (
             <p className="text-sm text-[var(--color-ds-muted)] p-2">

@@ -4,6 +4,8 @@ import Button from '@components/atoms/Button'
 type InputFieldAction = {
   label: string
   onClick: () => void
+  /** Waiting for the action's answer: spinner in the button (ADR 0018). */
+  loading?: boolean
 }
 
 type InputFieldProps = {
@@ -53,7 +55,13 @@ export default function InputField({
           "
         />
         {action && (
-          <Button variant="outline" size="sm" onClick={action.onClick} disabled={disabled}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={action.onClick}
+            disabled={disabled}
+            loading={action.loading}
+          >
             {action.label}
           </Button>
         )}

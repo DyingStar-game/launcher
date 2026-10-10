@@ -12,14 +12,12 @@
   },
   "common": {
     "cancel": "Annuler",
-    "loading": "...",
+    "loadingContent": "Chargement du contenu",
     "close": "Fermer",
-    "send": "Envoyer",
     "create": "Créer",
     "back": "Retour"
   },
   "navbar": {
-    "home": "Accueil",
     "social": "Social",
     "lore": "Lore",
     "support": "Faire un don",
@@ -28,22 +26,18 @@
     "openDiscord": "Ouvrir Discord",
     "openWiki": "Ouvrir le wiki",
     "donateUnavailable": "Lien de soutien non configuré",
-    "quit": "Quitter l'application",
     "minimize": "Réduire",
     "fullscreen": "Plein écran",
     "exitFullscreen": "Quitter le plein écran",
     "close": "Fermer",
     "languageFr": "Français",
-    "languageEn": "English",
-    "switchToFrench": "Passer en français",
-    "switchToEnglish": "Switch to English",
+    "languageEn": "Anglais",
+    "language": "Langue",
     "envUniverse": "Universe",
     "envTesting": "Universe Testing",
     "brandDiscord": "Discord",
     "brandWiki": "Wiki",
     "changelog": "Changelog",
-    "soundEnabled": "Sons activés",
-    "soundDisabled": "Sons désactivés",
     "toggleSound": "Activer / désactiver les sons",
     "soundVolume": "Volume"
   },
@@ -64,7 +58,6 @@
     "sidebarSubtitle": "Notes de version.",
     "sidebarSubtitleTesting": "Changements disponibles en test.",
     "selectVersion": "Sélectionne une version",
-    "loading": "Chargement du changelog…",
     "unavailable": "Changelog indisponible (URL non configurée ou échec du téléchargement).",
     "empty": "Aucune note de version pour l'instant.",
     "noEntries": "Aucune entrée pour cette version.",
@@ -88,14 +81,12 @@
     "missionIn": "En mission • {{system}}"
   },
   "universe": {
-    "title": "Universe",
     "account": {
       "title": "Compte",
       "disconnected": "Non connecté",
       "connectedAs": "Connecté en tant que {{username}}",
       "login": "Se connecter avec Discord",
       "logout": "Se déconnecter",
-      "subscription": "Abonnement",
       "loading": "Connexion en cours...",
       "cancel": "Annuler",
       "unavailable": "Authentification non disponible pour cet environnement.",
@@ -159,18 +150,13 @@
     "social": {
       "title": "Social",
       "noFriends": "Aucun ami",
-      "seeAll": "Voir tout",
-      "notifications": "{{count}} notifications"
+      "seeAll": "Voir tout"
     },
     "socialPage": {
       "sidebarTitle": "Social",
       "sidebarSubtitle": "Amis, organisations, demandes.",
-      "friends": "Amis",
-      "organizations": "Organisations",
-      "requests": "Demandes",
       "addFriend": "Ajouter un ami",
       "createOrga": "Créer une orga",
-      "createOrgaLong": "Créer une organisation",
       "joinOrga": "Rejoindre",
       "accept": "Accepter",
       "decline": "Refuser",
@@ -205,7 +191,6 @@
         "placeholder": "Commence à taper un nom...",
         "minChars_one": "Tape au moins {{count}} caractère pour chercher.",
         "minChars_other": "Tape au moins {{count}} caractères pour chercher.",
-        "searching": "Recherche...",
         "empty": "Aucun joueur trouvé. Seuls les joueurs ayant déjà ouvert la page social peuvent être trouvés.",
         "add": "Ajouter",
         "addAria": "Envoyer une demande d'ami à {{name}}",
@@ -300,7 +285,6 @@
         "action": "Rechercher"
       },
       "state": {
-        "loading": "Chargement...",
         "unavailable": "Le social n'est pas encore disponible sur ce serveur.",
         "notSignedIn": "Connecte-toi pour voir tes amis et tes organisations.",
         "errorShort": "Social momentanément indisponible.",

@@ -21,7 +21,7 @@ describe('SocialPage', () => {
     })
 
     const { unmount } = render(<SocialPage />)
-    await userEvent.click(screen.getByRole('button', { name: 'Find players' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Find players' }))
     await userEvent.type(screen.getByRole('textbox'), 'kir')
     await userEvent.click(await screen.findByRole('button', { name: 'Open the profile of Kira' }))
     expect(useNavigationStore.getState().currentView).toBe('player')
@@ -32,5 +32,13 @@ describe('SocialPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Find players' })).toBeInTheDocument()
     expect(screen.getByRole('textbox')).toHaveValue('kir')
     expect(await screen.findByText('Kira')).toBeInTheDocument()
+  })
+
+  it('labels the content as the panel of the selected tab', () => {
+    seedSocial({})
+    act(() => useNavigationStore.getState().navigate('social'))
+    render(<SocialPage />)
+    const tab = screen.getByRole('tab', { name: 'Friends' })
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', tab.id)
   })
 })

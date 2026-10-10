@@ -6,6 +6,8 @@ import { useNavigationStore } from '@stores/navigation'
 import { useTranslation } from 'react-i18next'
 import FriendItem from '@components/molecules/FriendItem'
 import Button from '@components/atoms/Button'
+import ListSkeleton from '@components/molecules/ListSkeleton'
+import { useDelayedFlag } from '@hooks/useDelayedFlag'
 
 /** Compact social preview on the universe grid (friends + request badge). */
 export default function SocialPanel(): React.JSX.Element {
@@ -18,6 +20,7 @@ export default function SocialPanel(): React.JSX.Element {
   const { friends, incoming, status } = data[activeEnv]
   const notifications = incoming.length
   const visibleFriends = friends.slice(0, 5)
+  const showSkeleton = useDelayedFlag(status === 'loading')
   const placeholder =
     status === 'unavailable'
       ? t('universe.socialPage.state.unavailable')
@@ -52,6 +55,7 @@ export default function SocialPanel(): React.JSX.Element {
       {/* Friend list */}
       <div className="flex flex-col gap-1 overflow-y-auto flex-1 pr-1">
         {placeholder && <p className="text-sm text-[var(--color-ds-muted)]">{placeholder}</p>}
+        {showSkeleton && <ListSkeleton rows={3} />}
 
         {visibleFriends.map((friend) => (
           <FriendItem key={friend.id} friend={friend} onOpen={() => openPlayer(friend.id)} />

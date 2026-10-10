@@ -54,8 +54,9 @@ export default function CreateOrganisationForm({
         placeholder={t('universe.socialPage.createOrgaForm.tickerPlaceholder')}
         disabled={status === 'loading'}
         action={{
-          label: status === 'loading' ? t('common.loading') : t('common.create'),
-          onClick: handleSubmit
+          label: t('common.create'),
+          onClick: handleSubmit,
+          loading: status === 'loading'
         }}
       />
       {status === 'success' && (
@@ -64,7 +65,7 @@ export default function CreateOrganisationForm({
         </p>
       )}
       {status === 'error' && <p className="text-xs text-red-400">{errorMsg}</p>}
-      <Button variant="link" size="none" onClick={onClose} className="self-start text-xs">
+      <Button variant="link" size="none" onClick={onClose} className="self-start">
         {t('common.cancel')}
       </Button>
     </div>

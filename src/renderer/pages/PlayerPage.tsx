@@ -9,7 +9,9 @@ import SheetStat from '@components/molecules/SheetStat'
 import PlayerAffiliations from '@components/organisms/social/PlayerAffiliations'
 import PlayerHeader from '@components/organisms/social/PlayerHeader'
 import DetailPageLayout from '@components/templates/DetailPageLayout'
-import { cn } from '@lib/cn'
+import { DetailHeaderSkeleton, StatsSkeleton } from '@components/molecules/DetailSkeleton'
+import TextSkeleton from '@components/molecules/TextSkeleton'
+import { useDelayedFlag } from '@hooks/useDelayedFlag'
 
 /** Player page (ADR 0012): identity and friend action, figures, about, affiliations. */
 export default function PlayerPage(): React.JSX.Element {
@@ -17,24 +19,29 @@ export default function PlayerPage(): React.JSX.Element {
   const { subject, back } = useNavigationStore()
   const getPlayer = useSocialStore((s) => s.getPlayer)
   const state = useSocialResource(subject, getPlayer)
+  const showSkeleton = useDelayedFlag(state.kind === 'loading')
   const backButton = <BackButton onBack={back} />
   const scrollRef = useScrollMemory<HTMLDivElement>('scroll', state.kind === 'loaded')
 
-  if (state.kind !== 'loaded') {
+  if (state.kind === 'error') {
     return (
       <DetailPageLayout
         back={backButton}
         header={null}
-        placeholder={
-          <p
-            className={cn(
-              'text-sm',
-              state.kind === 'error' ? 'text-red-400' : 'text-[var(--color-ds-muted)]'
-            )}
-          >
-            {state.kind === 'error' ? state.message : t('universe.socialPage.state.loading')}
-          </p>
-        }
+        placeholder={<p className="text-sm text-red-400">{state.message}</p>}
+      />
+    )
+  }
+
+  if (state.kind !== 'loaded') {
+    // Skeleton of the page while it loads, after a short delay (ADR 0018)
+    return (
+      <DetailPageLayout
+        back={backButton}
+        header={showSkeleton ? <DetailHeaderSkeleton avatar="circle" /> : null}
+        stats={showSkeleton ? <StatsSkeleton /> : null}
+        main={showSkeleton ? <TextSkeleton lines={5} /> : null}
+        aside={showSkeleton ? <TextSkeleton lines={3} /> : null}
       />
     )
   }

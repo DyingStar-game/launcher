@@ -100,4 +100,39 @@ describe('NavbarMoreMenu', () => {
     expect(onEnvSwitch).toHaveBeenCalledWith('universe-testing')
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
+
+  it('opens on the first entry with the keyboard, moves with the arrows and gives focus back on Escape', async () => {
+    render(
+      <NavbarMoreMenu
+        {...envProps}
+        sections={sections}
+        currentSection="social"
+        onNavigate={vi.fn()}
+      />
+    )
+    const toggle = screen.getByRole('button', { name: 'More' })
+    toggle.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(screen.getByRole('menuitem', { name: 'Universe' })).toHaveFocus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(screen.getByRole('menuitem', { name: 'Universe Testing' })).toHaveFocus()
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    expect(toggle).toHaveFocus()
+  })
+
+  it('keeps the look of its entries: hand cursor, own padding', async () => {
+    render(
+      <NavbarMoreMenu
+        {...envProps}
+        sections={sections}
+        currentSection="social"
+        onNavigate={vi.fn()}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'More' }))
+    const item = screen.getByRole('menuitem', { name: 'Lore' })
+    expect(item).toHaveClass('cursor-pointer', 'py-2')
+    expect(item).not.toHaveClass('cursor-default')
+  })
 })

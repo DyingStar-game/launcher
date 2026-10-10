@@ -37,4 +37,16 @@ describe('InputField', () => {
     )
     expect(screen.getByRole('button', { name: 'Browse' })).toBeDisabled()
   })
+
+  it('shows a spinner in its action while it runs', () => {
+    render(
+      <InputField
+        label="Ticker"
+        value="NOVA"
+        onChange={vi.fn()}
+        action={{ label: 'Create', onClick: vi.fn(), loading: true }}
+      />
+    )
+    expect(screen.getByRole('button', { name: 'Create' })).toHaveAttribute('aria-busy', 'true')
+  })
 })

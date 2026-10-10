@@ -9,6 +9,8 @@ import Button from '@components/atoms/Button'
 import PlayerIdentity from '@components/molecules/PlayerIdentity'
 import SheetSection from '@components/molecules/SheetSection'
 import { getSocialErrorMessage } from '@lib/socialErrors'
+import ListSkeleton from '@components/molecules/ListSkeleton'
+import { useDelayedFlag } from '@hooks/useDelayedFlag'
 
 type Loaded = { subject: Subject; members: OrganisationMember[]; total: number }
 
@@ -79,17 +81,14 @@ export default function OrganisationMembers({ subject, onRestored }: Props): Rea
   }, [subject, getOrganisationMembers, onRestored, t])
 
   const members = current?.members ?? []
+  const showSkeleton = useDelayedFlag(!current && status !== 'error')
   const remaining = current ? current.total - members.length : 0
 
   return (
     <SheetSection
       title={t('universe.socialPage.organisation.memberList', { count: current?.total ?? 0 })}
     >
-      {!current && status !== 'error' && (
-        <p className="text-sm text-[var(--color-ds-muted)]">
-          {t('universe.socialPage.state.loading')}
-        </p>
-      )}
+      {showSkeleton && <ListSkeleton rows={4} />}
       {members.length > 0 && (
         <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
           {members.map((m) => (
@@ -107,12 +106,10 @@ export default function OrganisationMembers({ subject, onRestored }: Props): Rea
           <Button
             variant="secondary"
             size="sm"
-            disabled={status === 'loading'}
+            loading={status === 'loading'}
             onClick={() => void loadPage(members.length)}
           >
-            {status === 'loading'
-              ? t('universe.socialPage.state.loading')
-              : t('universe.socialPage.organisation.loadMore', { count: remaining })}
+            {t('universe.socialPage.organisation.loadMore', { count: remaining })}
           </Button>
         </div>
       )}

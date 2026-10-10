@@ -11,7 +11,9 @@ import OrganisationHeader from '@components/organisms/social/OrganisationHeader'
 import OrganisationMembers from '@components/organisms/social/OrganisationMembers'
 import OrganisationRelations from '@components/organisms/social/OrganisationRelations'
 import DetailPageLayout from '@components/templates/DetailPageLayout'
-import { cn } from '@lib/cn'
+import { DetailHeaderSkeleton, StatsSkeleton } from '@components/molecules/DetailSkeleton'
+import TextSkeleton from '@components/molecules/TextSkeleton'
+import { useDelayedFlag } from '@hooks/useDelayedFlag'
 
 /** Organisation page (ADR 0012): identity and join action, figures, description and members, relations. */
 export default function OrganisationPage(): React.JSX.Element {
@@ -19,6 +21,7 @@ export default function OrganisationPage(): React.JSX.Element {
   const { subject, back } = useNavigationStore()
   const getOrganisation = useSocialStore((s) => s.getOrganisation)
   const state = useSocialResource(subject, getOrganisation)
+  const showSkeleton = useDelayedFlag(state.kind === 'loading')
   const backButton = <BackButton onBack={back} />
   // Scroll is restored once the members loaded before are back (ADR 0013)
   const [membersRestored, setMembersRestored] = useState(false)
@@ -28,21 +31,25 @@ export default function OrganisationPage(): React.JSX.Element {
     state.kind === 'loaded' && membersRestored
   )
 
-  if (state.kind !== 'loaded' || !subject) {
+  if (state.kind === 'error') {
     return (
       <DetailPageLayout
         back={backButton}
         header={null}
-        placeholder={
-          <p
-            className={cn(
-              'text-sm',
-              state.kind === 'error' ? 'text-red-400' : 'text-[var(--color-ds-muted)]'
-            )}
-          >
-            {state.kind === 'error' ? state.message : t('universe.socialPage.state.loading')}
-          </p>
-        }
+        placeholder={<p className="text-sm text-red-400">{state.message}</p>}
+      />
+    )
+  }
+
+  if (state.kind !== 'loaded' || !subject) {
+    // Skeleton of the page while it loads, after a short delay (ADR 0018)
+    return (
+      <DetailPageLayout
+        back={backButton}
+        header={showSkeleton ? <DetailHeaderSkeleton avatar="square" /> : null}
+        stats={showSkeleton ? <StatsSkeleton /> : null}
+        main={showSkeleton ? <TextSkeleton lines={5} /> : null}
+        aside={showSkeleton ? <TextSkeleton lines={3} /> : null}
       />
     )
   }

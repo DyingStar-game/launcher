@@ -20,4 +20,11 @@ describe('UpdateAlert', () => {
     render(<UpdateAlert variant="game" latestVersion="0.2.0" />)
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
+
+  it('gives the close button the colour of the alert', () => {
+    render(<UpdateAlert variant="game" latestVersion="0.2.0" onDismiss={vi.fn()} />)
+    const dismiss = screen.getByRole('button', { name: 'Dismiss alert' })
+    expect(dismiss).toHaveClass('text-current')
+    expect(dismiss.parentElement).toHaveClass('text-sky-400')
+  })
 })

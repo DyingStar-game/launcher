@@ -6,7 +6,9 @@ import { cn } from '@lib/cn'
 
 const menuItemVariants = cva(
   'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-[var(--color-ds-text)] ' +
-    'transition-colors cursor-pointer ' +
+    'transition-colors cursor-pointer outline-none ' +
+    // Radix marks the entry under the pointer or reached with the keyboard (ADR 0016)
+    'data-[highlighted]:bg-[var(--color-ds-surface-hover)] ' +
     'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent',
   {
     variants: {

@@ -66,18 +66,16 @@ export default function FriendAction({ playerId, name }: Props): React.JSX.Eleme
           variant="outline"
           size="chip"
           onClick={relation === 'incoming' ? handleAccept : handleAdd}
-          disabled={status === 'loading'}
+          loading={status === 'loading'}
           aria-label={
             relation === 'incoming'
               ? t('universe.socialPage.request.acceptAria', { name })
               : t('universe.socialPage.playerSearch.addAria', { name })
           }
         >
-          {status === 'loading'
-            ? '...'
-            : relation === 'incoming'
-              ? t('universe.socialPage.accept')
-              : t('universe.socialPage.playerSearch.add')}
+          {relation === 'incoming'
+            ? t('universe.socialPage.accept')
+            : t('universe.socialPage.playerSearch.add')}
         </Button>
       )}
       {status === 'error' && <span className="text-xs text-red-400 text-right">{errorMsg}</span>}

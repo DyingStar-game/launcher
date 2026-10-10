@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
 import SidebarItemButton from '@components/atoms/SidebarItemButton'
+import { Skeleton } from '@components/ui/skeleton'
+import { useDelayedFlag } from '@hooks/useDelayedFlag'
 
 function BellBadge(): React.JSX.Element {
   return (
@@ -22,8 +24,10 @@ function BellBadge(): React.JSX.Element {
 export default function ChangelogSidebar(): React.JSX.Element {
   const { t } = useTranslation()
   const { activeEnv } = useEnvStore()
-  const { data, getEntries, getCurrentId, select, isUnread, syncSelectionForEnv } =
+  const { data, loading, getEntries, getCurrentId, select, isUnread, syncSelectionForEnv } =
     useChangelogStore()
+  const waiting = loading && !data
+  const showSkeleton = useDelayedFlag(waiting)
 
   const entries = getEntries(activeEnv)
   const currentId = getCurrentId(activeEnv)
@@ -45,7 +49,20 @@ export default function ChangelogSidebar(): React.JSX.Element {
         </p>
       </div>
 
-      {entries.length === 0 && (
+      {/* Versions skeleton while the changelog loads (ADR 0018); "empty" only once it answered */}
+      {showSkeleton && (
+        <div
+          role="status"
+          aria-busy="true"
+          aria-label={t('common.loadingContent')}
+          className="flex flex-col gap-3 px-3 py-2"
+        >
+          {Array.from({ length: 4 }, (_, index) => (
+            <Skeleton key={index} shape="line" className={index === 0 ? 'w-20' : 'w-32'} />
+          ))}
+        </div>
+      )}
+      {!waiting && entries.length === 0 && (
         <p className="px-3 py-2 text-xs text-[var(--color-ds-muted)]">{t('changelog.empty')}</p>
       )}
 

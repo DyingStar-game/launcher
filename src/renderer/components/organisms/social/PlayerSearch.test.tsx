@@ -57,4 +57,12 @@ describe('PlayerSearch', () => {
       subject: { id: 'p1' }
     })
   })
+
+  it('shows a skeleton of results while searching', async () => {
+    seedSocial({})
+    vi.mocked(window.api.socialSearchPlayers).mockReturnValue(new Promise(() => {}))
+    render(<PlayerSearch />)
+    await userEvent.type(screen.getByRole('textbox'), 'kir')
+    expect(await screen.findByRole('status', { name: 'Loading content' })).toBeInTheDocument()
+  })
 })
