@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { Friend } from '@shared/types/social'
 import PlayerIdentity from './PlayerIdentity'
+import ListRow from '@components/atoms/ListRow'
 
 export type FriendRowProps = {
   friend: Friend
@@ -17,10 +18,10 @@ export default function FriendRow({ friend, onOpen }: FriendRowProps): React.JSX
       : t(`friendStatus.${friend.status}`)
 
   return (
-    <div className="flex items-center p-2 rounded-lg hover:bg-ds-surface-hover">
+    <ListRow>
       <PlayerIdentity name={friend.name} status={friend.status} onOpen={onOpen}>
         <span className="text-xs text-ds-muted">{statusLabel}</span>
       </PlayerIdentity>
-    </div>
+    </ListRow>
   )
 }

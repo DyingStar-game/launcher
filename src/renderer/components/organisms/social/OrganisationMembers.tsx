@@ -8,6 +8,7 @@ import PlayerIdentity from '@components/molecules/PlayerIdentity'
 import SheetSection from '@components/molecules/SheetSection'
 import ListSkeleton from '@components/molecules/ListSkeleton'
 import { useDelayedFlag } from '@hooks/useDelayedFlag'
+import ListRow from '@components/atoms/ListRow'
 
 export type OrganisationMembersProps = {
   subject: Subject
@@ -39,11 +40,11 @@ export default function OrganisationMembers({
       {members.length > 0 && (
         <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
           {members.map((m) => (
-            <li key={m.id} className="flex items-center px-1 py-1">
+            <ListRow as="li" key={m.id}>
               <PlayerIdentity name={m.name} status={m.status} onOpen={() => openPlayer(m.id)}>
                 <span className="text-xs text-ds-muted">{m.rank}</span>
               </PlayerIdentity>
-            </li>
+            </ListRow>
           ))}
         </ul>
       )}

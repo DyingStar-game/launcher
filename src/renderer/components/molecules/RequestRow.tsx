@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Button from '@components/atoms/Button'
 import LabelTooltip from './LabelTooltip'
+import ListRow from '@components/atoms/ListRow'
 
 /**
  * `incoming` / `outgoing`: a friend request received or sent; `invitation`: an organisation
@@ -89,7 +90,7 @@ export default function RequestRow({
   const busy = status === 'accepting' || status === 'declining'
 
   return (
-    <div className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/4 transition-colors">
+    <ListRow>
       {identity}
 
       {!accept && (
@@ -130,7 +131,7 @@ export default function RequestRow({
           </Button>
         </LabelTooltip>
       </div>
-    </div>
+    </ListRow>
   )
 }
 

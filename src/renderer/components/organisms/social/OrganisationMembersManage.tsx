@@ -19,6 +19,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger
 } from '@components/ui/dropdown-menu'
+import ListRow from '@components/atoms/ListRow'
 
 export type OrganisationMembersManageProps = {
   subject: Subject
@@ -57,7 +58,7 @@ export default function OrganisationMembersManage({
       {error && <p className="text-sm text-red-400">{error}</p>}
       <ul className="flex flex-col gap-1">
         {members.map((member) => (
-          <li key={member.id} className="flex items-center gap-3 px-1 py-1">
+          <ListRow as="li" key={member.id}>
             <PlayerIdentity
               name={member.name}
               status={member.status}
@@ -113,7 +114,7 @@ export default function OrganisationMembersManage({
                 />
               </div>
             )}
-          </li>
+          </ListRow>
         ))}
       </ul>
       {setRank.error && (

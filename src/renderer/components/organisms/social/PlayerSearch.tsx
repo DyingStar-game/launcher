@@ -5,6 +5,7 @@ import { useNavigationStore } from '@stores/navigation'
 import { usePageState, useScrollMemory } from '@hooks/usePageState'
 import InputField from '@components/molecules/InputField'
 import FriendAction from './FriendAction'
+import ListRow from '@components/atoms/ListRow'
 import PlayerIdentity from '@components/molecules/PlayerIdentity'
 import ListSkeleton from '@components/molecules/ListSkeleton'
 import { useDelayedFlag } from '@hooks/useDelayedFlag'
@@ -55,9 +56,9 @@ type PlayerResultRowProps = { player: PlayerSearchResult }
 function PlayerResultRow({ player }: PlayerResultRowProps): React.JSX.Element {
   const openPlayer = useNavigationStore((s) => s.openPlayer)
   return (
-    <div className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/4 transition-colors">
+    <ListRow>
       <PlayerIdentity name={player.name} onOpen={() => openPlayer(player.id)} />
       <FriendAction playerId={player.id} name={player.name} />
-    </div>
+    </ListRow>
   )
 }

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { OrganisationProfile } from '@shared/types/social'
 import { useNavigationStore } from '@stores/navigation'
+import ListRow from '@components/atoms/ListRow'
 import OrganisationLink from '@components/molecules/OrganisationLink'
 import PlayerIdentity from '@components/molecules/PlayerIdentity'
 import SheetSection from '@components/molecules/SheetSection'
@@ -21,7 +22,9 @@ export default function OrganisationRelations({
     <>
       {ceo && (
         <SheetSection title={t('universe.socialPage.organisation.ceoTitle')}>
-          <PlayerIdentity name={ceo.name} onOpen={() => openPlayer(ceo.id)} />
+          <ListRow>
+            <PlayerIdentity name={ceo.name} onOpen={() => openPlayer(ceo.id)} />
+          </ListRow>
         </SheetSection>
       )}
 

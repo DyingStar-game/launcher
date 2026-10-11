@@ -8,6 +8,7 @@ import Button from '@components/atoms/Button'
 import ConfirmDialog from '@components/molecules/ConfirmDialog'
 import ListSkeleton from '@components/molecules/ListSkeleton'
 import PlayerIdentity from '@components/molecules/PlayerIdentity'
+import ListRow from '@components/atoms/ListRow'
 
 export type OrganisationInvitationsManageProps = {
   subject: Subject
@@ -40,7 +41,7 @@ export default function OrganisationInvitationsManage({
   return (
     <ul className="flex flex-col gap-1">
       {invitations.map((invitation) => (
-        <li key={invitation.id} className="flex items-center gap-3 px-1 py-1">
+        <ListRow as="li" key={invitation.id}>
           <PlayerIdentity
             name={invitation.player.name}
             onOpen={() => openPlayer(invitation.player.id)}
@@ -64,7 +65,7 @@ export default function OrganisationInvitationsManage({
               })
             }
           />
-        </li>
+        </ListRow>
       ))}
     </ul>
   )
