@@ -68,7 +68,7 @@ export default function AccountMenu(): React.JSX.Element {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" aria-label={t('navbar.account.menu', { name })}>
           <Avatar name={name} size="xs" />
-          <span className="hidden max-w-32 truncate nav-full:inline">{name}</span>
+          <span className="hidden max-w-24 truncate nav-full:inline">{name}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

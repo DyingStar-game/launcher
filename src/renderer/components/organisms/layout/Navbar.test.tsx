@@ -99,12 +99,6 @@ describe('Navbar', () => {
     expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('size-9', 'border-border')
   })
 
-  it('shows the wiki with the open book of the admin panel', () => {
-    render(<Navbar />)
-    const wiki = screen.getByRole('button', { name: 'Open wiki' })
-    expect(wiki.querySelector('svg')).toHaveClass('lucide-book-open')
-  })
-
   it('separates its five groups (language, links, sound, account, window) with the same divider', () => {
     const { container } = render(<Navbar />)
     expect(container.querySelectorAll('div[aria-hidden="true"].w-px')).toHaveLength(4)

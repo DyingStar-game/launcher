@@ -46,7 +46,8 @@
       "signOut": "Sign out",
       "menu": "Account of {{name}}",
       "unavailable": "Sign-in is not available for this environment."
-    }
+    },
+    "links": "Community"
   },
   "universeTesting": {
     "banner": "Testing environment — data is not from the live server"

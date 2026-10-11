@@ -2,6 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { act, render, screen } from '../../../test/render'
 import { useAvailabilityStore } from '@stores/availability'
+import { useAccountStore } from '@stores/account'
+import { useChangelogStore } from '@stores/changelog'
+import { useEnvStore } from '@stores/env'
 import Navbar from './Navbar'
 
 const style = (el: Element): CSSStyleDeclaration => getComputedStyle(el)
@@ -20,7 +23,7 @@ describe('Navbar (rendering)', () => {
 
   it('keeps its outline buttons 36 px high and grey (shadcn variant mapping, ADR 0028)', () => {
     render(<Navbar />)
-    for (const name of ['Open Discord', 'Minimize']) {
+    for (const name of ['Community', 'Minimize']) {
       const button = screen.getByRole('button', { name })
       expect(button.getBoundingClientRect().height).toBe(36)
       expect(style(button).color).toBe('rgb(107, 107, 128)')
@@ -48,5 +51,26 @@ describe('Navbar (rendering)', () => {
       expect(button).toBeVisible()
       expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(width)
     }
+  })
+
+  it('fits at 1400 px, signed in with a long name and unread versions', async () => {
+    act(() => {
+      useEnvStore.setState({ activeEnv: 'universe-testing' })
+      useAvailabilityStore.setState({ available: { universe: true, 'universe-testing': true } })
+      useAccountStore.setState((s) => ({
+        data: {
+          ...s.data,
+          'universe-testing': { status: 'connected', username: 'bobthebuilder061490' }
+        }
+      }))
+      useChangelogStore.setState({ unreadCount: () => 2 })
+    })
+    render(<Navbar />)
+    // The section links end before the right-hand groups begin
+    const sections = screen.getByRole('button', { name: /Changelog/ }).parentElement!
+    const right = screen.getByRole('navigation').lastElementChild!
+    expect(sections.getBoundingClientRect().right).toBeLessThanOrEqual(
+      right.getBoundingClientRect().left
+    )
   })
 })

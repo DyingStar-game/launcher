@@ -46,7 +46,8 @@
       "signOut": "Se déconnecter",
       "menu": "Compte de {{name}}",
       "unavailable": "La connexion n'est pas disponible pour cet environnement."
-    }
+    },
+    "links": "Communauté"
   },
   "universeTesting": {
     "banner": "Environnement de test — les données ne sont pas celles du serveur live"
