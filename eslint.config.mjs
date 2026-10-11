@@ -146,7 +146,7 @@ const filenameCase = {
       Program(node) {
         const path = context.filename.replace(/\\/g, '/')
         const file = path.slice(path.lastIndexOf('/') + 1)
-        const [, base, test, ext] = /^(.+?)(\.test)?(\.d)?\.tsx?$/.exec(file) ?? []
+        const [, base, test, ext] = /^(.+?)(?:\.browser)?(\.test)?(\.d)?\.tsx?$/.exec(file) ?? []
         if (!base || ext) return
         const tsx = file.endsWith('.tsx')
         const [expected, ok] = path.includes('/components/ui/')

@@ -20,7 +20,7 @@ The rules are enforced, not only written. Do not disable or bypass them (no `--n
 
 - After each `Edit` / `Write`, a hook formats and lints the file: fix what it reports before going on.
 - Before handing back, a hook runs the `make check` steps when code changed since the last passing run: the turn is not done while it fails.
-- Skill `verify-ui`: how to run, capture, measure and drive the launcher to check a renderer change.
+- Skill `verify-ui`: how to check a renderer change's rendering with a `*.browser.test.tsx` (measured in headless Chromium, no screenshots to read).
 - A new rule goes into an ADR and this file, lint-enforced when possible; a repeatable procedure becomes a skill in `.claude/skills/`. Nothing project-related belongs in personal memory.
 
 ## Commands
@@ -39,7 +39,7 @@ Go through the root `Makefile` (ADR 0002): a thin, host-side wrapper over the pn
 
 `typecheck` covers main/preload (`tsconfig.node.json`) and renderer (`tsconfig.web.json`); `typecheck:node` / `typecheck:web` check one side. Prettier: single quotes, no semicolons, width 100, no trailing commas.
 
-Tests (Vitest, `vitest.config.ts`, two projects): `*.test.ts` run in Node (main, shared, renderer logic); `*.test.tsx` run in jsdom with Testing Library (components), set up by `src/renderer/test/setup.ts` (English strings, silent sounds, `window.api` as auto-mocks reset after each test; `test/seedSocial.ts` seeds the social store). Tests sit next to the code. Run one file with `make pnpm test src/main/services/social/mapping.test.ts`, or `make pnpm exec vitest` to watch. **Every new or modified component gets a `.test.tsx`** (ADR 0011). CI (`.github/workflows/build.yaml`) runs lint, typecheck and test on every push/PR, then builds Linux and Windows.
+Tests (Vitest, `vitest.config.ts`, three projects): `*.test.ts` run in Node (main, shared, renderer logic); `*.test.tsx` run in jsdom with Testing Library (components), set up by `src/renderer/test/setup.ts` (English strings, silent sounds, `window.api` as auto-mocks reset after each test; `test/seedSocial.ts` seeds the social store); `*.browser.test.tsx` run in headless Chromium with the real CSS (ADR 0033). Tests sit next to the code. Run one file with `make pnpm test src/main/services/social/mapping.test.ts`, or `make pnpm exec vitest` to watch. **Every new or modified component gets a `.test.tsx`** (ADR 0011). CI (`.github/workflows/build.yaml`) runs lint, typecheck and test on every push/PR, then builds Linux and Windows.
 
 ## Architecture
 
@@ -67,7 +67,7 @@ Path aliases (`electron.vite.config.ts` + tsconfigs): main/preload only get `@sh
 
 ### Checking a UI change
 
-- Component tests (jsdom) check behaviour, not layout or computed styles: also run the launcher (skill `verify-ui`) (`make dev`, `PLATFORM=x11|wayland` on Linux) and look at it at ≥1400px, below 1400px (burger menu) and below 800px (universe switch in the menu).
+- Component tests (jsdom) check behaviour, not layout. When a change's rendering depends on layout, a breakpoint (≥1400px, below 1400px burger menu, below 800px universe switch in the menu) or a state (hover, focus, inherited colour), measure it in a `*.browser.test.tsx` (skill `verify-ui`, ADR 0033); a test that only restates a class (`text-xs` is 12px) is not worth writing. Running the launcher (`make dev`) is for what lives outside the renderer (window, IPC, sign-in), with the maintainer's agreement.
 - Same kind, same look: text and icon buttons are 36px high (shadcn's `lg` / `icon-lg` sizes, ADR 0028), spacing comes from the parent's `gap`, never from per-call margins or classes (ADR 0017); icons share the same visual size; every tooltip is Radix (`LabelTooltip`).
 - A behaviour players rely on (e.g. a click on the speaker mutes) does not change without the maintainer's agreement, even when an ADR seems to suggest it.
 - After fixing a defect, look for its other occurrences (every native `title`, every `asChild` wrapper overriding our atoms' classes…).
@@ -101,7 +101,7 @@ Significant decisions are recorded in [`docs/adr/`](./docs/adr/) (Nygard format,
   - any IPC, main or preload change: [0003](./docs/adr/0003-process-boundaries-ipc.md);
   - anything env-dependent, any `VITE_*` variable: [0004](./docs/adr/0004-two-game-environments.md);
   - sign-in, tokens, game launch: [0005](./docs/adr/0005-keycloak-pkce-authentication.md);
-  - tooling, Makefile, CI setup: [0002](./docs/adr/0002-makefile-tooling.md); Claude Code hooks, skills and instructions: [0019](./docs/adr/0019-claude-code-shared-setup.md); dependency and toolchain versions: [0006](./docs/adr/0006-toolchain-versions.md);
+  - tooling, Makefile, CI setup: [0002](./docs/adr/0002-makefile-tooling.md); Claude Code hooks, skills and instructions: [0019](./docs/adr/0019-claude-code-shared-setup.md); rendering tests in a browser: [0033](./docs/adr/0033-rendering-tests-vitest-browser.md); dependency and toolchain versions: [0006](./docs/adr/0006-toolchain-versions.md);
   - social (friends, requests, organisations), tests: [0007](./docs/adr/0007-social-player-side.md); player search screen: [0008](./docs/adr/0008-player-search-screen.md); player sheet: [0009](./docs/adr/0009-player-profile-sheet.md); organisation sheet: [0010](./docs/adr/0010-organisation-sheet.md); both as pages with back history: [0012](./docs/adr/0012-sheets-as-pages.md); Back restoring tab, search, scroll: [0013](./docs/adr/0013-back-restores-page-state.md); BBCode in player texts: [0014](./docs/adr/0014-bbcode-player-texts.md);
   - any renderer component: [0011](./docs/adr/0011-atomic-design.md); classes, variants and buttons: [0015](./docs/adr/0015-component-variants-cva-cn.md); menus, popovers, dialogs, tooltips, tabs (`components/ui/`): [0016](./docs/adr/0016-shadcn-radix-interactive-primitives.md); `className` layout only: [0017](./docs/adr/0017-classname-layout-only.md); loading states: [0018](./docs/adr/0018-loading-states.md); no `px` in classes: [0026](./docs/adr/0026-no-px-in-tailwind-classes.md); style and code conventions: [0031](./docs/adr/0031-styling-and-code-conventions.md); no component CSS: [0032](./docs/adr/0032-no-component-css.md).
 - A rule that cannot be followed is raised with the maintainer, never skipped silently. An accepted ADR is never rewritten: a new ADR supersedes it.

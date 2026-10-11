@@ -1,15 +1,10 @@
-import '@testing-library/jest-dom/vitest'
-import { cleanup } from '@testing-library/react'
-import { afterEach, vi } from 'vitest'
-import i18n from '@i18n'
-import { useNavigationStore } from '@stores/navigation'
+import { vi } from 'vitest'
+import './commonSetup'
 
 /**
- * Component test setup (ADR 0011): English UI strings, silent UI sounds, DOM cleanup after each
- * test, and a `window.api` whose every method is a mock resolving to `undefined` (stores call it
- * on import).
+ * Component test setup (ADR 0011): the shared setup (English strings, mocked `window.api`,
+ * cleanup), silent UI sounds, and the browser APIs jsdom lacks.
  */
-void i18n.changeLanguage('en')
 
 // jsdom cannot play audio: UI sounds are silenced.
 vi.mock('@lib/sounds/engine', async (importOriginal) => {
@@ -36,17 +31,3 @@ Range.prototype.getClientRects ??= noRects
 Range.prototype.getBoundingClientRect ??= () => new DOMRect()
 Element.prototype.getClientRects ??= noRects
 document.elementFromPoint ??= () => null
-
-const api: Record<string, ReturnType<typeof vi.fn>> = {}
-Object.defineProperty(window, 'api', {
-  configurable: true,
-  value: new Proxy(api, {
-    get: (target, key: string) => (target[key] ??= vi.fn(() => Promise.resolve(undefined)))
-  })
-})
-
-afterEach(() => {
-  cleanup()
-  useNavigationStore.getState().navigate('universe')
-  for (const key of Object.keys(api)) delete api[key]
-})

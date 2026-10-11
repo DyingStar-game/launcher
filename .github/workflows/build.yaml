@@ -35,6 +35,9 @@ jobs:
       - name: Typecheck
         run: pnpm run typecheck
 
+      - name: Install Chromium for the rendering tests
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Test
         run: pnpm run test
 

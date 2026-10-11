@@ -56,9 +56,10 @@ start: .env node_modules ## Build and run the launcher in production preview mod
 # =============================================================================
 
 .PHONY: install
-install: .env ## Install dependencies
+install: .env ## Install dependencies and the headless Chromium of the rendering tests
 	@echo "$(CYAN)📦 Installing dependencies...$(RESET)"
 	@$(PNPM) install
+	@$(PNPM) test:browser:install
 
 .PHONY: dev
 dev: .env node_modules ## Run the launcher with hot reload (PLATFORM=x11|wayland on Linux)

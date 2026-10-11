@@ -1,3 +1,5 @@
+import { cn } from '@lib/cn'
+
 export type DetailPageLayoutProps = {
   /** Back button (or nothing). */
   back?: React.ReactNode
@@ -33,9 +35,15 @@ export default function DetailPageLayout({
           <>
             {header}
             {stats}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            {/* Without an aside (edit and management pages), the main column takes the width */}
+            <div
+              className={cn(
+                'grid grid-cols-1 gap-6',
+                aside && 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]'
+              )}
+            >
               <div className="flex min-w-0 flex-col gap-6">{main}</div>
-              <div className="flex min-w-0 flex-col gap-6">{aside}</div>
+              {aside && <div className="flex min-w-0 flex-col gap-6">{aside}</div>}
             </div>
           </>
         )}

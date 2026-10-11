@@ -26,7 +26,7 @@ resources/      # Icônes et entitlements macOS
 
 Alias (Vite/TS) : `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
 
-Les composants suivent l’**atomic design** ([ADR 0011](../adr/0011-atomic-design.md)) : les imports ne vont que vers le bas, atomes / molécules / templates sont purs (pas de store), et tout composant nouveau ou modifié vient avec son `*.test.tsx` (Testing Library).
+Les composants suivent l’**atomic design** ([ADR 0011](../adr/0011-atomic-design.md)) : les imports ne vont que vers le bas, atomes / molécules / templates sont purs (pas de store), et tout composant nouveau ou modifié vient avec son `*.test.tsx` (Testing Library). Son rendu (tailles, alignements, couleurs, points de rupture) est mesuré par un `*.browser.test.tsx`, exécuté dans Chromium headless avec le vrai CSS Tailwind ([ADR 0033](../adr/0033-rendering-tests-vitest-browser.md)) ; `make install` télécharge Chromium.
 
 ## Branches
 

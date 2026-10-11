@@ -38,3 +38,6 @@ app/
 .claude/settings.local.json
 .claude/.check-ok
 .claude/.check-failed
+
+# Vitest browser mode: failure screenshots (ADR 0036)
+.vitest/
