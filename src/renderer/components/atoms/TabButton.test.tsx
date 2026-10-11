@@ -6,8 +6,8 @@ import TabButton from './TabButton'
 describe('TabButton', () => {
   it('calls onClick', async () => {
     const onClick = vi.fn()
-    render(<TabButton onClick={onClick}>Lore</TabButton>)
-    await userEvent.click(screen.getByRole('button', { name: 'Lore' }))
+    render(<TabButton onClick={onClick}>Social</TabButton>)
+    await userEvent.click(screen.getByRole('button', { name: 'Social' }))
     expect(onClick).toHaveBeenCalledOnce()
   })
 
@@ -26,11 +26,11 @@ describe('TabButton', () => {
     render(
       <>
         <TabButton selected>Social</TabButton>
-        <TabButton>Lore</TabButton>
+        <TabButton>Changelog</TabButton>
       </>
     )
     expect(screen.getByRole('button', { name: 'Social' })).toHaveClass('bg-white/10')
-    expect(screen.getByRole('button', { name: 'Lore' })).toHaveClass('text-ds-muted')
-    expect(screen.getByRole('button', { name: 'Lore' })).not.toHaveAttribute('aria-current')
+    expect(screen.getByRole('button', { name: 'Changelog' })).toHaveClass('text-ds-muted')
+    expect(screen.getByRole('button', { name: 'Changelog' })).not.toHaveAttribute('aria-current')
   })
 })

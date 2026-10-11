@@ -24,7 +24,6 @@
     "socialPending_one": "{{count}} request waiting",
     "socialPending_other": "{{count}} requests waiting",
     "social": "Social",
-    "lore": "Lore",
     "support": "Donate",
     "more": "More",
     "openWebsite": "Open official website",
@@ -64,15 +63,6 @@
   "universeTesting": {
     "banner": "Testing environment",
     "bannerDetail": "— data is not from the live server"
-  },
-  "lore": {
-    "sidebarTitle": "Lore",
-    "sidebarSubtitle": "Articles, chronicles, archives.",
-    "selectArticle": "Select a lore article",
-    "fileNotFound": "File not found: {{file}}",
-    "articles": {
-      "origins": "Origins"
-    }
   },
   "changelog": {
     "sidebarTitle": "Changelog",

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Electron desktop launcher for the game _Dying Star_ (electron-vite, React 19, Tailwind CSS v4, Zustand, i18next, electron-builder). It handles Keycloak/Discord login, game ZIP download/install/update, game launch, server status, launcher update checks, changelog, lore, and a player-side social UI (friends, requests, organisations) on the `social` game service.
+Electron desktop launcher for the game _Dying Star_ (electron-vite, React 19, Tailwind CSS v4, Zustand, i18next, electron-builder). It handles Keycloak/Discord login, game ZIP download/install/update, game launch, server status, launcher update checks, changelog, and a player-side social UI (friends, requests, organisations) on the `social` game service.
 
 ## Golden rule — Git
 
@@ -49,10 +49,10 @@ Three Electron processes plus shared types, under `src/`:
 
 - `main/` — Node side: all filesystem, network, OAuth, and child-process work. `index.ts` registers the custom protocol, single-instance lock, frameless `BrowserWindow`, and calls each service's `register*Handlers()`.
 - `preload/index.ts` — the **only** bridge: exposes `window.api` via `contextBridge`. Each method is an `ipcRenderer.invoke` to a channel handled in main, or an `on*` subscription for main→renderer pushes. Types for `window.api` live in `preload/index.d.ts`.
-- `renderer/` — React app in **atomic design** (ADR 0011): `components/{ui,atoms,molecules,organisms/<feature>,templates}`, `pages/` (templates + data), `App.tsx` (page routing from the navigation store; `openPlayer` / `openOrganisation` / `back` handle the player and organisation pages and their history, ADR 0012; page UI state that Back must restore goes through `usePageState` / `useScrollMemory`, ADR 0013), Zustand stores (`stores/`), hooks, `lib/` helpers and shared constants, i18n JSON, bundled markdown in `content/`.
+- `renderer/` — React app in **atomic design** (ADR 0011): `components/{ui,atoms,molecules,organisms/<feature>,templates}`, `pages/` (templates + data), `App.tsx` (page routing from the navigation store; `openPlayer` / `openOrganisation` / `back` handle the player and organisation pages and their history, ADR 0012; page UI state that Back must restore goes through `usePageState` / `useScrollMemory`, ADR 0013), Zustand stores (`stores/`), hooks, `lib/` helpers and shared constants, i18n JSON.
 - `shared/` — types used across processes (`@shared/types/*`) and `env.d.ts` declaring every `VITE_*` variable.
 
-Path aliases (`electron.vite.config.ts` + tsconfigs): main/preload only get `@shared`; renderer also gets `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+Path aliases (`electron.vite.config.ts` + tsconfigs): main/preload only get `@shared`; renderer also gets `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@assets`.
 
 ### Atomic design (ADR 0011)
 
@@ -61,7 +61,7 @@ Path aliases (`electron.vite.config.ts` + tsconfigs): main/preload only get `@sh
 - Reuse or extend before creating (e.g. `Button` `variant="outline" size="chip"`, `Avatar`); what shadcn/ui provides is taken from it, not rewritten (ADR 0027): `Badge` (`components/ui/badge`, statuses through `StatusBadge`, counts through `PendingCount`). Constants shared by components go in `lib/` (fast refresh: component files export components only).
 - Classes go through `cn()` (`@lib/cn`) and variants through `cva` (ADR 0015). The `className` passed to a component is **layout only** (spacing, size, display, flex/grid placement, position; ADR 0017): a different look (colour, border, radius, typography, `hover:`…) is a variant of the component, never a class at the call site. No raw `<button>` outside `atoms/` and `ui/`: use `Button` (incl. `size="icon"`, `variant="link"` / `"bare"`), `TabButton`, `MenuItemButton` or `SidebarItemButton`.
 - Style and code conventions are lint-enforced, the error names the ADR: no `px` in classes (ADR 0026: the scale, or a `rem` theme token like `text-2xs`, `nav-full:`); theme utilities (`text-ds-muted`, not `text-[var(--color-ds-muted)]`), `size-*` for equal sides, `<Component>Props` types with variant props from `VariantProps<typeof xVariants>`, file names by kind (ADR 0031).
-- No class of our own in a CSS file (ADR 0032): a shared look is a component (`Panel`, `SectionLabel`, `PageSidebar`), markdown is styled through `react-markdown`'s `components` (`MarkdownArticle`).
+- No class of our own in a CSS file (ADR 0032): a shared look is a component (`Panel`, `SectionLabel`, `PageSidebar`), markdown is styled through `react-markdown`'s `components` (`ChangelogEntryItem`).
 - While data loads, show a skeleton of the content (`ListSkeleton`, `DetailHeaderSkeleton` / `StatsSkeleton`, `TextSkeleton`, built on `ui/skeleton`), only after 150 ms (`useDelayedFlag`); an action button that waits uses `Button loading` (spinner, same width). No "Loading…" text placeholders (ADR 0018).
 - Interactive primitives (menus, popovers, tooltips, tabs; `Dialog` when a modal is needed) come from shadcn/ui on Radix in `components/ui/` (ADR 0016), at the atom level, triggered by our atoms through `asChild`: `DropdownMenu` (burger), `Popover` + `Slider` (volume), `LabelTooltip` (icon buttons, instead of `title`), `Tabs` (social page). Their portalled content carries `app-no-drag`. Add one with `make pnpm dlx shadcn@4.21.4 add <name> --view <path>` and copy it in: the CLI resolves `utils` to a bogus `cn` package (import `cn` from `@lib/cn`), and the `shadcn` package is not installed (its `data-*` variants live in `assets/shadcn.css`; animations come from `tw-animate-css`).
 

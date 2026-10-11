@@ -10,7 +10,7 @@ A desktop **Electron** launcher for the game _Dying Star_. It handles:
 - Game download, install, and updates (ZIP from configurable URLs)
 - Server status and player count
 - Launcher update checks (GitHub Releases)
-- Lore articles (bundled markdown) and a **social UI** (friends, requests, organisations) on the `social` game service
+- A **social UI** (friends, requests, organisations) on the `social` game service
 
 ## Repository layout
 
@@ -24,7 +24,7 @@ docs/           # Contributor docs (en/ and fr/)
 resources/      # App icons and macOS entitlements
 ```
 
-Path aliases (Vite/TS): `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+Path aliases (Vite/TS): `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@assets`.
 
 Components follow **atomic design** ([ADR 0011](../adr/0011-atomic-design.md)): imports go down only, atoms / molecules / templates are pure (no store), and every new or modified component comes with a `*.test.tsx` (Testing Library). Its rendering (sizes, alignment, colours, breakpoints) is measured by a `*.browser.test.tsx`, run in headless Chromium with the real Tailwind CSS ([ADR 0033](../adr/0033-rendering-tests-vitest-browser.md)); `make install` downloads Chromium.
 

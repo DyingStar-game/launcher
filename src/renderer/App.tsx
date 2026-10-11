@@ -3,7 +3,6 @@ import Navbar from '@components/organisms/layout/Navbar'
 import UniverseBar from '@components/organisms/layout/UniverseBar'
 import UniversePage from '@pages/UniversePage'
 import SocialPage from '@pages/SocialPage'
-import LorePage from '@pages/LorePage'
 import ChangelogPage from '@pages/ChangelogPage'
 import PlayerPage from '@pages/PlayerPage'
 import OrganisationPage from '@pages/OrganisationPage'
@@ -44,8 +43,6 @@ function renderPage(view: View): React.JSX.Element {
   switch (view) {
     case 'social':
       return <SocialPage />
-    case 'lore':
-      return <LorePage />
     case 'changelog':
       return <ChangelogPage />
     case 'player':

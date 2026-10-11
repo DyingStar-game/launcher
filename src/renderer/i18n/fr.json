@@ -24,7 +24,6 @@
     "socialPending_one": "{{count}} demande en attente",
     "socialPending_other": "{{count}} demandes en attente",
     "social": "Social",
-    "lore": "Lore",
     "support": "Faire un don",
     "more": "Plus",
     "openWebsite": "Ouvrir le site officiel",
@@ -64,15 +63,6 @@
   "universeTesting": {
     "banner": "Environnement de test",
     "bannerDetail": "— les données ne sont pas celles du serveur live"
-  },
-  "lore": {
-    "sidebarTitle": "Lore",
-    "sidebarSubtitle": "Articles, chroniques, archives.",
-    "selectArticle": "Sélectionne un article du lore",
-    "fileNotFound": "Fichier introuvable : {{file}}",
-    "articles": {
-      "origins": "Origines"
-    }
   },
   "changelog": {
     "sidebarTitle": "Changelog",

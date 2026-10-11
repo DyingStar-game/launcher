@@ -285,7 +285,7 @@ export default defineConfig(
           forbid: [
             {
               propName: 'title',
-              allowedFor: ['PageHeader', 'SheetSection', 'ConfirmDialog', 'MarkdownArticle']
+              allowedFor: ['PageHeader', 'SheetSection', 'ConfirmDialog']
             }
           ]
         }

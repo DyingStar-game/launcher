@@ -5,7 +5,7 @@ export type SidebarPageLayoutProps = {
   bare?: boolean
 }
 
-/** Page with a navigation sidebar and a content column (social, lore, changelog). */
+/** Page with a navigation sidebar and a content column (social, changelog). */
 export default function SidebarPageLayout({
   sidebar,
   children,

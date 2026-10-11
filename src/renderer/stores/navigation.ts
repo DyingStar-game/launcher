@@ -6,7 +6,7 @@ import { useEnvStore } from './env'
 export type SubjectView = 'player' | 'organisation' | 'profileEdit' | 'organisationManage'
 
 /** Shell views: universe panels, social, lore, changelog, and the social sheets (ADR 0012). */
-export type View = 'universe' | 'universe-testing' | 'social' | 'lore' | 'changelog' | SubjectView
+export type View = 'universe' | 'universe-testing' | 'social' | 'changelog' | SubjectView
 
 /** Player or organisation shown by a subject view, in the env it came from. */
 export type Subject = { id: string; env: Env }

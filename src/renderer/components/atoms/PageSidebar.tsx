@@ -6,7 +6,7 @@ export type PageSidebarProps = {
   children: React.ReactNode
 }
 
-/** Navigation column on the left of a page (social, lore, changelog), full height. */
+/** Navigation column on the left of a page (social, changelog), full height. */
 export default function PageSidebar({ className, children }: PageSidebarProps): React.JSX.Element {
   return (
     <div
