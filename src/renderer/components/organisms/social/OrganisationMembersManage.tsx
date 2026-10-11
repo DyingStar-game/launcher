@@ -30,7 +30,8 @@ export type OrganisationMembersManageProps = {
 
 /**
  * Members of an organisation, for its managers (ADR 0021, `manage_members`): on each member
- * strictly below the player, a rank menu (ranks strictly below theirs) and Remove.
+ * strictly below the player, a rank menu (ranks strictly below theirs, when there is another one
+ * to give) and Remove.
  */
 export default function OrganisationMembersManage({
   subject,
@@ -46,6 +47,10 @@ export default function OrganisationMembersManage({
   const showSkeleton = useDelayedFlag(pending)
   const assignable = ranks.kind === 'loaded' ? assignableRanks(myRank, ranks.data) : []
   const remaining = total - members.length
+
+  /** Another rank the player can give this member: a menu with only the current one is no choice. */
+  const canChangeRank = (member: OrganisationMember): boolean =>
+    assignable.some((rank) => rank.id !== member.rankId)
 
   const actsOn = (member: OrganisationMember): boolean =>
     can(myRank, 'manage_members') &&
@@ -68,39 +73,40 @@ export default function OrganisationMembersManage({
             </PlayerIdentity>
             {actsOn(member) && (
               <div className="flex shrink-0 items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="chip"
+                {canChangeRank(member) && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="chip"
+                        aria-label={t('universe.socialPage.manage.members.rankAria', {
+                          name: member.name
+                        })}
+                      >
+                        {member.rank}
+                        <ChevronDownIcon aria-hidden="true" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
                       aria-label={t('universe.socialPage.manage.members.rankAria', {
                         name: member.name
                       })}
-                      disabled={assignable.length === 0}
                     >
-                      {member.rank}
-                      <ChevronDownIcon aria-hidden="true" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    aria-label={t('universe.socialPage.manage.members.rankAria', {
-                      name: member.name
-                    })}
-                  >
-                    <DropdownMenuRadioGroup
-                      value={String(member.rankId)}
-                      onValueChange={(rankId) =>
-                        void setRank.mutateAsync({ playerId: member.id, rankId: Number(rankId) })
-                      }
-                    >
-                      {assignable.map((rank) => (
-                        <DropdownMenuRadioItem key={rank.id} value={String(rank.id)}>
-                          {rank.name}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <DropdownMenuRadioGroup
+                        value={String(member.rankId)}
+                        onValueChange={(rankId) =>
+                          void setRank.mutateAsync({ playerId: member.id, rankId: Number(rankId) })
+                        }
+                      >
+                        {assignable.map((rank) => (
+                          <DropdownMenuRadioItem key={rank.id} value={String(rank.id)}>
+                            {rank.name}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
                 <ConfirmDialog
                   trigger={
                     <Button variant="danger" size="chip">

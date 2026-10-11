@@ -36,7 +36,10 @@ export default function OrganisationLeadership({
   const [heir, setHeir] = useState('')
   const [typedTag, setTypedTag] = useState('')
   const candidates = members.filter((m) => m.id !== selfId)
-  const heirName = candidates.find((m) => m.id === heir)?.name ?? ''
+  // A single candidate is no choice to make: they are the heir
+  const only = candidates.length === 1 ? candidates[0] : undefined
+  const heirId = only?.id ?? heir
+  const heirName = candidates.find((m) => m.id === heirId)?.name ?? ''
   const heirsId = `${subject.id}-heirs`
 
   return (
@@ -45,6 +48,10 @@ export default function OrganisationLeadership({
         {candidates.length === 0 ? (
           <p className="text-sm text-ds-muted">
             {t('universe.socialPage.manage.leadership.noMember')}
+          </p>
+        ) : only ? (
+          <p className="text-sm text-ds-text">
+            {t('universe.socialPage.manage.leadership.onlyHeir', { name: only.name })}
           </p>
         ) : (
           <Field>
@@ -64,14 +71,14 @@ export default function OrganisationLeadership({
         <div>
           <ConfirmDialog
             trigger={
-              <Button variant="outline" disabled={!heir}>
+              <Button variant="outline" disabled={!heirId}>
                 {t('universe.socialPage.manage.leadership.transfer')}
               </Button>
             }
             title={t('universe.socialPage.manage.leadership.transferTitle', { name: heirName })}
             description={t('universe.socialPage.manage.leadership.transferDescription')}
             confirmLabel={t('universe.socialPage.manage.leadership.transfer')}
-            onConfirm={() => transfer.mutateAsync(heir)}
+            onConfirm={() => transfer.mutateAsync(heirId)}
           />
         </div>
       </SheetSection>

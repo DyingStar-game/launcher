@@ -377,6 +377,7 @@
         "leadership": {
           "transfer": "Transmettre la direction",
           "heir": "Nouveau CEO",
+          "onlyHeir": "{{name}} est le seul membre pouvant reprendre la direction.",
           "noMember": "Aucun autre membre à qui transmettre la direction.",
           "transferTitle": "Faire de {{name}} le CEO ?",
           "transferDescription": "Tu reçois le grade le plus haut sous le CEO et perds les actions de direction.",

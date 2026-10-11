@@ -18,7 +18,17 @@ const organisation: OrganisationProfile = {
   subsidiaryCount: 0
 }
 
-function seed(): void {
+const ona = {
+  id: 'p2',
+  name: 'Ona',
+  rank: 'Officer',
+  rankId: 2,
+  rankPriority: 50,
+  isCeo: false,
+  status: 'offline' as const
+}
+
+function seed(...others: (typeof ona)[]): void {
   seedSocial({ selfId: 'me' })
   vi.mocked(window.api.socialGetOrganisationMembers).mockResolvedValue({
     ok: true,
@@ -41,16 +51,41 @@ function seed(): void {
           rankPriority: 10,
           isCeo: false,
           status: 'offline'
-        }
+        },
+        ...others
       ],
-      total: 2
+      total: 2 + others.length
     }
   })
 }
 
 describe('OrganisationLeadership', () => {
-  it('hands the leadership to the member picked, after confirming', async () => {
+  it('names the only member who can take over, without a choice to make', async () => {
     seed()
+    vi.mocked(window.api.socialTransferOrganisation).mockResolvedValue({
+      ok: true,
+      data: undefined
+    })
+    render(<OrganisationLeadership subject={subject} organisation={organisation} selfId="me" />)
+    expect(await screen.findByText('Only Kira can take over the leadership.')).toBeInTheDocument()
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Hand over the leadership' }))
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: 'Hand over the leadership'
+      })
+    )
+    await waitFor(() =>
+      expect(window.api.socialTransferOrganisation).toHaveBeenCalledWith(
+        'universe-testing',
+        'c1',
+        'p1'
+      )
+    )
+  })
+
+  it('hands the leadership to the member picked, after confirming', async () => {
+    seed(ona)
     vi.mocked(window.api.socialTransferOrganisation).mockResolvedValue({
       ok: true,
       data: undefined

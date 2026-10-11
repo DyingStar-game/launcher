@@ -66,6 +66,24 @@ describe('OrganisationMembersManage', () => {
     )
   })
 
+  it("shows no rank menu when the only rank to give is the member's own", async () => {
+    seed()
+    vi.mocked(window.api.socialGetOrganisationRanks).mockResolvedValue({
+      ok: true,
+      data: [
+        rank({ id: 1, name: 'CEO', priority: 99, isCeo: true }),
+        officer,
+        rank({ id: 3, name: 'Pilot', priority: 10 })
+      ]
+    })
+    render(<OrganisationMembersManage subject={subject} myRank={officer} selfId="me" />)
+    expect(await screen.findByRole('button', { name: 'Remove' })).toBeInTheDocument()
+    // Once the ranks are loaded, the menu would have appeared
+    await expect(
+      screen.findByRole('button', { name: 'Rank of Kira' }, { timeout: 300 })
+    ).rejects.toThrow()
+  })
+
   it('removes a member after confirming', async () => {
     seed()
     vi.mocked(window.api.socialRemoveMember).mockResolvedValue({ ok: true, data: undefined })
