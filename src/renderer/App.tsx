@@ -1,5 +1,6 @@
 import AppLayout from '@components/templates/AppLayout'
 import Navbar from '@components/organisms/layout/Navbar'
+import UniverseBar from '@components/organisms/layout/UniverseBar'
 import UniversePage from '@pages/UniversePage'
 import SocialPage from '@pages/SocialPage'
 import LorePage from '@pages/LorePage'
@@ -41,8 +42,6 @@ function useAppStartup(): void {
 /** Page for a navigation view id. */
 function renderPage(view: View): React.JSX.Element {
   switch (view) {
-    case 'universe-testing':
-      return <UniversePage showTestingBanner />
     case 'social':
       return <SocialPage />
     case 'lore':
@@ -78,7 +77,7 @@ function App(): React.JSX.Element {
   const subjectId = useNavigationStore((s) => s.subject?.id)
 
   return (
-    <AppLayout navbar={<Navbar />}>
+    <AppLayout navbar={<Navbar />} universeBar={<UniverseBar />}>
       <PageFrame key={`${currentView}:${subjectId ?? ''}`} view={currentView} />
     </AppLayout>
   )

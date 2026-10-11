@@ -1,5 +1,5 @@
 // shadcn/ui (radix-nova, shadcn 4.21.4), owned code (ADR 0016, 0027, 0028): `cn` from @lib/cn,
-// radius caps in rem instead of px (ADR 0026), a `success` variant (ADR 0028), and muted text
+// radius caps in rem instead of px (ADR 0026), a `success` variant (ADR 0028), a `discord` variant (sign-in), and muted text
 // on `outline` and `ghost`, as the launcher's buttons had (navbar).
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
@@ -23,6 +23,8 @@ const buttonVariants = cva(
         // Launcher: the positive twin of `destructive` (accept a request, ADR 0028)
         success:
           'bg-success/10 text-success hover:bg-success/20 focus-visible:border-success/40 focus-visible:ring-success/20 dark:bg-success/20 dark:hover:bg-success/30 dark:focus-visible:ring-success/40',
+        // Launcher: Discord's colours, for signing in through Discord
+        discord: 'bg-discord text-white hover:bg-discord/85',
         link: 'text-primary underline-offset-4 hover:underline'
       },
       size: {

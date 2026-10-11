@@ -16,30 +16,13 @@ import {
 } from '@components/ui/dropdown-menu'
 import { navUrls } from '@lib/env'
 import { LANGUAGES, currentLanguage } from '@lib/languages'
-import type { TopView, View } from '@stores/navigation'
 import type { Env } from '@shared/types/env'
-import PendingCount from '@components/molecules/PendingCount'
 import CommunityLinkItems from '@components/molecules/CommunityLinkItems'
-
-/** A top-level section link folded into the menu on narrow windows. */
-export type NavbarSection = {
-  label: string
-  view: TopView
-  /** Unread or waiting items, shown as a `PendingCount`. */
-  count?: number
-  /** The count read as a sentence. */
-  countLabel?: string
-}
 
 /** An environment of the env switch, folded into the menu on very narrow windows. */
 export type NavbarEnvOption = { env: Env; label: string }
 
 export type NavbarMoreMenuProps = {
-  /** Section links (Social, Lore, Changelog), hidden from the bar below the breakpoint. */
-  sections: NavbarSection[]
-  /** Section currently shown, highlighted in the menu. */
-  currentSection: View
-  onNavigate: (view: TopView) => void
   /** Env switch entries, shown in the menu only below the narrow breakpoint. */
   envs: NavbarEnvOption[]
   activeEnv: Env
@@ -65,14 +48,10 @@ function HeartIcon(): React.JSX.Element {
 }
 
 /**
- * Compact navbar overflow menu: env switch, sections, languages, external links, and donate.
- * Shown below the wide breakpoint in place of the section links and the donate button; the env
- * switch joins it below the narrow breakpoint.
+ * Compact navbar overflow menu: env switch, languages, community links, and donate. Shown below
+ * the wide breakpoint in place of those buttons; the env switch joins it below the narrow one.
  */
 export default function NavbarMoreMenu({
-  sections,
-  currentSection,
-  onNavigate,
   envs,
   activeEnv,
   onEnvSwitch
@@ -81,13 +60,12 @@ export default function NavbarMoreMenu({
   const [open, setOpen] = useState(false)
   const { website, discord, wiki, donate } = navUrls()
   const currentLang = currentLanguage(i18nInstance)
-  const hasBadge = sections.some((section) => (section.count ?? 0) > 0)
 
   // Radix handles outside clicks, Escape, focus and the keyboard; the menu only closes itself
   // when the window grows past the breakpoint where it is hidden.
   useEffect(() => {
     if (!open) return
-    const media = window.matchMedia('(min-width: 1400px)')
+    const media = window.matchMedia('(min-width: 1024px)')
     const onBreakpoint = (): void => {
       if (media.matches) setOpen(false)
     }
@@ -99,16 +77,10 @@ export default function NavbarMoreMenu({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <LabelTooltip label={t('navbar.more')}>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon" className="relative" aria-label={t('navbar.more')}>
+          <Button variant="outline" size="icon" aria-label={t('navbar.more')}>
             <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4.5 fill-current">
               <path d="M4 7h16v2H4V7zm0 4h16v2H4v-2zm0 4h16v2H4v-2z" />
             </svg>
-            {hasBadge && (
-              <span
-                data-testid="navbar-more-badge"
-                className="absolute -top-1 -right-1 size-2.5 rounded-full bg-red-500 shadow-sm"
-              />
-            )}
           </Button>
         </DropdownMenuTrigger>
       </LabelTooltip>
@@ -126,18 +98,6 @@ export default function NavbarMoreMenu({
           ))}
           <DropdownMenuSeparator />
         </DropdownMenuGroup>
-
-        {sections.map(({ label, view, count = 0, countLabel }) => (
-          <DropdownMenuItem asChild key={view}>
-            <MenuItemButton selected={currentSection === view} onClick={() => onNavigate(view)}>
-              {' '}
-              <span className="flex-1">{label}</span>
-              <PendingCount count={count} label={countLabel} />
-            </MenuItemButton>
-          </DropdownMenuItem>
-        ))}
-
-        <DropdownMenuSeparator />
 
         {LANGUAGES.map(({ code, labelKey }) => (
           <DropdownMenuItem asChild key={code}>

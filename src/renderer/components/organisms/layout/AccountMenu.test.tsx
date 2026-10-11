@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { useAccountStore } from '@stores/account'
 import { useAvailabilityStore } from '@stores/availability'
 import { useEnvStore } from '@stores/env'
+import { useNavigationStore } from '@stores/navigation'
+import { seedSocial } from '../../../test/seedSocial'
 import AccountMenu from './AccountMenu'
 
 const saved = useAccountStore.getState()
@@ -39,7 +41,7 @@ describe('AccountMenu', () => {
   it('signs in with Discord when signed out', async () => {
     account('disconnected')
     render(<AccountMenu />)
-    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
     expect(login).toHaveBeenCalledOnce()
   })
 
@@ -57,6 +59,18 @@ describe('AccountMenu', () => {
     expect(await screen.findByText('Signed in as Kira')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
     expect(logout).toHaveBeenCalledOnce()
+  })
+
+  it("opens the player's own sheet from My profile", async () => {
+    seedSocial({ selfId: 'p-kira' }, 'universe')
+    account('connected', 'Kira')
+    render(<AccountMenu />)
+    await userEvent.click(screen.getByRole('button', { name: 'Account of Kira' }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'My profile' }))
+    expect(useNavigationStore.getState()).toMatchObject({
+      currentView: 'player',
+      subject: { id: 'p-kira', env: 'universe' }
+    })
   })
 
   it('says why sign-in is off when the environment has none', () => {

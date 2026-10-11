@@ -1,19 +1,17 @@
 import type React from 'react'
 import { useEffect, useId, useState } from 'react'
 import { useEnvStore } from '@stores/env'
-import { navSection, useNavigationStore } from '@stores/navigation'
-import { useChangelogStore } from '@stores/changelog'
+import { useNavigationStore } from '@stores/navigation'
 import { useTranslation } from 'react-i18next'
+import { BookOpenIcon } from 'lucide-react'
 import Button from '@components/atoms/Button'
 import TabButton from '@components/atoms/TabButton'
 import SoundVolumeMenu from '@components/organisms/layout/SoundVolumeMenu'
 import LabelTooltip from '@components/molecules/LabelTooltip'
-import AccountMenu from '@components/organisms/layout/AccountMenu'
 import LanguageMenu from '@components/organisms/layout/LanguageMenu'
-import LinksMenu from '@components/organisms/layout/LinksMenu'
+import DiscordIcon from '@components/atoms/icons/DiscordIcon'
 import NavbarMoreMenu from '@components/organisms/layout/NavbarMoreMenu'
-import type { NavbarEnvOption, NavbarSection } from '@components/organisms/layout/NavbarMoreMenu'
-import PendingCount from '@components/molecules/PendingCount'
+import type { NavbarEnvOption } from '@components/organisms/layout/NavbarMoreMenu'
 import type { Env } from '@shared/types/env'
 import { navUrls } from '@lib/env'
 import { cn } from '@lib/cn'
@@ -61,11 +59,13 @@ function HeartDonateIcon(): React.JSX.Element {
   )
 }
 
-/** Top bar: env switcher, navigation, external links, language, and window controls. */
+/**
+ * Top bar, for the whole app: env switch, language, community links, sound, donate, and window
+ * controls. The chosen universe's sections and account are in the `UniverseBar` below (ADR 0034).
+ */
 export default function Navbar(): React.JSX.Element {
   const { activeEnv, setEnv } = useEnvStore()
-  const { currentView, navigate } = useNavigationStore()
-  const unreadChangelog = useChangelogStore((s) => s.unreadCount(activeEnv))
+  const navigate = useNavigationStore((s) => s.navigate)
   const { t } = useTranslation()
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -74,7 +74,7 @@ export default function Navbar(): React.JSX.Element {
     window.api.onFullscreenChanged(setIsFullscreen)
   }, [])
 
-  const { donate: navDonate } = navUrls()
+  const { website: navWebsite, discord: navDiscord, wiki: navWiki, donate: navDonate } = navUrls()
 
   /** Switches active env in the store and navigates to the matching universe view. */
   const handleEnvSwitch = (env: Env): void => {
@@ -87,19 +87,11 @@ export default function Navbar(): React.JSX.Element {
     { env: 'universe-testing', label: t('navbar.envTesting') }
   ]
 
-  const navLinks: NavbarSection[] = [
-    { label: t('navbar.social'), view: 'social' },
-    { label: t('navbar.lore'), view: 'lore' },
-    {
-      label: t('navbar.changelog'),
-      view: 'changelog',
-      count: unreadChangelog,
-      countLabel: t('changelog.unreadCount', { count: unreadChangelog })
-    }
-  ]
-
   return (
-    <nav className="app-drag border-b border-ds-border bg-ds-surface flex items-center justify-between gap-6 px-6 h-14 shrink-0">
+    <nav
+      aria-label={t('navbar.appNav')}
+      className="app-drag border-b border-ds-border bg-ds-surface flex items-center justify-between gap-6 px-6 h-14 shrink-0"
+    >
       {/* Gauche : logo + onglets environnement */}
       <div className="app-no-drag flex min-w-0 items-center gap-6">
         <span className="font-bold text-ds-accent text-lg tracking-wider select-none">
@@ -221,25 +213,11 @@ export default function Navbar(): React.JSX.Element {
             </TabButton>
           ))}
         </div>
-
-        {/* Liens vues secondaires (compact → menu hamburger) */}
-        <div className="hidden nav-full:flex gap-1 p-1 rounded-xl bg-white/3 border border-ds-border">
-          {navLinks.map(({ label, view, count = 0, countLabel }) => (
-            <TabButton
-              key={view}
-              selected={navSection(currentView) === view}
-              onClick={() => navigate(view)}
-            >
-              {label}
-              <PendingCount count={count} label={countLabel} />
-            </TabButton>
-          ))}
-        </div>
       </div>
 
       {/* Droite : langues + liens externes + soutenir (compact → menu hamburger) ; never shrinks so the window controls stay visible */}
       <div className="app-no-drag flex shrink-0 items-center gap-3">
-        {/* Groups: language | links | sound + donate (burger below 1400px) | account | window, 8px inside,
+        {/* Groups: language | links | sound + donate (burger below 1024px) | window, 8px inside,
             one divider between two groups (the bar's 12px gap on each side) */}
         <div className="hidden nav-full:flex items-center gap-2">
           <LanguageMenu />
@@ -248,7 +226,43 @@ export default function Navbar(): React.JSX.Element {
         <GroupDivider className="hidden nav-full:block" />
 
         <div className="hidden nav-full:flex items-center gap-2">
-          <LinksMenu />
+          <LabelTooltip label={t('navbar.openWebsite')}>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={!navWebsite}
+              onClick={() => navWebsite && window.open(navWebsite, '_blank')}
+              aria-label={t('navbar.openWebsite')}
+            >
+              <Svg>
+                <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.5 9h-3.2a15.7 15.7 0 00-1.1-5 8.04 8.04 0 014.3 5zM12 4c1 1.5 1.8 3.8 2.1 7H9.9C10.2 7.8 11 5.5 12 4zM4.5 13h3.2c.2 1.9.7 3.7 1.1 5a8.04 8.04 0 01-4.3-5zm0-2a8.04 8.04 0 014.3-5c-.4 1.3-.9 3.1-1.1 5H4.5zm7.5 9c-1-1.5-1.8-3.8-2.1-7h4.2c-.3 3.2-1.1 5.5-2.1 7zm3.2-2c.4-1.3.9-3.1 1.1-5h3.2a8.04 8.04 0 01-4.3 5z" />
+              </Svg>
+            </Button>
+          </LabelTooltip>
+
+          <LabelTooltip label={t('navbar.brandDiscord')}>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={!navDiscord}
+              onClick={() => navDiscord && window.open(navDiscord, '_blank')}
+              aria-label={t('navbar.openDiscord')}
+            >
+              <DiscordIcon className="size-4.5" />
+            </Button>
+          </LabelTooltip>
+
+          <LabelTooltip label={t('navbar.brandWiki')}>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={!navWiki}
+              onClick={() => navWiki && window.open(navWiki, '_blank')}
+              aria-label={t('navbar.openWiki')}
+            >
+              <BookOpenIcon className="size-4.5" aria-hidden="true" />
+            </Button>
+          </LabelTooltip>
         </div>
 
         <GroupDivider className="hidden nav-full:block" />
@@ -284,20 +298,9 @@ export default function Navbar(): React.JSX.Element {
           )}
 
           <div className="nav-full:hidden">
-            <NavbarMoreMenu
-              sections={navLinks}
-              currentSection={navSection(currentView)}
-              onNavigate={navigate}
-              envs={envOptions}
-              activeEnv={activeEnv}
-              onEnvSwitch={handleEnvSwitch}
-            />
+            <NavbarMoreMenu envs={envOptions} activeEnv={activeEnv} onEnvSwitch={handleEnvSwitch} />
           </div>
         </div>
-
-        <GroupDivider />
-
-        <AccountMenu />
 
         <GroupDivider />
 

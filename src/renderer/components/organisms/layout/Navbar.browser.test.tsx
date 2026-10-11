@@ -1,15 +1,14 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { act, render, screen } from '../../../test/render'
-import { useAvailabilityStore } from '@stores/availability'
-import { useAccountStore } from '@stores/account'
-import { useChangelogStore } from '@stores/changelog'
-import { useEnvStore } from '@stores/env'
+import i18n from '@i18n'
 import Navbar from './Navbar'
 
 const style = (el: Element): CSSStyleDeclaration => getComputedStyle(el)
 
 afterEach(async () => {
+  vi.unstubAllEnvs()
+  await i18n.changeLanguage('en')
   await page.viewport(1400, 900)
 })
 
@@ -23,7 +22,7 @@ describe('Navbar (rendering)', () => {
 
   it('keeps its outline buttons 36 px high and grey (shadcn variant mapping, ADR 0028)', () => {
     render(<Navbar />)
-    for (const name of ['Community', 'Minimize']) {
+    for (const name of ['Open Discord', 'Minimize']) {
       const button = screen.getByRole('button', { name })
       expect(button.getBoundingClientRect().height).toBe(36)
       expect(style(button).color).toBe('rgb(107, 107, 128)')
@@ -31,46 +30,37 @@ describe('Navbar (rendering)', () => {
     }
   })
 
-  it('moves the sections into the burger menu below 1400 px', async () => {
+  it('folds language, links and donate into the burger menu below 1024 px', async () => {
     render(<Navbar />)
-    expect(screen.getByRole('button', { name: 'Lore' })).toBeVisible()
-    await page.viewport(1200, 900)
-    await expect.poll(() => screen.queryByRole('button', { name: 'Lore' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Open Discord' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'More' })).toBeNull()
+    await page.viewport(1000, 900)
+    await expect.poll(() => screen.queryByRole('button', { name: 'Open Discord' })).toBeNull()
     expect(screen.getByRole('button', { name: 'More' })).toBeVisible()
   })
 
-  it('keeps sign-in and the window controls inside the bar at the narrowest window', async () => {
+  it('keeps the window controls inside the bar at the narrowest window', async () => {
     await page.viewport(800, 900)
-    act(() =>
-      useAvailabilityStore.setState({ available: { universe: true, 'universe-testing': true } })
-    )
     render(<Navbar />)
-    const width = document.documentElement.clientWidth
-    for (const name of ['Sign in', 'Close']) {
-      const button = screen.getByRole('button', { name })
-      expect(button).toBeVisible()
-      expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(width)
-    }
+    const close = screen.getByRole('button', { name: 'Close' })
+    expect(close).toBeVisible()
+    expect(close.getBoundingClientRect().right).toBeLessThanOrEqual(
+      document.documentElement.clientWidth
+    )
   })
 
-  it('fits at 1400 px, signed in with a long name and unread versions', async () => {
-    act(() => {
-      useEnvStore.setState({ activeEnv: 'universe-testing' })
-      useAvailabilityStore.setState({ available: { universe: true, 'universe-testing': true } })
-      useAccountStore.setState((s) => ({
-        data: {
-          ...s.data,
-          'universe-testing': { status: 'connected', username: 'bobthebuilder061490' }
-        }
-      }))
-      useChangelogStore.setState({ unreadCount: () => 2 })
-    })
+  it('fits at the minimum window width (1024 px), in French, without the burger', async () => {
+    vi.stubEnv('VITE_NAV_DONATE_URL', 'https://donate.example')
+    await page.viewport(1024, 900)
+    await act(() => i18n.changeLanguage('fr'))
     render(<Navbar />)
-    // The section links end before the right-hand groups begin
-    const sections = screen.getByRole('button', { name: /Changelog/ }).parentElement!
-    const right = screen.getByRole('navigation').lastElementChild!
-    expect(sections.getBoundingClientRect().right).toBeLessThanOrEqual(
+    expect(screen.getByRole('button', { name: 'Faire un don' })).toBeVisible()
+    const [left, right] = screen.getByRole('navigation').children
+    expect(left.getBoundingClientRect().right).toBeLessThanOrEqual(
       right.getBoundingClientRect().left
+    )
+    expect(right.getBoundingClientRect().right).toBeLessThanOrEqual(
+      document.documentElement.clientWidth
     )
   })
 })

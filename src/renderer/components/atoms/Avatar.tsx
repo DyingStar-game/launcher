@@ -22,14 +22,17 @@ export type AvatarProps = VariantProps<typeof avatarVariants> & {
   name: string
   /** Text shown instead of the initial (e.g. an organisation ticker). */
   label?: string
+  /** Icon shown instead of the initial (e.g. no player signed in yet). */
+  icon?: React.ReactNode
   /** Presence dot in the corner. */
   status?: FriendStatus
 }
 
-/** Initial (or short label) in a placeholder avatar, with an optional presence dot. */
+/** Initial (or short label, or icon) in a placeholder avatar, with an optional presence dot. */
 export default function Avatar({
   name,
   label,
+  icon,
   size,
   shape,
   status
@@ -37,9 +40,14 @@ export default function Avatar({
   return (
     <div className="relative shrink-0">
       <div className={avatarVariants({ size, shape })}>
-        <span className="font-semibold text-ds-muted select-none uppercase">
-          {label ?? name.charAt(0)}
-        </span>
+        {/* An icon goes straight into the flex box: centred, not on a text baseline */}
+        {icon ? (
+          <span className="flex text-ds-muted">{icon}</span>
+        ) : (
+          <span className="font-semibold text-ds-muted select-none uppercase">
+            {label ?? name.charAt(0)}
+          </span>
+        )}
       </div>
       {status && (
         <span

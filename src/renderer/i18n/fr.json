@@ -17,6 +17,12 @@
     "back": "Retour"
   },
   "navbar": {
+    "home": "Accueil",
+    "appNav": "Launcher",
+    "universeNav": "Rubriques de l'univers",
+    "universeSections": "Rubriques de l'univers : {{section}}",
+    "socialPending_one": "{{count}} demande en attente",
+    "socialPending_other": "{{count}} demandes en attente",
     "social": "Social",
     "lore": "Lore",
     "support": "Faire un don",
@@ -40,17 +46,24 @@
     "toggleSound": "Activer / désactiver les sons",
     "soundVolume": "Volume",
     "account": {
-      "signIn": "Se connecter",
+      "signIn": "Se connecter avec Discord",
+      "signInShort": "Se connecter",
+      "requiredToPlay": "Requis pour jouer",
+      "connecting": "Connexion…",
+      "cancelShort": "Annuler",
+      "unavailableShort": "Indisponible",
+      "connected": "Connecté",
       "cancel": "Annuler la connexion",
       "signedInAs": "Connecté en tant que {{name}}",
+      "profile": "Mon profil",
       "signOut": "Se déconnecter",
       "menu": "Compte de {{name}}",
       "unavailable": "La connexion n'est pas disponible pour cet environnement."
-    },
-    "links": "Communauté"
+    }
   },
   "universeTesting": {
-    "banner": "Environnement de test — les données ne sont pas celles du serveur live"
+    "banner": "Environnement de test",
+    "bannerDetail": "— les données ne sont pas celles du serveur live"
   },
   "lore": {
     "sidebarTitle": "Lore",
@@ -112,7 +125,7 @@
       "playDisabledUpdate": "Une mise à jour du jeu est disponible — installez-la avant de jouer.",
       "playDisabledAuth": "Connectez-vous pour lancer le jeu.",
       "playDisabledAuthLoading": "Vérification de la session…",
-      "sessionExpired": "Votre session a expiré. Reconnectez-vous (en haut à droite) pour lancer le jeu.",
+      "sessionExpired": "Votre session a expiré. Reconnectez-vous pour lancer le jeu.",
       "playDisabledLaunching": "Lancement du jeu en cours…",
       "playDisabledRunning": "Le jeu est déjà lancé.",
       "notInstalled": "Jeu non installé",

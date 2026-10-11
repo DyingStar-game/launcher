@@ -68,7 +68,8 @@ export const useNavigationStore = create<NavigationState>((set) => {
     }))
 
   return {
-    currentView: 'universe',
+    // The home of the environment the launcher opens on
+    currentView: useEnvStore.getState().activeEnv,
     subject: null,
     pageState: {},
     setPageState: (patch) => set((s) => ({ pageState: { ...s.pageState, ...patch } })),

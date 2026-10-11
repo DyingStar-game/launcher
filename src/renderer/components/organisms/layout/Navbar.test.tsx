@@ -3,7 +3,6 @@ import { act, render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { useEnvStore } from '@stores/env'
 import { useNavigationStore } from '@stores/navigation'
-import { useChangelogStore } from '@stores/changelog'
 import Navbar from './Navbar'
 
 beforeEach(() => {
@@ -18,31 +17,9 @@ afterEach(() => {
 })
 
 describe('Navbar', () => {
-  it('counts the unread versions on the Changelog button', () => {
-    const { unreadCount } = useChangelogStore.getState()
-    act(() => useChangelogStore.setState({ unreadCount: () => 3 }))
-    render(<Navbar />)
-    expect(screen.getByRole('button', { name: /Changelog.*3 new versions/ })).toBeInTheDocument()
-    act(() => useChangelogStore.setState({ unreadCount }))
-  })
-
-  it('keeps Social highlighted on a player page', () => {
-    act(() => useNavigationStore.getState().openPlayer('p1'))
-    render(<Navbar />)
-    expect(screen.getByRole('button', { name: 'Social' })).toHaveClass('bg-white/10')
-    expect(screen.getByRole('button', { name: 'Lore' })).not.toHaveClass('bg-white/10')
-  })
-
-  it('navigates to a section with a fresh history', async () => {
-    act(() => useNavigationStore.getState().openPlayer('p1'))
-    render(<Navbar />)
-    await userEvent.click(screen.getByRole('button', { name: 'Lore' }))
-    expect(useNavigationStore.getState()).toMatchObject({ currentView: 'lore', history: [] })
-  })
-
   it('keeps nav buttons on one line so the bar keeps its height', () => {
     render(<Navbar />)
-    for (const name of ['Universe', 'Universe Testing', 'Social', 'Changelog']) {
+    for (const name of ['Universe', 'Universe Testing']) {
       expect(screen.getByRole('button', { name })).toHaveClass('whitespace-nowrap')
     }
   })
@@ -71,14 +48,6 @@ describe('Navbar', () => {
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Support link not configured')
   })
 
-  it('folds the section links into the menu below the wide breakpoint', () => {
-    render(<Navbar />)
-    expect(screen.getByRole('button', { name: 'Social' }).parentElement).toHaveClass(
-      'hidden',
-      'nav-full:flex'
-    )
-  })
-
   it('never shrinks the side holding the window controls', () => {
     render(<Navbar />)
     expect(screen.getByRole('button', { name: 'Close' }).parentElement?.parentElement).toHaveClass(
@@ -99,8 +68,14 @@ describe('Navbar', () => {
     expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('size-9', 'border-border')
   })
 
-  it('separates its five groups (language, links, sound, account, window) with the same divider', () => {
+  it('shows the wiki with the open book of the admin panel', () => {
+    render(<Navbar />)
+    const wiki = screen.getByRole('button', { name: 'Open wiki' })
+    expect(wiki.querySelector('svg')).toHaveClass('lucide-book-open')
+  })
+
+  it('separates its four groups (language, links, sound, window) with the same divider', () => {
     const { container } = render(<Navbar />)
-    expect(container.querySelectorAll('div[aria-hidden="true"].w-px')).toHaveLength(4)
+    expect(container.querySelectorAll('div[aria-hidden="true"].w-px')).toHaveLength(3)
   })
 })

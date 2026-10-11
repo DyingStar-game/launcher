@@ -17,6 +17,12 @@
     "back": "Back"
   },
   "navbar": {
+    "home": "Home",
+    "appNav": "Launcher",
+    "universeNav": "Universe sections",
+    "universeSections": "Universe sections: {{section}}",
+    "socialPending_one": "{{count}} request waiting",
+    "socialPending_other": "{{count}} requests waiting",
     "social": "Social",
     "lore": "Lore",
     "support": "Donate",
@@ -40,17 +46,24 @@
     "toggleSound": "Toggle sounds",
     "soundVolume": "Volume",
     "account": {
-      "signIn": "Sign in",
+      "signIn": "Sign in with Discord",
+      "signInShort": "Sign in",
+      "requiredToPlay": "Required to play",
+      "connecting": "Signing in…",
+      "cancelShort": "Cancel",
+      "unavailableShort": "Unavailable",
+      "connected": "Signed in",
       "cancel": "Cancel sign-in",
       "signedInAs": "Signed in as {{name}}",
+      "profile": "My profile",
       "signOut": "Sign out",
       "menu": "Account of {{name}}",
       "unavailable": "Sign-in is not available for this environment."
-    },
-    "links": "Community"
+    }
   },
   "universeTesting": {
-    "banner": "Testing environment — data is not from the live server"
+    "banner": "Testing environment",
+    "bannerDetail": "— data is not from the live server"
   },
   "lore": {
     "sidebarTitle": "Lore",
@@ -112,7 +125,7 @@
       "playDisabledUpdate": "A game update is available — install it before playing.",
       "playDisabledAuth": "Sign in to launch the game.",
       "playDisabledAuthLoading": "Checking your session…",
-      "sessionExpired": "Your session has expired. Sign in again (top right) to play.",
+      "sessionExpired": "Your session has expired. Sign in again to play.",
       "playDisabledLaunching": "Launching the game…",
       "playDisabledRunning": "The game is already running.",
       "notInstalled": "Game not installed",

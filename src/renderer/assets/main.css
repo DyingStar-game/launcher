@@ -66,6 +66,8 @@
   --color-ds-success: #22c55e;
   --color-ds-warning: #f59e0b;
   --color-ds-danger: #ef4444;
+  /* Discord's brand colour: signing in goes through Discord */
+  --color-discord: #5865f2;
 
   --shadow-ds-panel: 0 12px 32px rgba(0, 0, 0, 0.35);
   --shadow-ds-card: 0 8px 24px rgba(0, 0, 0, 0.3);
@@ -78,7 +80,7 @@
   --text-2xs: 0.625rem;
   --text-2xs--line-height: 1rem;
   --breakpoint-nav-env: 50rem;
-  --breakpoint-nav-full: 87.5rem;
+  --breakpoint-nav-full: 64rem;
 }
 
 /*

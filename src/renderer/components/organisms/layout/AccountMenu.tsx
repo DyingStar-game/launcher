@@ -1,8 +1,11 @@
-import { LogOutIcon, UserIcon } from 'lucide-react'
+import { Loader2Icon, LogOutIcon, UserIcon } from 'lucide-react'
+import { useSocialSnapshot } from '@hooks/social/useSocialSnapshot'
 import { useTranslation } from 'react-i18next'
 import { useAccountStore } from '@stores/account'
 import { useAvailabilityStore } from '@stores/availability'
 import { useEnvStore } from '@stores/env'
+import { useNavigationStore } from '@stores/navigation'
+import { cn } from '@lib/cn'
 import Avatar from '@components/atoms/Avatar'
 import Button from '@components/atoms/Button'
 import MenuItemButton from '@components/atoms/MenuItemButton'
@@ -13,12 +16,64 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@components/ui/dropdown-menu'
 
+type AccountBlockProps = React.ComponentProps<typeof Button> & {
+  avatar: React.ReactNode
+  heading: string
+  subtitle: string
+  /** Colour of the subtitle: `online` once signed in. */
+  tone?: 'online' | 'muted'
+}
+
+/** The account as a block like a friend's row (48 px): avatar, then a heading over a subtitle. */
+function AccountBlock({
+  avatar,
+  heading,
+  subtitle,
+  tone = 'muted',
+  ...props
+}: AccountBlockProps): React.JSX.Element {
+  return (
+    <Button variant="secondary" size="sm" className="h-12 gap-3 p-2 pr-3" {...props}>
+      {avatar}
+      <span className="flex min-w-0 flex-col items-start leading-tight">
+        <span className="max-w-40 truncate">{heading}</span>
+        <span
+          className={cn(
+            'text-xs font-normal',
+            tone === 'online' ? 'text-green-400' : 'text-ds-muted'
+          )}
+        >
+          {subtitle}
+        </span>
+      </span>
+    </Button>
+  )
+}
+
+/** "My profile": the signed-in player's own sheet, once the social data knows who they are. */
+function ProfileItem(): React.JSX.Element | null {
+  const { t } = useTranslation()
+  const selfId = useSocialSnapshot().data.selfId
+  const openPlayer = useNavigationStore((s) => s.openPlayer)
+  if (!selfId) return null
+  return (
+    <DropdownMenuItem asChild>
+      <MenuItemButton onClick={() => openPlayer(selfId)}>
+        <UserIcon className="size-4" aria-hidden="true" />
+        <span className="flex-1">{t('navbar.account.profile')}</span>
+      </MenuItemButton>
+    </DropdownMenuItem>
+  )
+}
+
 /**
- * The player's account in the navbar, for the active environment: Sign in (Discord), Cancel while
- * the sign-in window is open, or the player's avatar opening Sign out once signed in.
+ * The player's account in the universe bar, for the active environment, always as the same block:
+ * "Sign in / Required to play" with the Discord logo, "Signing in… / Cancel" while the sign-in
+ * window is open, or the player's avatar, name and "Signed in", opening My profile and Sign out.
  */
 export default function AccountMenu(): React.JSX.Element {
   const { t } = useTranslation()
@@ -32,14 +87,13 @@ export default function AccountMenu(): React.JSX.Element {
     return (
       <LabelTooltip label={t('navbar.account.unavailable')}>
         <span tabIndex={0} className="inline-flex rounded-lg">
-          <Button
-            variant="outline"
-            size="icon"
+          <AccountBlock
             disabled
             aria-label={t('navbar.account.unavailable')}
-          >
-            <UserIcon className="size-4.5" aria-hidden="true" />
-          </Button>
+            avatar={<Avatar name="" icon={<UserIcon className="size-4" aria-hidden="true" />} />}
+            heading={t('navbar.account.signInShort')}
+            subtitle={t('navbar.account.unavailableShort')}
+          />
         </span>
       </LabelTooltip>
     )
@@ -47,18 +101,34 @@ export default function AccountMenu(): React.JSX.Element {
 
   if (status === 'loading') {
     return (
-      <Button variant="outline" size="sm" onClick={cancelLogin}>
-        {t('navbar.account.cancel')}
-      </Button>
+      <AccountBlock
+        onClick={cancelLogin}
+        aria-label={t('navbar.account.cancel')}
+        avatar={
+          <Avatar
+            name=""
+            icon={
+              <span className="inline-flex animate-spin">
+                <Loader2Icon className="size-4" aria-hidden="true" />
+              </span>
+            }
+          />
+        }
+        heading={t('navbar.account.connecting')}
+        subtitle={t('navbar.account.cancelShort')}
+      />
     )
   }
 
   if (status !== 'connected') {
     return (
-      <Button variant="outline" size="sm" onClick={() => void login()}>
-        <DiscordIcon className="size-4.5" />
-        {t('navbar.account.signIn')}
-      </Button>
+      <AccountBlock
+        onClick={() => void login()}
+        aria-label={t('navbar.account.signIn')}
+        avatar={<Avatar name="" icon={<DiscordIcon className="size-4" />} />}
+        heading={t('navbar.account.signInShort')}
+        subtitle={t('navbar.account.requiredToPlay')}
+      />
     )
   }
 
@@ -66,10 +136,13 @@ export default function AccountMenu(): React.JSX.Element {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" aria-label={t('navbar.account.menu', { name })}>
-          <Avatar name={name} size="xs" />
-          <span className="hidden max-w-24 truncate nav-full:inline">{name}</span>
-        </Button>
+        <AccountBlock
+          aria-label={t('navbar.account.menu', { name })}
+          avatar={<Avatar name={name} status="online" />}
+          heading={name}
+          subtitle={t('navbar.account.connected')}
+          tone="online"
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
@@ -77,6 +150,8 @@ export default function AccountMenu(): React.JSX.Element {
         className="min-w-48"
       >
         <DropdownMenuLabel>{t('navbar.account.signedInAs', { name })}</DropdownMenuLabel>
+        <ProfileItem />
+        <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <MenuItemButton onClick={() => void logout()}>
             <LogOutIcon className="size-4" aria-hidden="true" />

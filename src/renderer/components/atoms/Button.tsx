@@ -21,6 +21,7 @@ const VARIANTS = {
   ghost: 'ghost',
   danger: 'destructive',
   success: 'success',
+  discord: 'discord',
   link: 'link',
   name: 'link',
   subtle: 'ghost'

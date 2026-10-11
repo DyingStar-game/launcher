@@ -10,7 +10,7 @@ breakpoint or a state, it is **measured** (ADR 0033): a `*.browser.test.tsx` nex
 renders it in headless Chromium with the real Tailwind CSS, and asserts what jsdom cannot see.
 Measuring gives a pass / fail, not screenshots to read.
 
-Worth a test: a column's width or an alignment, the burger menu below 1400 px, a colour inherited
+Worth a test: a column's width or an alignment, the burger menu below 1024 px, a colour inherited
 from a parent, a hover or focus state, a generated selector. Not worth one: restating a class
 (`text-xs` is 12 px, `bg-ds-surface` is that colour); it breaks on every intended change.
 
@@ -38,8 +38,8 @@ it('draws its icon buttons 36 px high, in grey by default', () => {
 - Theme colours compute to `rgb()`: `ds-surface` `rgb(22, 22, 31)`, `ds-border`
   `rgb(42, 42, 58)`, `ds-muted` `rgb(107, 107, 128)`. Tailwind's palette computes to `oklch()`:
   compare with a reference element instead.
-- **Breakpoints**: the viewport is 1400 × 900 (full navbar). `await page.viewport(1200, 900)` for
-  the burger menu (below 1400 px), `799` for the universe switch in the menu; restore it in an
+- **Breakpoints**: the viewport is 1400 × 900 (full navbar). `await page.viewport(1000, 900)` for
+  the burger menu (below 1024 px, the minimum window), `799` for the universe switch in the menu; restore it in an
   `afterEach`.
 - **Real input** (`:hover`, `:focus-visible`, tooltips, Radix menus opening on `pointerdown`):
   `userEvent` from `vitest/browser` drives Playwright's mouse and keyboard. Style changes are

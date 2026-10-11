@@ -14,8 +14,12 @@ import { UiSoundProfile } from '@shared/types/sounds'
 import PanelMessage from '@components/molecules/PanelMessage'
 import Panel from '@components/atoms/Panel'
 import SectionLabel from '@components/atoms/SectionLabel'
+import DiscordIcon from '@components/atoms/icons/DiscordIcon'
 
-/** Game panel: server status, player count, play button, and status page link. */
+/**
+ * Game panel: server status, player count, play button (sign-in with Discord in its place while
+ * signed out), and status page link.
+ */
 export default function GamePanel(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data: gameData, fetchServerStatus, play, gameRunning, isLaunching } = useGameStore()
@@ -27,6 +31,7 @@ export default function GamePanel(): React.JSX.Element {
   const { installed, version: localGameVersion } = filesData[activeEnv]
   const accountStatus = useAccountStore((s) => s.data[activeEnv].status)
   const sessionExpired = useAccountStore((s) => s.data[activeEnv].sessionExpired)
+  const login = useAccountStore((s) => s.login)
   const isAuthenticated = accountStatus === 'connected'
   const gameUpdateAvailable = isGameUpdateAvailable(
     installed,
@@ -63,6 +68,10 @@ export default function GamePanel(): React.JSX.Element {
     isAuthenticated &&
     !gameRunning &&
     !isLaunching
+
+  /** Signed out where the game could be played: the sign-in takes the Play button's place. */
+  const needsSignIn =
+    installed && isAvailable && accountStatus !== 'loading' && (!isAuthenticated || sessionExpired)
 
   const statusPageUrl = statusPageUrlForEnv(activeEnv)
   const canOpenStatusPage = Boolean(statusPageUrl)
@@ -122,15 +131,22 @@ export default function GamePanel(): React.JSX.Element {
           <PanelMessage variant="warning">{t('universe.game.playDisabledAuth')}</PanelMessage>
         )}
 
-        <Button
-          onClick={() => void play()}
-          disabled={!canPlay}
-          variant="primary"
-          className="w-full"
-          soundProfile={UiSoundProfile.PlayGame}
-        >
-          {isLaunching ? t('universe.game.launching') : t('universe.game.play')}
-        </Button>
+        {needsSignIn ? (
+          <Button onClick={() => void login()} variant="discord" className="w-full">
+            <DiscordIcon className="size-4.5" />
+            {t('navbar.account.signIn')}
+          </Button>
+        ) : (
+          <Button
+            onClick={() => void play()}
+            disabled={!canPlay}
+            variant="primary"
+            className="w-full"
+            soundProfile={UiSoundProfile.PlayGame}
+          >
+            {isLaunching ? t('universe.game.launching') : t('universe.game.play')}
+          </Button>
+        )}
 
         <Button
           variant="secondary"
