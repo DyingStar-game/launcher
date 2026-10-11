@@ -12,6 +12,15 @@ describe('PendingCount', () => {
     expect(screen.getByRole('button', { name: /Friends.*2 requests waiting/ })).toBeInTheDocument()
   })
 
+  it('reads another sentence when given one', () => {
+    render(
+      <button type="button">
+        Changelog <PendingCount count={3} label="3 new versions" />
+      </button>
+    )
+    expect(screen.getByRole('button', { name: /Changelog.*3 new versions/ })).toBeInTheDocument()
+  })
+
   it('shows nothing when no request waits', () => {
     const { container } = render(<PendingCount count={0} />)
     expect(container).toBeEmptyDOMElement()

@@ -5,21 +5,9 @@ import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
 import SidebarItemButton from '@components/atoms/SidebarItemButton'
 import PageSidebar from '@components/atoms/PageSidebar'
+import { Badge } from '@components/ui/badge'
 import { Skeleton } from '@components/ui/skeleton'
 import { useDelayedFlag } from '@hooks/useDelayedFlag'
-
-function BellBadge(): React.JSX.Element {
-  return (
-    <span
-      className="absolute -top-1 -right-1 inline-flex size-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm"
-      aria-hidden="true"
-    >
-      <svg viewBox="0 0 24 24" className="size-2.5 fill-current">
-        <path d="M12 22a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22zm6-6V11a6 6 0 00-5-5.91V4a1 1 0 10-2 0v1.09A6 6 0 006 11v5l-2 2v1h16v-1l-2-2z" />
-      </svg>
-    </span>
-  )
-}
 
 /** Sidebar list of changelog versions grouped by component/module. */
 export default function ChangelogSidebar(): React.JSX.Element {
@@ -86,15 +74,15 @@ export default function ChangelogSidebar(): React.JSX.Element {
             <SidebarItemButton
               active={currentId === entry.id}
               onClick={() => select(entry.id)}
-              className="relative w-full"
+              className="flex w-full items-center justify-between gap-2"
             >
-              <span className="flex flex-col gap-0.5 pr-2">
+              <span className="flex min-w-0 flex-col gap-0.5">
                 <span>{label}</span>
                 {entry.date && (
                   <span className="text-2xs text-ds-muted tabular-nums">{entry.date}</span>
                 )}
               </span>
-              {isUnread(entry.id) && currentId !== entry.id && <BellBadge />}
+              {isUnread(entry.id) && currentId !== entry.id && <Badge>{t('changelog.new')}</Badge>}
             </SidebarItemButton>
           </div>
         )

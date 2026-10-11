@@ -71,7 +71,10 @@ describe('NavbarMoreMenu', () => {
     rerender(
       <NavbarMoreMenu
         {...envProps}
-        sections={[...sections.slice(0, 2), { label: 'Changelog', view: 'changelog', badge: true }]}
+        sections={[
+          ...sections.slice(0, 2),
+          { label: 'Changelog', view: 'changelog', count: 3, countLabel: '3 new versions' }
+        ]}
         currentSection="social"
         onNavigate={vi.fn()}
       />

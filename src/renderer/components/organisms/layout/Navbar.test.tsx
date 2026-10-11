@@ -3,6 +3,7 @@ import { act, render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { useEnvStore } from '@stores/env'
 import { useNavigationStore } from '@stores/navigation'
+import { useChangelogStore } from '@stores/changelog'
 import Navbar from './Navbar'
 
 beforeEach(() => {
@@ -17,6 +18,14 @@ afterEach(() => {
 })
 
 describe('Navbar', () => {
+  it('counts the unread versions on the Changelog button', () => {
+    const { unreadCount } = useChangelogStore.getState()
+    act(() => useChangelogStore.setState({ unreadCount: () => 3 }))
+    render(<Navbar />)
+    expect(screen.getByRole('button', { name: /Changelog.*3 new versions/ })).toBeInTheDocument()
+    act(() => useChangelogStore.setState({ unreadCount }))
+  })
+
   it('keeps Social highlighted on a player page', () => {
     act(() => useNavigationStore.getState().openPlayer('p1'))
     render(<Navbar />)

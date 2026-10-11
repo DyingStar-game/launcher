@@ -2,7 +2,6 @@ import type React from 'react'
 import { useEffect, useId, useState } from 'react'
 import { useEnvStore } from '@stores/env'
 import { navSection, useNavigationStore } from '@stores/navigation'
-import type { TopView } from '@stores/navigation'
 import { useChangelogStore } from '@stores/changelog'
 import { useTranslation } from 'react-i18next'
 import { BookOpenIcon } from 'lucide-react'
@@ -13,7 +12,8 @@ import SoundVolumeMenu from '@components/organisms/layout/SoundVolumeMenu'
 import LabelTooltip from '@components/molecules/LabelTooltip'
 import LanguageMenu from '@components/organisms/layout/LanguageMenu'
 import NavbarMoreMenu from '@components/organisms/layout/NavbarMoreMenu'
-import type { NavbarEnvOption } from '@components/organisms/layout/NavbarMoreMenu'
+import type { NavbarEnvOption, NavbarSection } from '@components/organisms/layout/NavbarMoreMenu'
+import PendingCount from '@components/molecules/PendingCount'
 import type { Env } from '@shared/types/env'
 import { navUrls } from '@lib/env'
 import { cn } from '@lib/cn'
@@ -65,7 +65,7 @@ function HeartDonateIcon(): React.JSX.Element {
 export default function Navbar(): React.JSX.Element {
   const { activeEnv, setEnv } = useEnvStore()
   const { currentView, navigate } = useNavigationStore()
-  const hasUnreadChangelog = useChangelogStore((s) => s.hasUnread(activeEnv))
+  const unreadChangelog = useChangelogStore((s) => s.unreadCount(activeEnv))
   const { t } = useTranslation()
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -87,10 +87,15 @@ export default function Navbar(): React.JSX.Element {
     { env: 'universe-testing', label: t('navbar.envTesting') }
   ]
 
-  const navLinks: { label: string; view: TopView; badge?: boolean }[] = [
+  const navLinks: NavbarSection[] = [
     { label: t('navbar.social'), view: 'social' },
     { label: t('navbar.lore'), view: 'lore' },
-    { label: t('navbar.changelog'), view: 'changelog', badge: hasUnreadChangelog }
+    {
+      label: t('navbar.changelog'),
+      view: 'changelog',
+      count: unreadChangelog,
+      countLabel: t('changelog.unreadCount', { count: unreadChangelog })
+    }
   ]
 
   return (
@@ -219,20 +224,14 @@ export default function Navbar(): React.JSX.Element {
 
         {/* Liens vues secondaires (compact → menu hamburger) */}
         <div className="hidden nav-full:flex gap-1 p-1 rounded-xl bg-white/3 border border-ds-border">
-          {navLinks.map(({ label, view, badge }) => (
+          {navLinks.map(({ label, view, count = 0, countLabel }) => (
             <TabButton
               key={view}
               selected={navSection(currentView) === view}
               onClick={() => navigate(view)}
             >
               {label}
-              {badge && (
-                <span className="absolute -top-1 -right-1 inline-flex size-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm">
-                  <svg viewBox="0 0 24 24" className="size-2.5 fill-current" aria-hidden="true">
-                    <path d="M12 22a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22zm6-6V11a6 6 0 00-5-5.91V4a1 1 0 10-2 0v1.09A6 6 0 006 11v5l-2 2v1h16v-1l-2-2z" />
-                  </svg>
-                </span>
-              )}
+              <PendingCount count={count} label={countLabel} />
             </TabButton>
           ))}
         </div>

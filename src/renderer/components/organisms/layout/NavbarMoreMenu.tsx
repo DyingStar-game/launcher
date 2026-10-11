@@ -19,9 +19,17 @@ import { navUrls } from '@lib/env'
 import { LANGUAGES, currentLanguage } from '@lib/languages'
 import type { TopView, View } from '@stores/navigation'
 import type { Env } from '@shared/types/env'
+import PendingCount from '@components/molecules/PendingCount'
 
 /** A top-level section link folded into the menu on narrow windows. */
-export type NavbarSection = { label: string; view: TopView; badge?: boolean }
+export type NavbarSection = {
+  label: string
+  view: TopView
+  /** Unread or waiting items, shown as a `PendingCount`. */
+  count?: number
+  /** The count read as a sentence. */
+  countLabel?: string
+}
 
 /** An environment of the env switch, folded into the menu on very narrow windows. */
 export type NavbarEnvOption = { env: Env; label: string }
@@ -73,7 +81,7 @@ export default function NavbarMoreMenu({
   const [open, setOpen] = useState(false)
   const { website, discord, wiki, donate } = navUrls()
   const currentLang = currentLanguage(i18nInstance)
-  const hasBadge = sections.some((section) => section.badge)
+  const hasBadge = sections.some((section) => (section.count ?? 0) > 0)
 
   // Radix handles outside clicks, Escape, focus and the keyboard; the menu only closes itself
   // when the window grows past the breakpoint where it is hidden.
@@ -119,12 +127,12 @@ export default function NavbarMoreMenu({
           <DropdownMenuSeparator />
         </DropdownMenuGroup>
 
-        {sections.map(({ label, view, badge }) => (
+        {sections.map(({ label, view, count = 0, countLabel }) => (
           <DropdownMenuItem asChild key={view}>
             <MenuItemButton selected={currentSection === view} onClick={() => onNavigate(view)}>
               {' '}
               <span className="flex-1">{label}</span>
-              {badge && <span className="size-2 shrink-0 rounded-full bg-red-500" />}
+              <PendingCount count={count} label={countLabel} />
             </MenuItemButton>
           </DropdownMenuItem>
         ))}
