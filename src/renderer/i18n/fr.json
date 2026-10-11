@@ -174,7 +174,7 @@
         "empty": "Aucun joueur trouvé. Seuls les joueurs ayant déjà ouvert la page social peuvent être trouvés.",
         "add": "Ajouter",
         "addAria": "Envoyer une demande d'ami à {{name}}",
-        "requestSent": "Demande envoyée",
+        "requestSent": "Demande d'ami envoyée",
         "friend": "Ami",
         "you": "Toi"
       },

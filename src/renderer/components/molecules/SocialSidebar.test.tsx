@@ -25,6 +25,13 @@ describe('SocialSidebar', () => {
     expect(screen.getByRole('tab', { name: 'Organizations' })).toBeInTheDocument()
   })
 
+  it('puts an icon in front of every entry', () => {
+    renderInTabs(undefined, undefined, vi.fn())
+    for (const entry of [...screen.getAllByRole('tab'), screen.getByRole('button')]) {
+      expect(entry.firstElementChild?.tagName).toBe('svg')
+    }
+  })
+
   it('shows the requests waiting in each section', () => {
     renderInTabs({ friends: 0, organisations: 2 })
     expect(

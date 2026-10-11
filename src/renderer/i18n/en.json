@@ -174,7 +174,7 @@
         "empty": "No player found. Only players who opened the social page once can be found.",
         "add": "Add",
         "addAria": "Send a friend request to {{name}}",
-        "requestSent": "Request sent",
+        "requestSent": "Friend request sent",
         "friend": "Friend",
         "you": "You"
       },

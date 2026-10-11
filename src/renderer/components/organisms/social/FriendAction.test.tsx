@@ -8,7 +8,7 @@ describe('FriendAction', () => {
   it.each([
     ['me', 'You'],
     ['friend', 'Friend'],
-    ['asked', 'Request sent']
+    ['asked', 'Friend request sent']
   ])('shows a badge for %s', async (playerId, badge) => {
     seedSocial({
       friends: [{ id: 'friend', name: 'F', status: 'online' }],
@@ -29,7 +29,10 @@ describe('FriendAction', () => {
     expect(container.querySelector('svg')).toHaveClass('lucide-user-check')
     unmount()
     render(<FriendAction playerId="asked" name="X" />)
-    expect(await screen.findByText('Request sent')).toHaveAttribute('data-variant', 'outline')
+    expect(await screen.findByText('Friend request sent')).toHaveAttribute(
+      'data-variant',
+      'outline'
+    )
   })
 
   it('sends a friend request to a stranger', async () => {
