@@ -38,7 +38,15 @@
     "brandWiki": "Wiki",
     "changelog": "Changelog",
     "toggleSound": "Toggle sounds",
-    "soundVolume": "Volume"
+    "soundVolume": "Volume",
+    "account": {
+      "signIn": "Sign in",
+      "cancel": "Cancel sign-in",
+      "signedInAs": "Signed in as {{name}}",
+      "signOut": "Sign out",
+      "menu": "Account of {{name}}",
+      "unavailable": "Sign-in is not available for this environment."
+    }
   },
   "universeTesting": {
     "banner": "Testing environment — data is not from the live server"
@@ -83,17 +91,6 @@
     "missionIn": "In mission • {{system}}"
   },
   "universe": {
-    "account": {
-      "title": "Account",
-      "disconnected": "Not connected",
-      "connectedAs": "Logged in as {{username}}",
-      "login": "Login with Discord",
-      "logout": "Logout",
-      "loading": "Connecting...",
-      "cancel": "Cancel",
-      "unavailable": "Authentication not available for this environment.",
-      "unavailableBtn": "Unavailable"
-    },
     "updateAlert": {
       "dismiss": "Dismiss alert",
       "launcher": {
@@ -114,7 +111,7 @@
       "playDisabledUpdate": "A game update is available — install it before playing.",
       "playDisabledAuth": "Sign in to launch the game.",
       "playDisabledAuthLoading": "Checking your session…",
-      "sessionExpired": "Your session has expired. Sign in again from the Account panel to play.",
+      "sessionExpired": "Your session has expired. Sign in again (top right) to play.",
       "playDisabledLaunching": "Launching the game…",
       "playDisabledRunning": "The game is already running.",
       "notInstalled": "Game not installed",

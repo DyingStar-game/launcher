@@ -38,7 +38,15 @@
     "brandWiki": "Wiki",
     "changelog": "Changelog",
     "toggleSound": "Activer / désactiver les sons",
-    "soundVolume": "Volume"
+    "soundVolume": "Volume",
+    "account": {
+      "signIn": "Se connecter",
+      "cancel": "Annuler la connexion",
+      "signedInAs": "Connecté en tant que {{name}}",
+      "signOut": "Se déconnecter",
+      "menu": "Compte de {{name}}",
+      "unavailable": "La connexion n'est pas disponible pour cet environnement."
+    }
   },
   "universeTesting": {
     "banner": "Environnement de test — les données ne sont pas celles du serveur live"
@@ -83,17 +91,6 @@
     "missionIn": "En mission • {{system}}"
   },
   "universe": {
-    "account": {
-      "title": "Compte",
-      "disconnected": "Non connecté",
-      "connectedAs": "Connecté en tant que {{username}}",
-      "login": "Se connecter avec Discord",
-      "logout": "Se déconnecter",
-      "loading": "Connexion en cours...",
-      "cancel": "Annuler",
-      "unavailable": "Authentification non disponible pour cet environnement.",
-      "unavailableBtn": "Indisponible"
-    },
     "updateAlert": {
       "dismiss": "Fermer l'alerte",
       "launcher": {
@@ -114,7 +111,7 @@
       "playDisabledUpdate": "Une mise à jour du jeu est disponible — installez-la avant de jouer.",
       "playDisabledAuth": "Connectez-vous pour lancer le jeu.",
       "playDisabledAuthLoading": "Vérification de la session…",
-      "sessionExpired": "Votre session a expiré. Reconnectez-vous via le panneau Compte pour lancer le jeu.",
+      "sessionExpired": "Votre session a expiré. Reconnectez-vous (en haut à droite) pour lancer le jeu.",
       "playDisabledLaunching": "Lancement du jeu en cours…",
       "playDisabledRunning": "Le jeu est déjà lancé.",
       "notInstalled": "Jeu non installé",

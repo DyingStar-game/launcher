@@ -105,8 +105,8 @@ describe('Navbar', () => {
     expect(wiki.querySelector('svg')).toHaveClass('lucide-book-open')
   })
 
-  it('separates its four groups with the same divider', () => {
+  it('separates its five groups (language, links, sound, account, window) with the same divider', () => {
     const { container } = render(<Navbar />)
-    expect(container.querySelectorAll('div[aria-hidden="true"].w-px')).toHaveLength(3)
+    expect(container.querySelectorAll('div[aria-hidden="true"].w-px')).toHaveLength(4)
   })
 })

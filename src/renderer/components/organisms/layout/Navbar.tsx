@@ -10,6 +10,7 @@ import TabButton from '@components/atoms/TabButton'
 import DiscordIcon from '@components/atoms/icons/DiscordIcon'
 import SoundVolumeMenu from '@components/organisms/layout/SoundVolumeMenu'
 import LabelTooltip from '@components/molecules/LabelTooltip'
+import AccountMenu from '@components/organisms/layout/AccountMenu'
 import LanguageMenu from '@components/organisms/layout/LanguageMenu'
 import NavbarMoreMenu from '@components/organisms/layout/NavbarMoreMenu'
 import type { NavbarEnvOption, NavbarSection } from '@components/organisms/layout/NavbarMoreMenu'
@@ -239,7 +240,7 @@ export default function Navbar(): React.JSX.Element {
 
       {/* Droite : langues + liens externes + soutenir (compact → menu hamburger) ; never shrinks so the window controls stay visible */}
       <div className="app-no-drag flex shrink-0 items-center gap-3">
-        {/* Groups: language | links | sound + donate (burger below 1400px) | window, 8px inside,
+        {/* Groups: language | links | sound + donate (burger below 1400px) | account | window, 8px inside,
             one divider between two groups (the bar's 12px gap on each side) */}
         <div className="hidden nav-full:flex items-center gap-2">
           <LanguageMenu />
@@ -330,6 +331,10 @@ export default function Navbar(): React.JSX.Element {
             />
           </div>
         </div>
+
+        <GroupDivider />
+
+        <AccountMenu />
 
         <GroupDivider />
 

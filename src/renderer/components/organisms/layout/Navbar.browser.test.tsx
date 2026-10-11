@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { render, screen } from '../../../test/render'
+import { act, render, screen } from '../../../test/render'
+import { useAvailabilityStore } from '@stores/availability'
 import Navbar from './Navbar'
 
 const style = (el: Element): CSSStyleDeclaration => getComputedStyle(el)
@@ -33,5 +34,19 @@ describe('Navbar (rendering)', () => {
     await page.viewport(1200, 900)
     await expect.poll(() => screen.queryByRole('button', { name: 'Lore' })).toBeNull()
     expect(screen.getByRole('button', { name: 'More' })).toBeVisible()
+  })
+
+  it('keeps sign-in and the window controls inside the bar at the narrowest window', async () => {
+    await page.viewport(800, 900)
+    act(() =>
+      useAvailabilityStore.setState({ available: { universe: true, 'universe-testing': true } })
+    )
+    render(<Navbar />)
+    const width = document.documentElement.clientWidth
+    for (const name of ['Sign in', 'Close']) {
+      const button = screen.getByRole('button', { name })
+      expect(button).toBeVisible()
+      expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(width)
+    }
   })
 })

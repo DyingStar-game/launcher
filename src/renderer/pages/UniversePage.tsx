@@ -1,6 +1,5 @@
 import { useVersionStore } from '@stores/version'
 import { useTranslation } from 'react-i18next'
-import AccountPanel from '@components/organisms/universe/AccountPanel'
 import GamePanel from '@components/organisms/universe/GamePanel'
 import SocialPanel from '@components/organisms/universe/SocialPanel'
 import FilesPanel from '@components/organisms/universe/FilesPanel'
@@ -11,7 +10,7 @@ type UniversePageProps = {
   showTestingBanner?: boolean
 }
 
-/** Four-panel universe layout (account, social preview, game, files) with optional testing banner. */
+/** Universe home: game and files on the left, the social preview the whole height on the right. */
 export default function UniversePage({
   showTestingBanner = false
 }: UniversePageProps): React.JSX.Element {
@@ -52,12 +51,8 @@ export default function UniversePage({
           />
         )
       }
-      panels={[
-        <AccountPanel key="account" />,
-        <SocialPanel key="social" />,
-        <GamePanel key="game" />,
-        <FilesPanel key="files" />
-      ]}
+      panels={[<GamePanel key="game" />, <FilesPanel key="files" />]}
+      side={<SocialPanel />}
     />
   )
 }
