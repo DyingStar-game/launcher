@@ -50,7 +50,8 @@ export default defineConfig({
           browser: {
             enabled: true,
             headless: true,
-            provider: playwright(),
+            // Playwright hides scrollbars in headless mode; the launcher shows them (thin, styled)
+            provider: playwright({ launchOptions: { ignoreDefaultArgs: ['--hide-scrollbars'] } }),
             // The launcher's full width (navbar without the burger menu, ADR 0026)
             viewport: { width: 1400, height: 900 },
             instances: [{ browser: 'chromium' }]

@@ -37,7 +37,8 @@ are not mixed.
 - **The CSS files only hold Tailwind's configuration and what no component carries**:
   - `@theme` (the tokens that make the utilities) and shadcn's `@custom-variant`s;
   - `@font-face`;
-  - `@layer base`: `html`, `body`, `#root`, the pointer cursor on buttons;
+  - `@layer base`: `html`, `body`, `#root`, the pointer cursor on buttons, the scrollbars of every
+    scrolling element;
   - `@utility` for a property Tailwind has no utility for: `app-drag` / `app-no-drag`
     (`-webkit-app-region`), used like any utility.
 - **Enforced by a test**: `assets/styles.test.ts` fails on any class selector in
