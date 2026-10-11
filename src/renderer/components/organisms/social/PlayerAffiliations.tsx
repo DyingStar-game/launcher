@@ -4,12 +4,14 @@ import { useNavigationStore } from '@stores/navigation'
 import OrganisationLink from '@components/molecules/OrganisationLink'
 import SheetSection from '@components/molecules/SheetSection'
 
+export type PlayerAffiliationsProps = {
+  profile: PlayerProfile
+}
+
 /** Organisations (opening their page) and political entities of a player. */
 export default function PlayerAffiliations({
   profile
-}: {
-  profile: PlayerProfile
-}): React.JSX.Element {
+}: PlayerAffiliationsProps): React.JSX.Element {
   const { t } = useTranslation()
   const openOrganisation = useNavigationStore((s) => s.openOrganisation)
 
@@ -17,9 +19,7 @@ export default function PlayerAffiliations({
     <>
       <SheetSection title={t('universe.socialPage.profile.corporations')}>
         {profile.corporations.length === 0 ? (
-          <p className="text-sm text-[var(--color-ds-muted)]">
-            {t('universe.socialPage.profile.noCorporation')}
-          </p>
+          <p className="text-sm text-ds-muted">{t('universe.socialPage.profile.noCorporation')}</p>
         ) : (
           <ul className="flex flex-col gap-1">
             {profile.corporations.map((c) => (
@@ -35,9 +35,9 @@ export default function PlayerAffiliations({
         <SheetSection title={t('universe.socialPage.profile.politics')}>
           <ul className="flex flex-col gap-1">
             {profile.politics.map((p) => (
-              <li key={p.id} className="text-sm text-[var(--color-ds-text)]">
+              <li key={p.id} className="text-sm text-ds-text">
                 {p.name}{' '}
-                <span className="text-xs text-[var(--color-ds-muted)]">
+                <span className="text-xs text-ds-muted">
                   {t(`universe.socialPage.profile.politicalTypes.${p.type}`, {
                     defaultValue: p.type
                   })}

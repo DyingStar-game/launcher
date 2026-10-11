@@ -16,7 +16,7 @@ import RichTextField from '@components/molecules/RichTextField'
 import { fieldError } from '@lib/formErrors'
 import { getSocialErrorMessage } from '@lib/socialErrors'
 
-type Props = {
+export type ProfileEditFormProps = {
   profile: PlayerProfile
   /** Leaves the form: after saving, or on Cancel. */
   onDone: () => void
@@ -40,7 +40,10 @@ const SHEET_SHORT_FIELDS = ['characterName', 'alignment'] as const
  * The player's own profile texts (ADR 0020): faction, biography, role-play sheet. React Hook
  * Form with the shared schema (ADR 0022); only what changed is sent.
  */
-export default function ProfileEditForm({ profile, onDone }: Props): React.JSX.Element {
+export default function ProfileEditForm({
+  profile,
+  onDone
+}: ProfileEditFormProps): React.JSX.Element {
   const { t } = useTranslation()
   const updateProfile = useUpdateProfile()
   const initial = toForm(profile)

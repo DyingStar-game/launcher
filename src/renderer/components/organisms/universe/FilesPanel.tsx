@@ -14,6 +14,8 @@ import { formatInstallProgress } from '@lib/formatInstallProgress'
 import { isGameUpdateAvailable } from '@lib/isGameUpdateAvailable'
 import { toastDurationMs } from '@lib/env'
 import { cn } from '@lib/cn'
+import Panel from '@components/atoms/Panel'
+import SectionLabel from '@components/atoms/SectionLabel'
 
 /** Files panel: install path, install/update progress, and cache clear. */
 export default function FilesPanel(): React.JSX.Element {
@@ -67,10 +69,10 @@ export default function FilesPanel(): React.JSX.Element {
   const hasInstallPath = Boolean(installPath.trim())
 
   return (
-    <div className="ds-panel ds-panel-padded relative h-full flex flex-col gap-5">
+    <Panel className="p-7 relative h-full flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <h2 className="ds-section-label">{t('universe.files.title')}</h2>
-        <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
+        <SectionLabel as="h2">{t('universe.files.title')}</SectionLabel>
+        <div className="h-px flex-1 bg-ds-border" />
       </div>
 
       {gameUpdateAvailable && latestVersion && (
@@ -96,24 +98,20 @@ export default function FilesPanel(): React.JSX.Element {
         }
       />
 
-      {!isAvailable && (
-        <p className="text-[var(--color-ds-muted)] text-sm">{t('universe.files.unavailable')}</p>
-      )}
+      {!isAvailable && <p className="text-ds-muted text-sm">{t('universe.files.unavailable')}</p>}
 
       {isAvailable && !hasInstallPath && (
         <PanelMessage variant="error">{t('universe.files.selectInstallPath')}</PanelMessage>
       )}
 
       {isAvailable && hasInstallPath && !installed && (
-        <p className="text-[var(--color-ds-muted)] text-sm">{t('universe.files.notInstalled')}</p>
+        <p className="text-ds-muted text-sm">{t('universe.files.notInstalled')}</p>
       )}
 
       {installed && (
         <div className="flex flex-col gap-1">
-          <p className="text-[var(--color-ds-muted)] text-sm">
-            {t('universe.files.version', { version })}
-          </p>
-          <p className="text-[var(--color-ds-muted)] text-sm">
+          <p className="text-ds-muted text-sm">{t('universe.files.version', { version })}</p>
+          <p className="text-ds-muted text-sm">
             {t('universe.files.releaseDate', { date: displayReleaseDate })}
           </p>
         </div>
@@ -122,14 +120,14 @@ export default function FilesPanel(): React.JSX.Element {
       {installing && (
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center">
-            <p className="text-sm text-[var(--color-ds-muted)]">
+            <p className="text-sm text-ds-muted">
               {progressText || t('universe.files.installing')}
             </p>
-            <span className="text-xs text-[var(--color-ds-muted)] tabular-nums">{progress}%</span>
+            <span className="text-xs text-ds-muted tabular-nums">{progress}%</span>
           </div>
-          <div className="w-full h-2 bg-[var(--color-ds-border)] rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-ds-border rounded-full overflow-hidden">
             <div
-              className="h-full bg-[var(--color-ds-accent)] transition-all duration-300"
+              className="h-full bg-ds-accent transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -187,6 +185,6 @@ export default function FilesPanel(): React.JSX.Element {
           {cacheToast === 'error' && t('universe.files.clearCacheToastError')}
         </div>
       )}
-    </div>
+    </Panel>
   )
 }

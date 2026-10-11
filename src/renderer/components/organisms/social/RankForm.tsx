@@ -18,7 +18,7 @@ import { Label } from '@components/ui/label'
 import { fieldError } from '@lib/formErrors'
 import { getSocialErrorMessage } from '@lib/socialErrors'
 
-type Props = {
+export type RankFormProps = {
   organisationId: string
   /** The rank edited; absent to create one. */
   rank?: OrganisationRank
@@ -40,7 +40,7 @@ export default function RankForm({
   rank,
   myRank,
   onDone
-}: Props): React.JSX.Element {
+}: RankFormProps): React.JSX.Element {
   const { t } = useTranslation()
   const create = useCreateRank(organisationId)
   const update = useUpdateRank(organisationId)
@@ -85,7 +85,7 @@ export default function RankForm({
 
   return (
     <form
-      className="flex flex-col gap-4 rounded-lg border border-[var(--color-ds-border)] p-4"
+      className="flex flex-col gap-4 rounded-lg border border-ds-border p-4"
       onSubmit={submit}
       noValidate
     >

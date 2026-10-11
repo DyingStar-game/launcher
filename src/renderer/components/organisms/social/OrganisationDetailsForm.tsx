@@ -29,15 +29,17 @@ function toForm(organisation: OrganisationProfile): OrganisationDetails {
   }
 }
 
+export type OrganisationDetailsFormProps = {
+  organisation: OrganisationProfile
+}
+
 /**
  * An organisation's details (ADR 0021, `manage_corporation`): name, tag, description (WYSIWYG,
  * ADR 0030) and recruitment. Only what changed is sent; the form stays, saved.
  */
 export default function OrganisationDetailsForm({
   organisation
-}: {
-  organisation: OrganisationProfile
-}): React.JSX.Element {
+}: OrganisationDetailsFormProps): React.JSX.Element {
   const { t } = useTranslation()
   const update = useUpdateOrganisation(organisation.id)
   const initial = toForm(organisation)

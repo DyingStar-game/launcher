@@ -77,9 +77,7 @@ export default function OrganisationManagePage(): React.JSX.Element {
       }
       placeholder={
         membership && tabsFor(membership.rank).length > 0 ? undefined : (
-          <p className="text-sm text-[var(--color-ds-muted)]">
-            {t('universe.socialPage.manage.noRight')}
-          </p>
+          <p className="text-sm text-ds-muted">{t('universe.socialPage.manage.noRight')}</p>
         )
       }
       main={
@@ -96,18 +94,20 @@ export default function OrganisationManagePage(): React.JSX.Element {
   )
 }
 
+type ManageTabsProps = {
+  subject: Subject
+  organisation: OrganisationProfile
+  membership: Membership
+  selfId: string
+}
+
 /** The tabs of the management page, from the player's rank. */
 function ManageTabs({
   subject,
   organisation,
   membership,
   selfId
-}: {
-  subject: Subject
-  organisation: OrganisationProfile
-  membership: Membership
-  selfId: string
-}): React.JSX.Element {
+}: ManageTabsProps): React.JSX.Element {
   const { t } = useTranslation()
   const tabs = tabsFor(membership.rank)
   const [stored, setTab] = usePageState<ManageTab>('tab', tabs[0])

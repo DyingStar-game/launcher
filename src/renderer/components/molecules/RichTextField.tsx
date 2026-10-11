@@ -14,7 +14,7 @@ import { Field, FieldDescription, FieldError, FieldLabel } from '@components/ui/
 import { bbcodeToDocument, documentToBBCode } from '@lib/bbcodeDocument'
 import RichTextToolbar, { type RichTextMark } from './RichTextToolbar'
 
-type Props = {
+export type RichTextFieldProps = {
   label: string
   /** The text, in BBCode. */
   value: string
@@ -57,7 +57,7 @@ export default function RichTextField({
   placeholder = '',
   disabled = false,
   error
-}: Props): React.JSX.Element {
+}: RichTextFieldProps): React.JSX.Element {
   const id = useId()
   const labelId = `${id}-label`
   const errorId = `${id}-error`
@@ -74,7 +74,13 @@ export default function RichTextField({
       'outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 ' +
       'focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 ' +
       'aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 whitespace-pre-wrap ' +
-      '[overflow-wrap:anywhere] [&_hr]:my-2 [&_hr]:border-[var(--color-ds-border)]'
+      '[overflow-wrap:anywhere] [&_hr]:my-2 [&_hr]:border-ds-border ' +
+      // The placeholder of an empty text (TipTap's Placeholder marks the paragraph)
+      '[&_p.is-editor-empty:first-child]:before:pointer-events-none ' +
+      '[&_p.is-editor-empty:first-child]:before:float-left ' +
+      '[&_p.is-editor-empty:first-child]:before:h-0 ' +
+      '[&_p.is-editor-empty:first-child]:before:text-ds-muted ' +
+      '[&_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)]'
   })
   // Last BBCode the editor sent: a different value comes from outside (a form reset)
   const written = useRef(value)

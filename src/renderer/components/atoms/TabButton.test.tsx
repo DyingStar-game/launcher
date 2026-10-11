@@ -18,7 +18,7 @@ describe('TabButton', () => {
       </TabButton>
     )
     const tab = screen.getByRole('button', { name: 'Universe' })
-    expect(tab).toHaveClass('bg-[var(--color-ds-accent)]', 'text-black')
+    expect(tab).toHaveClass('bg-ds-accent', 'text-black')
     expect(tab).toHaveAttribute('aria-current', 'true')
   })
 
@@ -30,7 +30,7 @@ describe('TabButton', () => {
       </>
     )
     expect(screen.getByRole('button', { name: 'Social' })).toHaveClass('bg-white/10')
-    expect(screen.getByRole('button', { name: 'Lore' })).toHaveClass('text-[var(--color-ds-muted)]')
+    expect(screen.getByRole('button', { name: 'Lore' })).toHaveClass('text-ds-muted')
     expect(screen.getByRole('button', { name: 'Lore' })).not.toHaveAttribute('aria-current')
   })
 })

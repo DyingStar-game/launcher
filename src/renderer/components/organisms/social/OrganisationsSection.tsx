@@ -18,8 +18,9 @@ import { SOCIAL_SUB_TABS, pendingCounts, type SocialSubTab } from '@lib/socialSe
 import CreateOrganisationForm from './CreateOrganisationForm'
 import OrganisationSearch from './OrganisationSearch'
 import SocialStateMessage from './SocialStateMessage'
+import SectionLabel from '@components/atoms/SectionLabel'
 
-type Props = {
+export type OrganisationsSectionProps = {
   tab: SocialSubTab
   onTabChange: (tab: SocialSubTab) => void
 }
@@ -29,7 +30,10 @@ type Props = {
  * one), the organisation search, then invitations received, applications to answer for the
  * organisations the player recruits for, and applications sent.
  */
-export default function OrganisationsSection({ tab, onTabChange }: Props): React.JSX.Element {
+export default function OrganisationsSection({
+  tab,
+  onTabChange
+}: OrganisationsSectionProps): React.JSX.Element {
   const { t } = useTranslation()
   const { activeEnv } = useEnvStore()
   const { data, status } = useSocialSnapshot()
@@ -89,7 +93,7 @@ export default function OrganisationsSection({ tab, onTabChange }: Props): React
             {ready && tab === 'mine' && (
               <>
                 {memberships.length === 0 && (
-                  <p className="text-sm text-[var(--color-ds-muted)] p-2">
+                  <p className="text-sm text-ds-muted p-2">
                     {t('universe.socialPage.emptyMyOrganisations')}
                   </p>
                 )}
@@ -109,14 +113,14 @@ export default function OrganisationsSection({ tab, onTabChange }: Props): React
                 {invitations.length === 0 &&
                   applications.length === 0 &&
                   receivedApplications.length === 0 && (
-                    <p className="text-sm text-[var(--color-ds-muted)] p-2">
+                    <p className="text-sm text-ds-muted p-2">
                       {t('universe.socialPage.emptyOrganisationRequests')}
                     </p>
                   )}
                 {invitations.length > 0 && (
-                  <p className="ds-section-label px-3 pt-2">
+                  <SectionLabel className="px-3 pt-2">
                     {t('universe.socialPage.request.invitationsTitle')}
-                  </p>
+                  </SectionLabel>
                 )}
                 {invitations.map((r) => (
                   <RequestRow
@@ -135,12 +139,12 @@ export default function OrganisationsSection({ tab, onTabChange }: Props): React
                 ))}
                 {receivedApplications.map((group) => (
                   <Fragment key={group.organisation.id}>
-                    <p className="ds-section-label px-3 pt-2">
+                    <SectionLabel className="px-3 pt-2">
                       {t('universe.socialPage.request.receivedTitle', {
                         name: group.organisation.name,
                         ticker: group.organisation.ticker
                       })}
-                    </p>
+                    </SectionLabel>
                     {group.applications.map((a) => (
                       <RequestRow
                         key={a.id}
@@ -151,7 +155,7 @@ export default function OrganisationsSection({ tab, onTabChange }: Props): React
                             onOpen={() => openPlayer(a.player.id)}
                           >
                             {a.message && (
-                              <span className="text-xs text-[var(--color-ds-muted)] line-clamp-2">
+                              <span className="text-xs text-ds-muted line-clamp-2">
                                 {a.message}
                               </span>
                             )}
@@ -177,9 +181,9 @@ export default function OrganisationsSection({ tab, onTabChange }: Props): React
                   </Fragment>
                 ))}
                 {applications.length > 0 && (
-                  <p className="ds-section-label px-3 pt-2">
+                  <SectionLabel className="px-3 pt-2">
                     {t('universe.socialPage.request.applicationsTitle')}
-                  </p>
+                  </SectionLabel>
                 )}
                 {applications.map((r) => (
                   <RequestRow

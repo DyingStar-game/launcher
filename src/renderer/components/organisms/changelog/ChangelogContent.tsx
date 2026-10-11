@@ -2,6 +2,7 @@ import type React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
+import Panel from '@components/atoms/Panel'
 import ChangelogEntryItem from '@components/molecules/ChangelogEntryItem'
 import { resolveChangelogEntries } from '@lib/changelogEntries'
 import TextSkeleton from '@components/molecules/TextSkeleton'
@@ -23,11 +24,11 @@ export default function ChangelogContent(): React.JSX.Element {
     // Skeleton of an entry while the changelog loads, after a short delay (ADR 0018)
     return (
       <div className="flex min-h-0 flex-1 flex-col min-w-0 p-6">
-        <div
+        <Panel
           role="status"
           aria-busy="true"
           aria-label={t('common.loadingContent')}
-          className="ds-panel flex h-full flex-1 flex-col gap-6 p-6"
+          className="flex h-full flex-1 flex-col gap-6 p-6"
         >
           {showSkeleton && (
             <>
@@ -36,7 +37,7 @@ export default function ChangelogContent(): React.JSX.Element {
               <TextSkeleton lines={3} />
             </>
           )}
-        </div>
+        </Panel>
       </div>
     )
   }
@@ -44,9 +45,9 @@ export default function ChangelogContent(): React.JSX.Element {
   if (!fetched || !data) {
     return (
       <div className="flex min-h-0 flex-1 flex-col min-w-0 p-6">
-        <div className="ds-panel flex h-full flex-1 items-center justify-center text-[var(--color-ds-muted)]">
-          {t('changelog.unavailable')}
-        </div>
+        <Panel className="flex h-full flex-1 items-center justify-center">
+          <p className="text-ds-muted">{t('changelog.unavailable')}</p>
+        </Panel>
       </div>
     )
   }
@@ -54,9 +55,9 @@ export default function ChangelogContent(): React.JSX.Element {
   if (!current) {
     return (
       <div className="flex min-h-0 flex-1 flex-col min-w-0 p-6">
-        <div className="ds-panel flex h-full flex-1 items-center justify-center text-[var(--color-ds-muted)]">
-          {t('changelog.selectVersion')}
-        </div>
+        <Panel className="flex h-full flex-1 items-center justify-center">
+          <p className="text-ds-muted">{t('changelog.selectVersion')}</p>
+        </Panel>
       </div>
     )
   }
@@ -73,30 +74,31 @@ export default function ChangelogContent(): React.JSX.Element {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col min-w-0 p-6">
-      <div className="ds-panel flex min-h-0 flex-1 flex-col overflow-hidden">
+      <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="h-full overflow-y-auto px-10 py-8 text-left">
           <header className="mb-6 text-left">
-            <h1 className="text-xl font-bold text-[var(--color-ds-text)]">{title}</h1>
+            <h1 className="text-xl font-bold text-ds-text">{title}</h1>
             {current.date && (
-              <p className="mt-1 text-xs text-[var(--color-ds-muted)] tabular-nums">
-                {current.date}
-              </p>
+              <p className="mt-1 text-xs text-ds-muted tabular-nums">{current.date}</p>
             )}
           </header>
 
           {bullets.length === 0 ? (
-            <p className="text-sm text-[var(--color-ds-muted)]">{t('changelog.noEntries')}</p>
+            <p className="text-sm text-ds-muted">{t('changelog.noEntries')}</p>
           ) : (
-            <ul className="changelog-list">
+            <ul className="m-0 list-disc pl-5 text-left">
               {bullets.map((entry, index) => (
-                <li key={`${current.id}-${index}`} className="changelog-list-item">
+                <li
+                  key={`${current.id}-${index}`}
+                  className="my-3 text-left text-[0.9375rem] leading-[1.65] text-ds-text"
+                >
                   <ChangelogEntryItem text={entry} />
                 </li>
               ))}
             </ul>
           )}
         </div>
-      </div>
+      </Panel>
     </div>
   )
 }

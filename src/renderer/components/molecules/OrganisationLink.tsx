@@ -3,14 +3,17 @@ import type { OrganisationRef } from '@shared/types/social'
 import { UiSoundProfile } from '@shared/types/sounds'
 import Button from '@components/atoms/Button'
 
-type Props = {
+export type OrganisationLinkProps = {
   organisation: OrganisationRef
   /** Opens the organisation's sheet (ADR 0010). */
   onOpen: () => void
 }
 
 /** Organisation name and ticker, as a button opening its sheet. */
-export default function OrganisationLink({ organisation, onOpen }: Props): React.JSX.Element {
+export default function OrganisationLink({
+  organisation,
+  onOpen
+}: OrganisationLinkProps): React.JSX.Element {
   const { t } = useTranslation()
 
   return (
@@ -23,9 +26,7 @@ export default function OrganisationLink({ organisation, onOpen }: Props): React
       className="block min-w-0 truncate text-left"
     >
       {organisation.name}{' '}
-      <span className="text-xs font-normal text-[var(--color-ds-muted)]">
-        [{organisation.ticker}]
-      </span>
+      <span className="text-xs font-normal text-ds-muted">[{organisation.ticker}]</span>
     </Button>
   )
 }

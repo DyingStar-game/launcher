@@ -10,7 +10,7 @@ const icons = {
   self: UserIcon
 }
 
-type Props = {
+export type StatusBadgeProps = {
   /** What the state is: friend, member of an organisation, request sent, closed, you. */
   icon: keyof typeof icons
   children: React.ReactNode
@@ -22,7 +22,11 @@ type Props = {
  * A state (friend, member, request sent, closed, you): shadcn's Badge, outlined like the presence
  * badge, with an icon telling the kind of state; with `onOpen`, a button opening what it names.
  */
-export default function StatusBadge({ icon, children, onOpen }: Props): React.JSX.Element {
+export default function StatusBadge({
+  icon,
+  children,
+  onOpen
+}: StatusBadgeProps): React.JSX.Element {
   const Icon = icons[icon]
   const content = (
     <>

@@ -15,7 +15,7 @@ describe('MenuItemButton', () => {
     render(<MenuItemButton selected>English</MenuItemButton>)
     const item = screen.getByRole('menuitem', { name: 'English' })
     expect(item).toHaveAttribute('aria-current', 'true')
-    expect(item).toHaveClass('bg-[var(--color-ds-accent)]/15')
+    expect(item).toHaveClass('bg-ds-accent/15')
   })
 
   it('does not call onClick when disabled', async () => {

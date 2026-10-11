@@ -7,7 +7,7 @@ import { getSocialErrorMessage } from '@lib/socialErrors'
 import StatusBadge from '@components/molecules/StatusBadge'
 import Button from '@components/atoms/Button'
 
-type Props = {
+export type OrganisationActionProps = {
   id: string
   name: string
   recruitment: ApiRecruitment
@@ -17,7 +17,11 @@ type Props = {
  * Join action of an organisation (ADR 0010): "Join" when open, "Apply" when recruiting on
  * application, or a badge — member, application sent, closed. Errors show under the action.
  */
-export default function OrganisationAction({ id, name, recruitment }: Props): React.JSX.Element {
+export default function OrganisationAction({
+  id,
+  name,
+  recruitment
+}: OrganisationActionProps): React.JSX.Element {
   const { t } = useTranslation()
   const { memberships, applications } = useSocialSnapshot().data
   const joinOrga = useJoinOrganisation().mutateAsync

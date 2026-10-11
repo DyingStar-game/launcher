@@ -31,7 +31,7 @@ export default function UniversePage({
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400 uppercase tracking-[0.2em]">
               <svg
                 viewBox="0 0 24 24"
-                className="w-3.5 h-3.5 fill-current shrink-0"
+                className="size-3.5 fill-current shrink-0"
                 aria-hidden="true"
               >
                 <path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 18a8 8 0 110-16 8 8 0 010 16zm-1-5h2v2h-2zm0-8h2v6h-2z" />

@@ -12,6 +12,8 @@ import ServerStatus from '@components/molecules/ServerStatus'
 import Button from '@components/atoms/Button'
 import { UiSoundProfile } from '@shared/types/sounds'
 import PanelMessage from '@components/molecules/PanelMessage'
+import Panel from '@components/atoms/Panel'
+import SectionLabel from '@components/atoms/SectionLabel'
 
 /** Game panel: server status, player count, play button, and status page link. */
 export default function GamePanel(): React.JSX.Element {
@@ -66,25 +68,23 @@ export default function GamePanel(): React.JSX.Element {
   const canOpenStatusPage = Boolean(statusPageUrl)
 
   return (
-    <div className="ds-panel ds-panel-padded h-full flex flex-col gap-5">
+    <Panel className="p-7 h-full flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <h2 className="ds-section-label">{t('universe.game.title')}</h2>
-        <div className="h-px flex-1 bg-[var(--color-ds-border)]" />
+        <SectionLabel as="h2">{t('universe.game.title')}</SectionLabel>
+        <div className="h-px flex-1 bg-ds-border" />
       </div>
 
       {/* Server status */}
       <div className="flex items-center gap-2">
         <ServerStatus status={isAvailable ? status : 'unavailable'} />
-        <span className="text-sm text-[var(--color-ds-text)]">
+        <span className="text-sm text-ds-text">
           {t(`universe.game.status.${isAvailable ? status : 'unavailable'}`)}
         </span>
       </div>
 
       {/* Connected players */}
       {isAvailable && (
-        <p className="text-[var(--color-ds-muted)] text-sm">
-          {t('universe.game.players', { count: players })}
-        </p>
+        <p className="text-ds-muted text-sm">{t('universe.game.players', { count: players })}</p>
       )}
 
       {/* Game not installed */}
@@ -141,6 +141,6 @@ export default function GamePanel(): React.JSX.Element {
           {t('universe.game.viewStatus')}
         </Button>
       </div>
-    </div>
+    </Panel>
   )
 }

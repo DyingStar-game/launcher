@@ -39,7 +39,7 @@ const SIZES = {
   'icon-xs': 'icon-xs'
 } as const satisfies Record<string, ShadcnSize>
 
-type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: keyof typeof VARIANTS | 'bare'
   size?: keyof typeof SIZES | 'none'
   /** Hover/click SFX profile (`none` disables sounds for this button). */
@@ -65,7 +65,7 @@ export default function Button({
   onMouseLeave,
   onClick,
   ...props
-}: Props): React.JSX.Element {
+}: ButtonProps): React.JSX.Element {
   const soundHandlers = useUiSound(soundProfile, { disabled: Boolean(disabled) || loading })
   const merged = mergeSoundHandlers(soundHandlers, { onMouseEnter, onMouseLeave, onClick })
   const look =
@@ -80,6 +80,8 @@ export default function Button({
             size: size === 'none' ? undefined : SIZES[size]
           }),
           size === 'none' && 'h-auto p-0',
+          // `subtle` takes its parent's colour instead of the ghost's muted text
+          variant === 'subtle' && 'text-current',
           'cursor-pointer'
         )
 

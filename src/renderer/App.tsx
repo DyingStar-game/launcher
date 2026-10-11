@@ -62,8 +62,10 @@ function renderPage(view: View): React.JSX.Element {
   }
 }
 
+type PageFrameProps = { view: View }
+
 /** Current page; keyed by the caller so each location mounts afresh. */
-function PageFrame({ view }: { view: View }): React.JSX.Element {
+function PageFrame({ view }: PageFrameProps): React.JSX.Element {
   return renderPage(view)
 }
 

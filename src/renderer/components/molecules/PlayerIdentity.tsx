@@ -4,7 +4,7 @@ import { UiSoundProfile } from '@shared/types/sounds'
 import Avatar from '@components/atoms/Avatar'
 import Button from '@components/atoms/Button'
 
-type Props = {
+export type PlayerIdentityProps = {
   name: string
   /** Presence dot on the avatar. */
   status?: FriendStatus
@@ -20,7 +20,7 @@ export default function PlayerIdentity({
   status,
   onOpen,
   children
-}: Props): React.JSX.Element {
+}: PlayerIdentityProps): React.JSX.Element {
   const { t } = useTranslation()
 
   return (
@@ -34,9 +34,7 @@ export default function PlayerIdentity({
     >
       <Avatar name={name} status={status} />
       <div className="flex-1 min-w-0 flex flex-col leading-tight">
-        <span className="text-sm font-medium text-[var(--color-ds-text)] truncate hover:underline">
-          {name}
-        </span>
+        <span className="text-sm font-medium text-ds-text truncate hover:underline">{name}</span>
         {children}
       </div>
     </Button>

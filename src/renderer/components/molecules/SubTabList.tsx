@@ -9,7 +9,7 @@ type SubTab = {
   pending?: number
 }
 
-type Props = {
+export type SubTabListProps = {
   /** Accessible name of the tab list. */
   label: string
   /** Current tab, highlighted; switching goes through the enclosing `Tabs` (ADR 0016). */
@@ -18,7 +18,7 @@ type Props = {
 }
 
 /** Row of sub-tabs inside a social page section (ADR 0023), in a horizontal `Tabs`. */
-export default function SubTabList({ label, current, tabs }: Props): React.JSX.Element {
+export default function SubTabList({ label, current, tabs }: SubTabListProps): React.JSX.Element {
   return (
     <TabsList aria-label={label} variant="plain" className="flex h-auto gap-1">
       {tabs.map((tab) => (

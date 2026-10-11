@@ -12,6 +12,11 @@ import {
   DropdownMenuTrigger
 } from '@components/ui/dropdown-menu'
 
+export type InviteToOrganisationProps = {
+  player: PlayerProfile
+  organisations: Membership[]
+}
+
 /**
  * Invites a player to the given organisations (ADR 0021, `invite`; those that have not invited
  * them yet, `useInvitationTargets`): one → a button, several → a menu. Nothing when there is
@@ -20,10 +25,7 @@ import {
 export default function InviteToOrganisation({
   player,
   organisations
-}: {
-  player: PlayerProfile
-  organisations: Membership[]
-}): React.JSX.Element | null {
+}: InviteToOrganisationProps): React.JSX.Element | null {
   const { t } = useTranslation()
   const invite = useInviteToOrganisation()
   const [error, setError] = useState('')

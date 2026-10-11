@@ -97,12 +97,10 @@ export default function SoundVolumeMenu(): React.JSX.Element {
         className="min-w-[11rem]"
       >
         <div className="flex items-center justify-between gap-3">
-          <span className="text-2xs font-semibold uppercase tracking-[0.18em] text-[var(--color-ds-muted)] shrink-0">
+          <span className="text-2xs font-semibold uppercase tracking-[0.18em] text-ds-muted shrink-0">
             {t('navbar.soundVolume')}
           </span>
-          <span className="text-xs tabular-nums text-[var(--color-ds-muted)]">
-            {volumePercent}%
-          </span>
+          <span className="text-xs tabular-nums text-ds-muted">{volumePercent}%</span>
         </div>
 
         <Slider

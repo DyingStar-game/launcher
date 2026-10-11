@@ -22,6 +22,21 @@ describe('Button', () => {
     expect(onClick).not.toHaveBeenCalled()
   })
 
+  it('keeps outline and ghost text muted, and subtle in its parent colour', () => {
+    render(
+      <>
+        <Button variant="outline">Mute</Button>
+        <Button variant="ghost">Cancel</Button>
+        <Button variant="subtle">Close</Button>
+      </>
+    )
+    expect(screen.getByRole('button', { name: 'Mute' })).toHaveClass('text-muted-foreground')
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveClass('text-muted-foreground')
+    const close = screen.getByRole('button', { name: 'Close' })
+    expect(close).toHaveClass('text-current')
+    expect(close).not.toHaveClass('text-muted-foreground')
+  })
+
   it('draws each launcher variant with a shadcn variant (ADR 0028)', () => {
     render(
       <>

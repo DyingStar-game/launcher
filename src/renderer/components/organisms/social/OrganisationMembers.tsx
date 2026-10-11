@@ -9,7 +9,7 @@ import SheetSection from '@components/molecules/SheetSection'
 import ListSkeleton from '@components/molecules/ListSkeleton'
 import { useDelayedFlag } from '@hooks/useDelayedFlag'
 
-type Props = {
+export type OrganisationMembersProps = {
   subject: Subject
   /** Called once the members are there (the pages loaded before come back from the cache), or loading failed. */
   onRestored?: () => void
@@ -19,7 +19,10 @@ type Props = {
  * Every member of an organisation (ADR 0012), highest rank first, 50 at a time with
  * "Load more"; each opens their player page. Back brings the same pages back (ADR 0013, 0025).
  */
-export default function OrganisationMembers({ subject, onRestored }: Props): React.JSX.Element {
+export default function OrganisationMembers({
+  subject,
+  onRestored
+}: OrganisationMembersProps): React.JSX.Element {
   const { t } = useTranslation()
   const openPlayer = useNavigationStore((s) => s.openPlayer)
   const { members, total, pending, error, loadMore, loadingMore } = useOrganisationMembers(subject)
@@ -38,7 +41,7 @@ export default function OrganisationMembers({ subject, onRestored }: Props): Rea
           {members.map((m) => (
             <li key={m.id} className="flex items-center px-1 py-1">
               <PlayerIdentity name={m.name} status={m.status} onOpen={() => openPlayer(m.id)}>
-                <span className="text-xs text-[var(--color-ds-muted)]">{m.rank}</span>
+                <span className="text-xs text-ds-muted">{m.rank}</span>
               </PlayerIdentity>
             </li>
           ))}

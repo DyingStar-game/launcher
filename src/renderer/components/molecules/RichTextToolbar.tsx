@@ -23,7 +23,7 @@ import LabelTooltip from './LabelTooltip'
 /** Marks the toolbar toggles (ADR 0030). */
 export type RichTextMark = 'bold' | 'italic' | 'underline' | 'strike'
 
-type Props = {
+export type RichTextToolbarProps = {
   /** Marks active at the caret or on the selection. */
   active: Record<RichTextMark, boolean>
   onToggle: (mark: RichTextMark) => void
@@ -47,7 +47,7 @@ export default function RichTextToolbar({
   onColor,
   onRule,
   disabled = false
-}: Props): React.JSX.Element {
+}: RichTextToolbarProps): React.JSX.Element {
   const { t } = useTranslation()
 
   return (

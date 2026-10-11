@@ -1,7 +1,7 @@
 import type { OrganisationRef } from '@shared/types/social'
 import OrganisationIdentity from './OrganisationIdentity'
 
-type Props = {
+export type OrgaRowProps = {
   orga: OrganisationRef
   /** Line under the name: member count in the directory, the player's rank in their own. */
   detail: string
@@ -12,11 +12,11 @@ type Props = {
 }
 
 /** Organisation row: ticker avatar, name (opens its sheet), a detail line, then the action. */
-export default function OrgaRow({ orga, detail, onOpen, action }: Props): React.JSX.Element {
+export default function OrgaRow({ orga, detail, onOpen, action }: OrgaRowProps): React.JSX.Element {
   return (
     <div className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/4 transition-colors">
       <OrganisationIdentity organisation={orga} onOpen={onOpen}>
-        <span className="text-xs text-[var(--color-ds-muted)]">{detail}</span>
+        <span className="text-xs text-ds-muted">{detail}</span>
       </OrganisationIdentity>
       {action}
     </div>

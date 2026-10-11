@@ -9,6 +9,10 @@ import ConfirmDialog from '@components/molecules/ConfirmDialog'
 import ListSkeleton from '@components/molecules/ListSkeleton'
 import PlayerIdentity from '@components/molecules/PlayerIdentity'
 
+export type OrganisationInvitationsManageProps = {
+  subject: Subject
+}
+
 /**
  * Invitations an organisation sent and nobody answered yet (ADR 0021, 0024, `invite`), each
  * withdrawable. Players are invited from their sheet; applications are answered from the social
@@ -16,9 +20,7 @@ import PlayerIdentity from '@components/molecules/PlayerIdentity'
  */
 export default function OrganisationInvitationsManage({
   subject
-}: {
-  subject: Subject
-}): React.JSX.Element {
+}: OrganisationInvitationsManageProps): React.JSX.Element {
   const { t } = useTranslation()
   const openPlayer = useNavigationStore((s) => s.openPlayer)
   const state = useOrganisationRequests(subject)
@@ -31,9 +33,7 @@ export default function OrganisationInvitationsManage({
   const invitations = state.data.filter((r) => r.kind === 'invitation')
   if (invitations.length === 0) {
     return (
-      <p className="text-sm text-[var(--color-ds-muted)]">
-        {t('universe.socialPage.manage.invitations.empty')}
-      </p>
+      <p className="text-sm text-ds-muted">{t('universe.socialPage.manage.invitations.empty')}</p>
     )
   }
 

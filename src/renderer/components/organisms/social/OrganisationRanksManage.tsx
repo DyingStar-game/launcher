@@ -13,7 +13,7 @@ import ListSkeleton from '@components/molecules/ListSkeleton'
 import { Badge } from '@components/ui/badge'
 import RankForm from './RankForm'
 
-type Props = {
+export type OrganisationRanksManageProps = {
   subject: Subject
   /** The player's own rank: they edit and delete only the ranks strictly below it. */
   myRank: OrganisationRank
@@ -23,7 +23,10 @@ type Props = {
  * Ranks of an organisation, highest first (ADR 0021, `manage_ranks`): create, edit, delete. The
  * CEO rank takes a new name only; the default rank cannot be deleted.
  */
-export default function OrganisationRanksManage({ subject, myRank }: Props): React.JSX.Element {
+export default function OrganisationRanksManage({
+  subject,
+  myRank
+}: OrganisationRanksManageProps): React.JSX.Element {
   const { t } = useTranslation()
   const state = useOrganisationRanks(subject)
   const remove = useDeleteRank(subject.id)
@@ -61,12 +64,12 @@ export default function OrganisationRanksManage({ subject, myRank }: Props): Rea
           ) : (
             <li
               key={rank.id}
-              className="flex items-center gap-3 rounded-lg border border-[var(--color-ds-border)] px-3 py-2"
+              className="flex items-center gap-3 rounded-lg border border-ds-border px-3 py-2"
             >
               <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="text-sm font-medium text-[var(--color-ds-text)]">
+                <span className="text-sm font-medium text-ds-text">
                   {rank.name}{' '}
-                  <span className="text-xs font-normal text-[var(--color-ds-muted)]">
+                  <span className="text-xs font-normal text-ds-muted">
                     {t('universe.socialPage.manage.ranks.priorityValue', {
                       priority: rank.priority
                     })}

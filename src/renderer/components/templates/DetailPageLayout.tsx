@@ -1,4 +1,4 @@
-type Props = {
+export type DetailPageLayoutProps = {
   /** Back button (or nothing). */
   back?: React.ReactNode
   /** Identity block: avatar, name, status, action. */
@@ -24,9 +24,9 @@ export default function DetailPageLayout({
   aside,
   placeholder,
   scrollRef
-}: Props): React.JSX.Element {
+}: DetailPageLayoutProps): React.JSX.Element {
   return (
-    <div ref={scrollRef} className="ds-page overflow-y-auto">
+    <div ref={scrollRef} className="flex size-full min-h-0 flex-auto bg-ds-bg overflow-y-auto">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6">
         {back && <div>{back}</div>}
         {placeholder ?? (

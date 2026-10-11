@@ -14,14 +14,12 @@ describe('SidebarItemButton', () => {
   it('frames the active item with the accent border', () => {
     render(<SidebarItemButton active>Friends</SidebarItemButton>)
     const item = screen.getByRole('button', { name: 'Friends' })
-    expect(item).toHaveClass('border-[var(--color-ds-accent)]/40')
+    expect(item).toHaveClass('border-ds-accent/40')
     expect(item).toHaveAttribute('aria-current', 'true')
   })
 
   it('keeps an inactive item muted', () => {
     render(<SidebarItemButton>Requests</SidebarItemButton>)
-    expect(screen.getByRole('button', { name: 'Requests' })).toHaveClass(
-      'text-[var(--color-ds-muted)]'
-    )
+    expect(screen.getByRole('button', { name: 'Requests' })).toHaveClass('text-ds-muted')
   })
 })

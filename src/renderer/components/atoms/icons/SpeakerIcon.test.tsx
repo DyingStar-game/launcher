@@ -5,7 +5,7 @@ import SpeakerIcon from './SpeakerIcon'
 describe('SpeakerIcon', () => {
   it('uses the default size, filled with the current colour', () => {
     const { container } = render(<SpeakerIcon />)
-    expect(container.querySelector('svg')).toHaveClass('fill-current', 'w-4.5', 'h-4.5')
+    expect(container.querySelector('svg')).toHaveClass('fill-current', 'size-4.5')
   })
 
   it('adds a slash when muted', () => {

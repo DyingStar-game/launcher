@@ -15,14 +15,18 @@ import { Tabs, TabsContent } from '@components/ui/tabs'
 import { SOCIAL_SUB_TABS, type SocialSubTab } from '@lib/socialSections'
 import PlayerSearch from './PlayerSearch'
 import SocialStateMessage from './SocialStateMessage'
+import SectionLabel from '@components/atoms/SectionLabel'
 
-type Props = {
+export type FriendsSectionProps = {
   tab: SocialSubTab
   onTabChange: (tab: SocialSubTab) => void
 }
 
 /** Friends section of the social page (ADR 0023): my friends, find players, friend requests. */
-export default function FriendsSection({ tab, onTabChange }: Props): React.JSX.Element {
+export default function FriendsSection({
+  tab,
+  onTabChange
+}: FriendsSectionProps): React.JSX.Element {
   const { t } = useTranslation()
   const { activeEnv } = useEnvStore()
   const { data, status } = useSocialSnapshot()
@@ -70,7 +74,7 @@ export default function FriendsSection({ tab, onTabChange }: Props): React.JSX.E
             {ready && tab === 'mine' && (
               <>
                 {friends.length === 0 && (
-                  <p className="text-sm text-[var(--color-ds-muted)] p-2">
+                  <p className="text-sm text-ds-muted p-2">
                     {t('universe.socialPage.emptyFriends')}
                   </p>
                 )}
@@ -83,7 +87,7 @@ export default function FriendsSection({ tab, onTabChange }: Props): React.JSX.E
             {ready && tab === 'requests' && (
               <>
                 {incoming.length === 0 && outgoing.length === 0 && (
-                  <p className="text-sm text-[var(--color-ds-muted)] p-2">
+                  <p className="text-sm text-ds-muted p-2">
                     {t('universe.socialPage.emptyRequests')}
                   </p>
                 )}
@@ -100,9 +104,9 @@ export default function FriendsSection({ tab, onTabChange }: Props): React.JSX.E
                   />
                 ))}
                 {outgoing.length > 0 && (
-                  <p className="ds-section-label px-3 pt-2">
+                  <SectionLabel className="px-3 pt-2">
                     {t('universe.socialPage.request.sentTitle')}
-                  </p>
+                  </SectionLabel>
                 )}
                 {outgoing.map((r) => (
                   <RequestRow

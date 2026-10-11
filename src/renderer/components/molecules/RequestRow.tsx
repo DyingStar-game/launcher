@@ -10,7 +10,7 @@ import LabelTooltip from './LabelTooltip'
  */
 export type RequestKind = 'incoming' | 'outgoing' | 'invitation' | 'application' | 'received'
 
-type Props = {
+export type RequestRowProps = {
   /** The other party's name, for the buttons' labels. */
   name: string
   /** The other party: `PlayerIdentity` or `OrganisationIdentity`, opening their sheet. */
@@ -59,7 +59,7 @@ export default function RequestRow({
   kind,
   onAccept,
   onDecline
-}: Props): React.JSX.Element {
+}: RequestRowProps): React.JSX.Element {
   const { t } = useTranslation()
   const accept = acceptAria[kind]
   const decline = declineKeys[kind]
@@ -93,7 +93,7 @@ export default function RequestRow({
       {identity}
 
       {!accept && (
-        <span className="shrink-0 text-2xs font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.15em]">
+        <span className="shrink-0 text-2xs font-semibold text-ds-muted uppercase tracking-[0.15em]">
           {t('universe.socialPage.request.sent')}
         </span>
       )}
@@ -140,7 +140,7 @@ function CheckIcon(): React.JSX.Element {
   return (
     <svg
       viewBox="0 0 16 16"
-      className="w-3.5 h-3.5 fill-none stroke-current stroke-[1.8]"
+      className="size-3.5 fill-none stroke-current stroke-[1.8]"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -153,7 +153,7 @@ function XIcon(): React.JSX.Element {
   return (
     <svg
       viewBox="0 0 16 16"
-      className="w-3.5 h-3.5 fill-none stroke-current stroke-[1.8]"
+      className="size-3.5 fill-none stroke-current stroke-[1.8]"
       strokeLinecap="round"
       strokeLinejoin="round"
     >

@@ -35,16 +35,14 @@ export default function OrganisationSearch(): React.JSX.Element {
 
       <ListPanel ref={resultsRef}>
         {state.kind === 'idle' && (
-          <p className="text-sm text-[var(--color-ds-muted)] p-2">
+          <p className="text-sm text-ds-muted p-2">
             {t('universe.socialPage.searchMinChars', { count: MIN_QUERY })}
           </p>
         )}
         {showSkeleton && <ListSkeleton avatar="square" action />}
         {state.kind === 'error' && <p className="text-sm text-red-400 p-2">{state.message}</p>}
         {state.kind === 'results' && state.items.length === 0 && (
-          <p className="text-sm text-[var(--color-ds-muted)] p-2">
-            {t('universe.socialPage.emptyDirectory')}
-          </p>
+          <p className="text-sm text-ds-muted p-2">{t('universe.socialPage.emptyDirectory')}</p>
         )}
         {state.kind === 'results' &&
           state.items.map((o) => (

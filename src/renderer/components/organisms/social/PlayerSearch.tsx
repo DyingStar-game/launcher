@@ -8,6 +8,7 @@ import FriendAction from './FriendAction'
 import PlayerIdentity from '@components/molecules/PlayerIdentity'
 import ListSkeleton from '@components/molecules/ListSkeleton'
 import { useDelayedFlag } from '@hooks/useDelayedFlag'
+import Panel from '@components/atoms/Panel'
 
 /** Player search screen: results while typing, each with a friend request action (ADR 0008). */
 export default function PlayerSearch(): React.JSX.Element {
@@ -26,30 +27,32 @@ export default function PlayerSearch(): React.JSX.Element {
         placeholder={t('universe.socialPage.playerSearch.placeholder')}
       />
 
-      <div className="ds-panel flex-1 min-h-0 overflow-hidden">
+      <Panel className="flex-1 min-h-0 overflow-hidden">
         <div ref={resultsRef} className="h-full overflow-y-auto p-3 flex flex-col gap-2">
           {state.kind === 'idle' && (
-            <p className="text-sm text-[var(--color-ds-muted)] p-2">
+            <p className="text-sm text-ds-muted p-2">
               {t('universe.socialPage.searchMinChars', { count: MIN_QUERY })}
             </p>
           )}
           {showSkeleton && <ListSkeleton action />}
           {state.kind === 'error' && <p className="text-sm text-red-400 p-2">{state.message}</p>}
           {state.kind === 'results' && state.items.length === 0 && (
-            <p className="text-sm text-[var(--color-ds-muted)] p-2">
+            <p className="text-sm text-ds-muted p-2">
               {t('universe.socialPage.playerSearch.empty')}
             </p>
           )}
           {state.kind === 'results' &&
             state.items.map((player) => <PlayerResultRow key={player.id} player={player} />)}
         </div>
-      </div>
+      </Panel>
     </div>
   )
 }
 
+type PlayerResultRowProps = { player: PlayerSearchResult }
+
 /** One found player: name (opens their sheet), then the friend action. */
-function PlayerResultRow({ player }: { player: PlayerSearchResult }): React.JSX.Element {
+function PlayerResultRow({ player }: PlayerResultRowProps): React.JSX.Element {
   const openPlayer = useNavigationStore((s) => s.openPlayer)
   return (
     <div className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/4 transition-colors">

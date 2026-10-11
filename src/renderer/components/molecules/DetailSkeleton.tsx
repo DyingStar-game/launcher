@@ -1,13 +1,16 @@
 import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@components/ui/skeleton'
+import type { AvatarProps } from '@components/atoms/Avatar'
+
+export type DetailHeaderSkeletonProps = {
+  /** Round for a player, rounded square for an organisation. */
+  avatar?: NonNullable<AvatarProps['shape']>
+}
 
 /** Skeleton of a detail page header (ADR 0018): large avatar, name and status lines. */
 export function DetailHeaderSkeleton({
   avatar = 'circle'
-}: {
-  /** Round for a player, rounded square for an organisation. */
-  avatar?: 'circle' | 'square'
-}): React.JSX.Element {
+}: DetailHeaderSkeletonProps): React.JSX.Element {
   const { t } = useTranslation()
   return (
     <div

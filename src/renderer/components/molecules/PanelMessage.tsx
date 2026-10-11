@@ -15,13 +15,17 @@ const panelMessageVariants = cva(
   }
 )
 
-type Props = Required<VariantProps<typeof panelMessageVariants>> & {
+export type PanelMessageProps = Required<VariantProps<typeof panelMessageVariants>> & {
   children: ReactNode
   className?: string
 }
 
 /** Inline info/warning/error message box used inside universe panels. */
-export default function PanelMessage({ variant, children, className }: Props): React.JSX.Element {
+export default function PanelMessage({
+  variant,
+  children,
+  className
+}: PanelMessageProps): React.JSX.Element {
   return (
     <div role="status" className={cn(panelMessageVariants({ variant }), className)}>
       {children}

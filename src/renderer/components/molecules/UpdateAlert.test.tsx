@@ -24,6 +24,9 @@ describe('UpdateAlert', () => {
   it('gives the close button the colour of the alert', () => {
     render(<UpdateAlert variant="game" latestVersion="0.2.0" onDismiss={vi.fn()} />)
     const dismiss = screen.getByRole('button', { name: 'Dismiss alert' })
+    // A subtle button sets no text colour of its own: it inherits the alert's
+    expect(dismiss).toHaveClass('text-current')
+    expect(dismiss).not.toHaveClass('text-muted-foreground')
     expect(dismiss.parentElement).toHaveClass('text-sky-400')
   })
 })

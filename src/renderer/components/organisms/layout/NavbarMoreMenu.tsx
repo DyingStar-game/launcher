@@ -26,7 +26,7 @@ export type NavbarSection = { label: string; view: TopView; badge?: boolean }
 /** An environment of the env switch, folded into the menu on very narrow windows. */
 export type NavbarEnvOption = { env: Env; label: string }
 
-type Props = {
+export type NavbarMoreMenuProps = {
   /** Section links (Social, Lore, Changelog), hidden from the bar below the breakpoint. */
   sections: NavbarSection[]
   /** Section currently shown, highlighted in the menu. */
@@ -41,11 +41,7 @@ type Props = {
 function HeartIcon(): React.JSX.Element {
   const gradId = `moreMenuHeart-${useId().replace(/:/g, '')}`
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-4 w-4 shrink-0 text-[var(--color-ds-accent)]"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4 shrink-0 text-ds-accent">
       <defs>
         <linearGradient id={gradId} x1="12" y1="4" x2="12" y2="22" gradientUnits="userSpaceOnUse">
           <stop stopColor="currentColor" stopOpacity="0.95" />
@@ -72,7 +68,7 @@ export default function NavbarMoreMenu({
   envs,
   activeEnv,
   onEnvSwitch
-}: Props): React.JSX.Element {
+}: NavbarMoreMenuProps): React.JSX.Element {
   const { t, i18n: i18nInstance } = useTranslation()
   const [open, setOpen] = useState(false)
   const { website, discord, wiki, donate } = navUrls()
@@ -96,13 +92,13 @@ export default function NavbarMoreMenu({
       <LabelTooltip label={t('navbar.more')}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon" className="relative" aria-label={t('navbar.more')}>
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4.5 h-4.5 fill-current">
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4.5 fill-current">
               <path d="M4 7h16v2H4V7zm0 4h16v2H4v-2zm0 4h16v2H4v-2z" />
             </svg>
             {hasBadge && (
               <span
                 data-testid="navbar-more-badge"
-                className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 shadow-sm"
+                className="absolute -top-1 -right-1 size-2.5 rounded-full bg-red-500 shadow-sm"
               />
             )}
           </Button>
@@ -128,7 +124,7 @@ export default function NavbarMoreMenu({
             <MenuItemButton selected={currentSection === view} onClick={() => onNavigate(view)}>
               {' '}
               <span className="flex-1">{label}</span>
-              {badge && <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />}
+              {badge && <span className="size-2 shrink-0 rounded-full bg-red-500" />}
             </MenuItemButton>
           </DropdownMenuItem>
         ))}
@@ -143,8 +139,8 @@ export default function NavbarMoreMenu({
             >
               <span className="flex-1">{t(labelKey)}</span>
               {currentLang === code && (
-                <span className="shrink-0 text-[var(--color-ds-accent)]">
-                  <CheckIcon className="w-4 h-4" aria-hidden="true" />
+                <span className="shrink-0 text-ds-accent">
+                  <CheckIcon className="size-4" aria-hidden="true" />
                 </span>
               )}
             </MenuItemButton>
@@ -159,7 +155,7 @@ export default function NavbarMoreMenu({
             onClick={() => website && window.open(website, '_blank')}
           >
             {' '}
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4 h-4 fill-current shrink-0">
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4 fill-current shrink-0">
               <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.5 9h-3.2a15.7 15.7 0 00-1.1-5 8.04 8.04 0 014.3 5zM12 4c1 1.5 1.8 3.8 2.1 7H9.9C10.2 7.8 11 5.5 12 4zM4.5 13h3.2c.2 1.9.7 3.7 1.1 5a8.04 8.04 0 01-4.3-5zm0-2a8.04 8.04 0 014.3-5c-.4 1.3-.9 3.1-1.1 5H4.5zm7.5 9c-1-1.5-1.8-3.8-2.1-7h4.2c-.3 3.2-1.1 5.5-2.1 7zm3.2-2c.4-1.3.9-3.1 1.1-5h3.2a8.04 8.04 0 01-4.3 5z" />
             </svg>
             {t('navbar.openWebsite')}
@@ -171,14 +167,14 @@ export default function NavbarMoreMenu({
             onClick={() => discord && window.open(discord, '_blank')}
           >
             {' '}
-            <DiscordIcon className="w-4 h-4 shrink-0" />
+            <DiscordIcon className="size-4 shrink-0" />
             {t('navbar.brandDiscord')}
           </MenuItemButton>
         </DropdownMenuItem>
         <DropdownMenuItem asChild disabled={!wiki}>
           <MenuItemButton disabled={!wiki} onClick={() => wiki && window.open(wiki, '_blank')}>
             {' '}
-            <BookOpenIcon className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <BookOpenIcon className="size-4 shrink-0" aria-hidden="true" />
             {t('navbar.brandWiki')}
           </MenuItemButton>
         </DropdownMenuItem>
@@ -192,7 +188,7 @@ export default function NavbarMoreMenu({
           >
             {' '}
             <HeartIcon />
-            <span className="font-semibold text-[var(--color-ds-accent)]">
+            <span className="font-semibold text-ds-accent">
               {donate ? t('navbar.support') : t('navbar.donateUnavailable')}
             </span>
           </MenuItemButton>

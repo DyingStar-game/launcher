@@ -12,29 +12,30 @@ const tabVariants = cva(
       tone: { accent: 'px-4 font-semibold', neutral: 'font-medium' },
       selected: {
         true: '',
-        false: 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
+        false: 'text-ds-muted hover:text-ds-text hover:bg-white/5'
       }
     },
     compoundVariants: [
-      { tone: 'accent', selected: true, className: 'bg-[var(--color-ds-accent)] text-black' },
-      { tone: 'neutral', selected: true, className: 'text-[var(--color-ds-text)] bg-white/10' }
+      { tone: 'accent', selected: true, className: 'bg-ds-accent text-black' },
+      { tone: 'neutral', selected: true, className: 'text-ds-text bg-white/10' }
     ],
     defaultVariants: { tone: 'neutral', selected: false }
   }
 )
 
-type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof tabVariants>
+export type TabButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof tabVariants>
 
 /** One button of a segmented group (env switch, navbar sections), with UI sounds. */
 export default function TabButton({
   tone,
-  selected = false,
+  selected,
   className,
   onClick,
   onMouseEnter,
   children,
   ...props
-}: Props): React.JSX.Element {
+}: TabButtonProps): React.JSX.Element {
   const sound = useUiSound(UiSoundProfile.Default)
   const merged = mergeSoundHandlers(sound, { onClick, onMouseEnter })
 

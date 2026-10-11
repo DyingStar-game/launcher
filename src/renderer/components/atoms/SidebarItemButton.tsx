@@ -1,12 +1,8 @@
 import type React from 'react'
-import { cva } from 'class-variance-authority'
+import { cva, type VariantProps } from 'class-variance-authority'
 import { UiSoundProfile } from '@shared/types/sounds'
 import { mergeSoundHandlers, useUiSound } from '@hooks/useUiSound'
 import { cn } from '@lib/cn'
-
-type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  active?: boolean
-}
 
 const sidebarItemVariants = cva(
   'text-left px-3 py-2.5 rounded-xl text-sm border transition-colors cursor-pointer ' +
@@ -14,26 +10,29 @@ const sidebarItemVariants = cva(
   {
     variants: {
       active: {
-        true: 'bg-[var(--color-ds-surface)] text-[var(--color-ds-text)] border-[var(--color-ds-accent)]/40',
+        true: 'bg-ds-surface text-ds-text border-ds-accent/40',
         false:
-          'text-[var(--color-ds-muted)] border-transparent hover:border-[var(--color-ds-border)] ' +
-          'hover:bg-[var(--color-ds-surface-hover)] hover:text-[var(--color-ds-text)]'
+          'text-ds-muted border-transparent hover:border-ds-border ' +
+          'hover:bg-ds-surface-hover hover:text-ds-text'
       }
     },
     defaultVariants: { active: false }
   }
 )
 
+export type SidebarItemButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof sidebarItemVariants>
+
 /** Sidebar navigation item with default UI hover/click sounds. */
 export default function SidebarItemButton({
-  active = false,
+  active,
   disabled,
   className,
   onClick,
   onMouseEnter,
   children,
   ...props
-}: Props): React.JSX.Element {
+}: SidebarItemButtonProps): React.JSX.Element {
   const sound = useUiSound(UiSoundProfile.Default, { disabled: Boolean(disabled) })
   const merged = mergeSoundHandlers(sound, { onClick, onMouseEnter })
 

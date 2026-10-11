@@ -13,7 +13,7 @@ import { Field, FieldLabel } from '@components/ui/field'
 import { RadioGroup, RadioGroupItem } from '@components/ui/radio-group'
 import { Label } from '@components/ui/label'
 
-type Props = {
+export type OrganisationLeadershipProps = {
   subject: Subject
   organisation: OrganisationProfile
   selfId: string
@@ -27,7 +27,7 @@ export default function OrganisationLeadership({
   subject,
   organisation,
   selfId
-}: Props): React.JSX.Element {
+}: OrganisationLeadershipProps): React.JSX.Element {
   const { t } = useTranslation()
   const navigate = useNavigationStore((s) => s.navigate)
   const { members } = useOrganisationMembers(subject)
@@ -43,7 +43,7 @@ export default function OrganisationLeadership({
     <div className="flex flex-col gap-6">
       <SheetSection title={t('universe.socialPage.manage.leadership.transfer')}>
         {candidates.length === 0 ? (
-          <p className="text-sm text-[var(--color-ds-muted)]">
+          <p className="text-sm text-ds-muted">
             {t('universe.socialPage.manage.leadership.noMember')}
           </p>
         ) : (
@@ -54,8 +54,7 @@ export default function OrganisationLeadership({
                 <div key={member.id} className="flex items-center gap-2">
                   <RadioGroupItem id={`${heirsId}-${member.id}`} value={member.id} />
                   <Label htmlFor={`${heirsId}-${member.id}`}>
-                    {member.name}{' '}
-                    <span className="font-normal text-[var(--color-ds-muted)]">{member.rank}</span>
+                    {member.name} <span className="font-normal text-ds-muted">{member.rank}</span>
                   </Label>
                 </div>
               ))}
@@ -78,7 +77,7 @@ export default function OrganisationLeadership({
       </SheetSection>
 
       <SheetSection title={t('universe.socialPage.manage.leadership.disband')}>
-        <p className="text-sm text-[var(--color-ds-muted)]">
+        <p className="text-sm text-ds-muted">
           {t('universe.socialPage.manage.leadership.disbandDescription')}
         </p>
         <div>

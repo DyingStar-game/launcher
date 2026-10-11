@@ -19,20 +19,19 @@ import { navUrls } from '@lib/env'
 import { cn } from '@lib/cn'
 import type { ReactNode } from 'react'
 
+type GroupDividerProps = { className?: string }
+
 /** Vertical rule between two groups of the bar; the bar's gap gives it the same space each side. */
-function GroupDivider({ className }: { className?: string }): React.JSX.Element {
-  return (
-    <div
-      aria-hidden="true"
-      className={cn('h-6 w-px shrink-0 bg-[var(--color-ds-border)]', className)}
-    />
-  )
+function GroupDivider({ className }: GroupDividerProps): React.JSX.Element {
+  return <div aria-hidden="true" className={cn('h-6 w-px shrink-0 bg-ds-border', className)} />
 }
 
+type SvgProps = { children: ReactNode }
+
 /** Decorative inline SVG icon (the button carries the label and the tooltip). */
-function Svg({ children }: { children: ReactNode }): React.JSX.Element {
+function Svg({ children }: SvgProps): React.JSX.Element {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4.5 h-4.5 fill-current">
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4.5 fill-current">
       {children}
     </svg>
   )
@@ -95,10 +94,10 @@ export default function Navbar(): React.JSX.Element {
   ]
 
   return (
-    <nav className="app-drag ds-panel-bar flex items-center justify-between gap-6 px-6 h-14 shrink-0">
+    <nav className="app-drag border-b border-ds-border bg-ds-surface flex items-center justify-between gap-6 px-6 h-14 shrink-0">
       {/* Gauche : logo + onglets environnement */}
       <div className="app-no-drag flex min-w-0 items-center gap-6">
-        <span className="font-bold text-(--color-ds-accent) text-lg tracking-wider select-none">
+        <span className="font-bold text-ds-accent text-lg tracking-wider select-none">
           <svg
             width="160"
             height="50"
@@ -205,7 +204,7 @@ export default function Navbar(): React.JSX.Element {
         </span>
 
         {/* Env switch (narrow → menu hamburger) */}
-        <div className="hidden nav-env:flex gap-1 p-1 rounded-xl bg-white/3 border border-(--color-ds-border)">
+        <div className="hidden nav-env:flex gap-1 p-1 rounded-xl bg-white/3 border border-ds-border">
           {envOptions.map(({ env, label }) => (
             <TabButton
               key={env}
@@ -219,7 +218,7 @@ export default function Navbar(): React.JSX.Element {
         </div>
 
         {/* Liens vues secondaires (compact → menu hamburger) */}
-        <div className="hidden nav-full:flex gap-1 p-1 rounded-xl bg-white/3 border border-(--color-ds-border)">
+        <div className="hidden nav-full:flex gap-1 p-1 rounded-xl bg-white/3 border border-ds-border">
           {navLinks.map(({ label, view, badge }) => (
             <TabButton
               key={view}
@@ -228,8 +227,8 @@ export default function Navbar(): React.JSX.Element {
             >
               {label}
               {badge && (
-                <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm">
-                  <svg viewBox="0 0 24 24" className="h-2.5 w-2.5 fill-current" aria-hidden="true">
+                <span className="absolute -top-1 -right-1 inline-flex size-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm">
+                  <svg viewBox="0 0 24 24" className="size-2.5 fill-current" aria-hidden="true">
                     <path d="M12 22a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22zm6-6V11a6 6 0 00-5-5.91V4a1 1 0 10-2 0v1.09A6 6 0 006 11v5l-2 2v1h16v-1l-2-2z" />
                   </svg>
                 </span>
@@ -272,7 +271,7 @@ export default function Navbar(): React.JSX.Element {
               onClick={() => navDiscord && window.open(navDiscord, '_blank')}
               aria-label={t('navbar.openDiscord')}
             >
-              <DiscordIcon className="w-4.5 h-4.5" />
+              <DiscordIcon className="size-4.5" />
             </Button>
           </LabelTooltip>
 
@@ -284,7 +283,7 @@ export default function Navbar(): React.JSX.Element {
               onClick={() => navWiki && window.open(navWiki, '_blank')}
               aria-label={t('navbar.openWiki')}
             >
-              <BookOpenIcon className="w-4.5 h-4.5" aria-hidden="true" />
+              <BookOpenIcon className="size-4.5" aria-hidden="true" />
             </Button>
           </LabelTooltip>
         </div>

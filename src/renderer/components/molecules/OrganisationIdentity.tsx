@@ -2,7 +2,7 @@ import type { OrganisationRef } from '@shared/types/social'
 import Avatar from '@components/atoms/Avatar'
 import OrganisationLink from './OrganisationLink'
 
-type Props = {
+export type OrganisationIdentityProps = {
   organisation: OrganisationRef
   /** Opens the organisation's sheet (ADR 0010). */
   onOpen: () => void
@@ -15,7 +15,7 @@ export default function OrganisationIdentity({
   organisation,
   onOpen,
   children
-}: Props): React.JSX.Element {
+}: OrganisationIdentityProps): React.JSX.Element {
   return (
     <div className="flex flex-1 min-w-0 items-center gap-3">
       <Avatar name={organisation.name} label={organisation.ticker.slice(0, 2)} shape="square" />

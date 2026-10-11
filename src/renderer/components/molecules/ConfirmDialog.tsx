@@ -13,7 +13,7 @@ import {
 } from '@components/ui/alert-dialog'
 import { getSocialErrorMessage } from '@lib/socialErrors'
 
-type Props = {
+export type ConfirmDialogProps = {
   /** The button opening the dialog. */
   trigger: React.ReactElement
   title: string
@@ -39,7 +39,7 @@ export default function ConfirmDialog({
   onConfirm,
   children,
   confirmDisabled = false
-}: Props): React.JSX.Element {
+}: ConfirmDialogProps): React.JSX.Element {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)

@@ -11,13 +11,15 @@ import { useInvitationTargets } from '@hooks/social/useInvitationTargets'
 import FriendAction from './FriendAction'
 import InviteToOrganisation from './InviteToOrganisation'
 
+export type PlayerHeaderProps = { profile: PlayerProfile }
+
 /**
  * Identity of a player page (ADR 0012): avatar, name, status (with the star system of a friend
  * in mission) and the relation (friend, request sent), faction and role; then the actions, all
  * full-size buttons — invite to an organisation, add or accept as a friend — or, on the player's
  * own page, the edit button (ADR 0020).
  */
-export default function PlayerHeader({ profile }: { profile: PlayerProfile }): React.JSX.Element {
+export default function PlayerHeader({ profile }: PlayerHeaderProps): React.JSX.Element {
   const { t } = useTranslation()
   const { data } = useSocialSnapshot()
   const { openProfileEdit, openOrganisation } = useNavigationStore()
@@ -34,7 +36,7 @@ export default function PlayerHeader({ profile }: { profile: PlayerProfile }): R
     <div className="flex items-center gap-4">
       <Avatar name={profile.name} size="lg" status={profile.status} />
       <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-        <h1 className="text-2xl font-bold text-[var(--color-ds-text)] truncate">{profile.name}</h1>
+        <h1 className="text-2xl font-bold text-ds-text truncate">{profile.name}</h1>
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <PresenceBadge status={profile.status} label={statusLabel} />
           {relation === 'friend' && (
@@ -56,7 +58,7 @@ export default function PlayerHeader({ profile }: { profile: PlayerProfile }): R
           ))}
         </div>
         {(profile.faction || profile.role) && (
-          <p className="text-xs text-[var(--color-ds-muted)]">
+          <p className="text-xs text-ds-muted">
             {[profile.faction, profile.role].filter(Boolean).join(' • ')}
           </p>
         )}

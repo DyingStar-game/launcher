@@ -6,7 +6,7 @@ import Button from '@components/atoms/Button'
 
 type Variant = 'launcher' | 'game'
 
-type Props = {
+export type UpdateAlertProps = {
   variant: Variant
   currentVersion?: string
   latestVersion: string
@@ -19,7 +19,7 @@ const CONFIG = {
     icon: (
       <svg
         viewBox="0 0 16 16"
-        className="w-4 h-4 fill-none stroke-current stroke-[1.5] shrink-0"
+        className="size-4 fill-none stroke-current stroke-[1.5] shrink-0"
         strokeLinecap="round"
         strokeLinejoin="round"
       >
@@ -33,7 +33,7 @@ const CONFIG = {
     icon: (
       <svg
         viewBox="0 0 16 16"
-        className="w-4 h-4 fill-none stroke-current stroke-[1.5] shrink-0"
+        className="size-4 fill-none stroke-current stroke-[1.5] shrink-0"
         strokeLinecap="round"
         strokeLinejoin="round"
       >
@@ -71,7 +71,7 @@ export default function UpdateAlert({
   latestVersion,
   latestReleaseDate,
   onDismiss
-}: Props): React.JSX.Element {
+}: UpdateAlertProps): React.JSX.Element {
   const { t } = useTranslation()
   const cfg = CONFIG[variant]
   const cls = COLOR_CLASSES[cfg.color]
@@ -130,7 +130,7 @@ export default function UpdateAlert({
                 href={launcherDownloadUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium underline underline-offset-2 decoration-[var(--color-ds-accent)]/60 hover:decoration-[var(--color-ds-accent)] text-[var(--color-ds-accent)]"
+                className="font-medium underline underline-offset-2 decoration-ds-accent/60 hover:decoration-ds-accent text-ds-accent"
               >
                 {t('universe.updateAlert.launcher.downloadLink')}
               </a>
@@ -151,7 +151,7 @@ export default function UpdateAlert({
           >
             <svg
               viewBox="0 0 16 16"
-              className="w-3.5 h-3.5 fill-none stroke-current stroke-[1.8]"
+              className="size-3.5 fill-none stroke-current stroke-[1.8]"
               strokeLinecap="round"
             >
               <path d="M4 4l8 8M12 4l-8 8" />

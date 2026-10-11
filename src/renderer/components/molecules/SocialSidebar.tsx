@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import SidebarItemButton from '@components/atoms/SidebarItemButton'
+import PageSidebar from '@components/atoms/PageSidebar'
 import { TabsList, TabsTrigger } from '@components/ui/tabs'
 import PendingCount from './PendingCount'
 import { SOCIAL_SECTIONS, type SocialSection } from '@lib/socialSections'
 
-type Props = {
+export type SocialSidebarProps = {
   /** Current section, highlighted; switching goes through the enclosing `Tabs` (ADR 0016). */
   current: SocialSection
   /** Requests waiting for the player, per section (ADR 0023). */
@@ -21,18 +22,16 @@ export default function SocialSidebar({
   current,
   pending,
   onOpenProfile
-}: Props): React.JSX.Element {
+}: SocialSidebarProps): React.JSX.Element {
   const { t } = useTranslation()
 
   return (
-    <div className="ds-sidebar">
+    <PageSidebar>
       <div className="px-2 pb-2">
-        <p className="text-xs font-semibold text-[var(--color-ds-muted)] uppercase tracking-widest">
+        <p className="text-xs font-semibold text-ds-muted uppercase tracking-widest">
           {t('universe.socialPage.sidebarTitle')}
         </p>
-        <p className="text-xs text-[var(--color-ds-muted)]">
-          {t('universe.socialPage.sidebarSubtitle')}
-        </p>
+        <p className="text-xs text-ds-muted">{t('universe.socialPage.sidebarSubtitle')}</p>
       </div>
 
       <TabsList
@@ -53,11 +52,11 @@ export default function SocialSidebar({
         ))}
       </TabsList>
 
-      <div className="mt-1 border-t border-[var(--color-ds-border)] pt-2">
+      <div className="mt-1 border-t border-ds-border pt-2">
         <SidebarItemButton disabled={!onOpenProfile} onClick={onOpenProfile} className="w-full">
           {t('universe.socialPage.myProfile')}
         </SidebarItemButton>
       </div>
-    </div>
+    </PageSidebar>
   )
 }

@@ -7,7 +7,7 @@ import StatusBadge from '@components/molecules/StatusBadge'
 import Button from '@components/atoms/Button'
 import { playerRelation } from '@lib/playerRelation'
 
-type Props = {
+export type FriendActionProps = {
   playerId: string
   name: string
   /**
@@ -25,7 +25,7 @@ export default function FriendAction({
   playerId,
   name,
   layout = 'list'
-}: Props): React.JSX.Element | null {
+}: FriendActionProps): React.JSX.Element | null {
   const { t } = useTranslation()
   const social = useSocialSnapshot().data
   const sendFriendRequest = useSendFriendRequest().mutateAsync

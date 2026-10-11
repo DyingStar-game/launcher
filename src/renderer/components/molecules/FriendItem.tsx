@@ -3,7 +3,7 @@ import type { Friend } from '@shared/types/social'
 import { cn } from '@lib/cn'
 import PlayerIdentity from './PlayerIdentity'
 
-type Props = {
+export type FriendItemProps = {
   friend: Friend
   /** Opens the friend's sheet. */
   onOpen: () => void
@@ -12,11 +12,11 @@ type Props = {
 const STATUS_TEXT = {
   online: 'text-green-400',
   mission: 'text-orange-400',
-  offline: 'text-[var(--color-ds-muted)]'
+  offline: 'text-ds-muted'
 } as const
 
 /** Compact friend row for the universe social panel, status coloured. */
-export default function FriendItem({ friend, onOpen }: Props): React.JSX.Element {
+export default function FriendItem({ friend, onOpen }: FriendItemProps): React.JSX.Element {
   const { t } = useTranslation()
   const statusLabel =
     friend.status === 'mission' && friend.system
@@ -24,7 +24,7 @@ export default function FriendItem({ friend, onOpen }: Props): React.JSX.Element
       : t(`friendStatus.${friend.status}`)
 
   return (
-    <div className="flex items-center p-2 rounded-lg hover:bg-[var(--color-ds-surface-hover)] transition-colors">
+    <div className="flex items-center p-2 rounded-lg hover:bg-ds-surface-hover transition-colors">
       <PlayerIdentity name={friend.name} status={friend.status} onOpen={onOpen}>
         <span className={cn('text-xs', STATUS_TEXT[friend.status])}>{statusLabel}</span>
       </PlayerIdentity>

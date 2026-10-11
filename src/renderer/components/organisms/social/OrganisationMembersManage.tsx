@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger
 } from '@components/ui/dropdown-menu'
 
-type Props = {
+export type OrganisationMembersManageProps = {
   subject: Subject
   /** The player's own rank in the organisation. */
   myRank: OrganisationRank
@@ -35,7 +35,7 @@ export default function OrganisationMembersManage({
   subject,
   myRank,
   selfId
-}: Props): React.JSX.Element {
+}: OrganisationMembersManageProps): React.JSX.Element {
   const { t } = useTranslation()
   const openPlayer = useNavigationStore((s) => s.openPlayer)
   const { members, total, pending, error, loadMore, loadingMore } = useOrganisationMembers(subject)
@@ -63,7 +63,7 @@ export default function OrganisationMembersManage({
               status={member.status}
               onOpen={() => openPlayer(member.id)}
             >
-              <span className="text-xs text-[var(--color-ds-muted)]">{member.rank}</span>
+              <span className="text-xs text-ds-muted">{member.rank}</span>
             </PlayerIdentity>
             {actsOn(member) && (
               <div className="flex shrink-0 items-center gap-2">

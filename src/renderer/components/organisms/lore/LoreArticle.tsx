@@ -2,10 +2,8 @@ import type React from 'react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLoreStore } from '@stores/lore'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeRaw from 'rehype-raw'
-import rehypeSanitize from 'rehype-sanitize'
+import Panel from '@components/atoms/Panel'
+import MarkdownArticle from '@components/molecules/MarkdownArticle'
 
 const loreMarkdownFiles = import.meta.glob('../../../content/lore/*.md', {
   query: '?raw',
@@ -37,9 +35,9 @@ export default function LoreArticle(): React.JSX.Element {
   if (!current) {
     return (
       <div className="flex min-h-0 flex-1 flex-col min-w-0 p-6">
-        <div className="ds-panel flex h-full flex-1 items-center justify-center text-[var(--color-ds-muted)]">
-          {t('lore.selectArticle')}
-        </div>
+        <Panel className="flex h-full flex-1 items-center justify-center">
+          <p className="text-ds-muted">{t('lore.selectArticle')}</p>
+        </Panel>
       </div>
     )
   }
@@ -49,16 +47,11 @@ export default function LoreArticle(): React.JSX.Element {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col min-w-0 p-6">
-      <div className="ds-panel flex min-h-0 flex-1 flex-col overflow-hidden">
+      <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="h-full overflow-y-auto px-10 py-8">
-          <article className="lore-markdown">
-            <h1 className="mb-6">{title}</h1>
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
-              {body}
-            </ReactMarkdown>
-          </article>
+          <MarkdownArticle title={title} markdown={body} />
         </div>
-      </div>
+      </Panel>
     </div>
   )
 }
