@@ -58,7 +58,8 @@
       "signOut": "Sign out",
       "menu": "Account of {{name}}",
       "unavailable": "Sign-in is not available for this environment."
-    }
+    },
+    "universeSwitch": "Switch universe"
   },
   "universeTesting": {
     "banner": "Testing environment",

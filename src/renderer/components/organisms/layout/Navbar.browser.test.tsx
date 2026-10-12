@@ -30,6 +30,40 @@ describe('Navbar (rendering)', () => {
     }
   })
 
+  it('frames the universe switch like the outline buttons, the active universe highlighted', () => {
+    render(<Navbar />)
+    const frame = screen.getByRole('group', { name: 'Switch universe' })
+    const outline = screen.getByRole('button', { name: 'Open Discord' })
+    expect(frame.getBoundingClientRect().height).toBe(outline.getBoundingClientRect().height)
+    expect(style(frame).borderTopColor).toBe(style(outline).borderTopColor)
+    const [first, second] = screen.getAllByRole('button').filter((button) => frame.contains(button))
+    // Each segment fills the frame's height; the active one stands out from the other
+    expect(first.getBoundingClientRect().height).toBe(frame.clientHeight)
+    const active = first.getAttribute('aria-current') ? first : second
+    const other = active === first ? second : first
+    expect(style(active).color).toBe('rgb(255, 186, 8)')
+    expect(style(other).color).toBe('rgb(107, 107, 128)')
+    expect(style(active).backgroundColor).not.toBe(style(other).backgroundColor)
+  })
+
+  it('centres the universe switch between the logo and the right side, the room around it dragging the window', async () => {
+    render(<Navbar />)
+    for (const width of [1400, 1024]) {
+      await page.viewport(width, 900)
+      const frame = screen.getByRole('group', { name: 'Switch universe' }).getBoundingClientRect()
+      const logo = screen.getByRole('navigation').querySelector('svg')!.getBoundingClientRect()
+      const right = screen.getByRole('button', { name: 'Close' }).parentElement!.parentElement!
+      const rightLeft = right.getBoundingClientRect().left
+      // The same room on each side, up to the bar's gap
+      await expect
+        .poll(() => Math.round(frame.left - logo.right - (rightLeft - frame.right)))
+        .toBe(0)
+      // Beside the switch: the switch's own column, which still drags the window
+      const empty = document.elementFromPoint(frame.left - 10, frame.top + frame.height / 2)
+      expect(getComputedStyle(empty!).getPropertyValue('-webkit-app-region')).toBe('drag')
+    }
+  })
+
   it('folds language, links and donate into the burger menu below 1024 px', async () => {
     render(<Navbar />)
     expect(screen.getByRole('button', { name: 'Open Discord' })).toBeVisible()

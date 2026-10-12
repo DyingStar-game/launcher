@@ -90,10 +90,10 @@ export default function Navbar(): React.JSX.Element {
   return (
     <nav
       aria-label={t('navbar.appNav')}
-      className="app-drag border-b border-ds-border bg-ds-surface flex items-center justify-between gap-6 px-6 h-14 shrink-0"
+      className="app-drag border-b border-ds-border bg-ds-surface flex items-center gap-6 px-6 h-14 shrink-0"
     >
-      {/* Gauche : logo + onglets environnement */}
-      <div className="app-no-drag flex min-w-0 items-center gap-6">
+      {/* The logo, the universe switch centred in the room left between it and the right side */}
+      <div className="app-no-drag flex shrink-0 items-center">
         <span className="font-bold text-ds-accent text-lg tracking-wider select-none">
           <svg
             width="160"
@@ -199,13 +199,20 @@ export default function Navbar(): React.JSX.Element {
             />
           </svg>
         </span>
+      </div>
 
-        {/* Env switch (narrow → menu hamburger) */}
-        <div className="hidden nav-env:flex gap-1 p-1 rounded-xl bg-white/3 border border-ds-border">
+      {/* Universe switch, framed like the bar's outline buttons (narrow → burger menu); the room
+          around it still drags the window */}
+      <div className="flex min-w-0 flex-1 justify-center">
+        <div
+          role="group"
+          aria-label={t('navbar.universeSwitch')}
+          className="app-no-drag hidden h-9 overflow-hidden rounded-lg border border-border divide-x divide-border nav-env:flex"
+        >
           {envOptions.map(({ env, label }) => (
             <TabButton
               key={env}
-              tone="accent"
+              tone="segment"
               selected={activeEnv === env}
               onClick={() => handleEnvSwitch(env)}
             >

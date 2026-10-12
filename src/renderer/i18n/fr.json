@@ -58,7 +58,8 @@
       "signOut": "Se déconnecter",
       "menu": "Compte de {{name}}",
       "unavailable": "La connexion n'est pas disponible pour cet environnement."
-    }
+    },
+    "universeSwitch": "Changer d'univers"
   },
   "universeTesting": {
     "banner": "Environnement de test",

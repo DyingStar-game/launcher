@@ -11,14 +11,14 @@ describe('TabButton', () => {
     expect(onClick).toHaveBeenCalledOnce()
   })
 
-  it('fills the selected accent tab with the accent colour', () => {
+  it('highlights the selected segment like a selected tab, filling its frame', () => {
     render(
-      <TabButton tone="accent" selected>
+      <TabButton tone="segment" selected>
         Universe
       </TabButton>
     )
     const tab = screen.getByRole('button', { name: 'Universe' })
-    expect(tab).toHaveClass('bg-ds-accent', 'text-black')
+    expect(tab).toHaveClass('bg-white/10', 'text-ds-text', 'h-full')
     expect(tab).toHaveAttribute('aria-current', 'true')
   })
 

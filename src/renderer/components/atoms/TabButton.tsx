@@ -9,15 +9,18 @@ const tabVariants = cva(
     'transition-colors cursor-pointer',
   {
     variants: {
-      /** `accent`: the selected tab is filled with the accent colour (env switch). */
-      tone: { accent: 'px-4 font-semibold', neutral: 'font-medium' },
+      /**
+       * `segment`: one part of a framed segmented control, the frame drawn by its parent (universe
+       * switch); `neutral`: a free-standing tab (universe bar sections).
+       */
+      tone: { segment: 'h-full rounded-none px-4 font-medium', neutral: 'font-medium' },
       selected: {
         true: '',
         false: 'text-ds-muted hover:text-ds-text hover:bg-white/5'
       }
     },
     compoundVariants: [
-      { tone: 'accent', selected: true, className: 'bg-ds-accent text-black' },
+      { tone: 'segment', selected: true, className: 'text-ds-text bg-white/10' },
       { tone: 'neutral', selected: true, className: 'text-ds-text bg-white/10' }
     ],
     defaultVariants: { tone: 'neutral', selected: false }
@@ -27,7 +30,7 @@ const tabVariants = cva(
 export type TabButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof tabVariants>
 
-/** One button of a segmented group (env switch, navbar sections), with UI sounds. */
+/** One button of a segmented group (universe switch, universe bar sections), with UI sounds. */
 export default function TabButton({
   tone,
   selected,
