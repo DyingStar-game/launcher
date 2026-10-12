@@ -52,11 +52,17 @@ export function useSocialSnapshot(): SocialSnapshotState {
   }
 }
 
-/** Reloads an environment's social data when the player signs in or out there (ADR 0025). */
+/**
+ * Reloads an environment's social data when the player signs in or out there (ADR 0025). Signing
+ * out drops it first: a failed reload keeps the data on screen, which must not show the friends
+ * of the player who just left.
+ */
 export function useSocialAccountSync(env: Env): void {
   const queryClient = useQueryClient()
   const accountStatus = useAccountStore((s) => s.data[env].status)
   useEffect(() => {
-    void queryClient.invalidateQueries({ queryKey: socialKeys.env(env) })
+    const queryKey = socialKeys.env(env)
+    if (accountStatus === 'disconnected') void queryClient.resetQueries({ queryKey })
+    else void queryClient.invalidateQueries({ queryKey })
   }, [accountStatus, env, queryClient])
 }
