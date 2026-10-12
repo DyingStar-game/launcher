@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { Env } from '@shared/types/env'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
+import type { InstallOutcome, PendingDownload } from '@shared/types/install'
 import type { UserInfo } from '@shared/types/auth'
 import type { ServerStatusValue } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
@@ -34,9 +35,23 @@ const api = {
   /** Opens a native folder picker; returns the chosen path or null if cancelled. */
   selectDirectory: (): Promise<string | null> => ipcRenderer.invoke('files:select-directory'),
 
-  /** Downloads and extracts the game ZIP; returns installed version metadata. */
-  installGame: (env: Env, installPath: string): Promise<{ version: string; releaseDate: string }> =>
+  /**
+   * Downloads (or resumes) and extracts the game ZIP; resolves to the installed version, or to how
+   * the player stopped it (ADR 0036).
+   */
+  installGame: (env: Env, installPath: string): Promise<InstallOutcome> =>
     ipcRenderer.invoke('files:install', env, installPath),
+
+  /** Pauses the environment's download, keeping it on disk; false once extracting. */
+  pauseInstall: (env: Env): Promise<boolean> => ipcRenderer.invoke('files:pause-install', env),
+
+  /** Cancels the environment's download, or removes a paused one; false once extracting. */
+  cancelInstall: (env: Env, installPath: string): Promise<boolean> =>
+    ipcRenderer.invoke('files:cancel-install', env, installPath),
+
+  /** The environment's paused or interrupted download in the install folder, or null. */
+  pendingDownload: (env: Env, installPath: string): Promise<PendingDownload | null> =>
+    ipcRenderer.invoke('files:pending-download', env, installPath),
 
   /** Subscribes to install/download progress events (0–100 and structured label). */
   onInstallProgress: (callback: (progress: number, label: InstallProgressLabel) => void): void => {

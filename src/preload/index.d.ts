@@ -1,7 +1,7 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 import type { Env } from '@shared/types/env'
 import type { UserInfo } from '@shared/types/auth'
-import type { InstallResult } from '@shared/types/install'
+import type { InstallOutcome, InstallResult, PendingDownload } from '@shared/types/install'
 import type { VersionCheckResult } from '@shared/types/version'
 import type { ServerStatusValue } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
@@ -46,7 +46,10 @@ declare global {
     /** Typed bridge to main-process IPC handlers (see `preload/index.ts`). */
     api: {
       selectDirectory: () => Promise<string | null>
-      installGame: (env: Env, installPath: string) => Promise<InstallResult>
+      installGame: (env: Env, installPath: string) => Promise<InstallOutcome>
+      pauseInstall: (env: Env) => Promise<boolean>
+      cancelInstall: (env: Env, installPath: string) => Promise<boolean>
+      pendingDownload: (env: Env, installPath: string) => Promise<PendingDownload | null>
       onInstallProgress: (callback: (progress: number, label: InstallProgressLabel) => void) => void
       fetchChangelog: () => Promise<GlobalChangelog | null>
       resolveInstalledVersion: (env: Env, installPath: string) => Promise<InstallResult | null>

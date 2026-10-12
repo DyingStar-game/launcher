@@ -1,7 +1,7 @@
 import { dialog, ipcMain, type BrowserWindow } from 'electron'
 import * as fs from 'fs'
 import * as path from 'path'
-import { downloadAndInstall } from '../download'
+import { cancelInstall, downloadAndInstall, findPendingDownload, pauseInstall } from '../download'
 import { resolveInstalledVersion } from '../download/manifest'
 import { clearDyingStarGodotCaches } from '../godotUserdataCache'
 import type { Env } from '@shared/types/env'
@@ -32,6 +32,21 @@ export function registerFilesHandlers(win: BrowserWindow): void {
       throw new Error('Invalid installation path.')
     }
     return downloadAndInstall(env, installPath, win)
+  })
+
+  ipcMain.removeHandler('files:pause-install')
+  ipcMain.handle('files:pause-install', (_event, env: Env) => pauseInstall(env))
+
+  ipcMain.removeHandler('files:cancel-install')
+  ipcMain.handle('files:cancel-install', (_event, env: Env, installPath: string) => {
+    if (!installPath || typeof installPath !== 'string') return false
+    return cancelInstall(env, installPath)
+  })
+
+  ipcMain.removeHandler('files:pending-download')
+  ipcMain.handle('files:pending-download', (_event, env: Env, installPath: string) => {
+    if (!installPath || typeof installPath !== 'string') return null
+    return findPendingDownload(env, path.resolve(installPath))
   })
 
   ipcMain.removeHandler('game:launch')

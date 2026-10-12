@@ -25,6 +25,9 @@ export const GAME_INSTALL_SUBDIR =
 /** Temporary ZIP filename during download. */
 export const GAME_DOWNLOAD_ZIP_NAME = '__game_download.zip'
 
+/** What identifies a partial download, beside its ZIP, for resuming it (ADR 0036). */
+export const GAME_DOWNLOAD_META_NAME = '__game_download.json'
+
 /** Platform-specific game executable names (relative to game root). */
 export const GAME_EXECUTABLES: Partial<Record<NodeJS.Platform, string>> = {
   win32: (import.meta.env.VITE_GAME_EXE_WINDOWS ?? 'DyingStar.exe').trim() || 'DyingStar.exe',
@@ -43,6 +46,8 @@ export const DOWNLOAD_USER_AGENT =
 /** Download progress phase weights (0–100 scale). */
 export const DOWNLOAD_PROGRESS = {
   zipWeight: 70,
+  /** Least delay between download progress events: one per chunk floods the renderer. */
+  minIntervalMs: 100,
   unknownChunkBytes: 2 * 1024 * 1024,
   unknownSizeCapBytes: 80 * 1024 * 1024
 } as const

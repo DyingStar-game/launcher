@@ -7,7 +7,7 @@ Bienvenue dans le dépôt **Dying Star Launcher**. Ce guide t’aide à comprend
 Un **launcher Electron** pour le jeu _Dying Star_. Il gère notamment :
 
 - Authentification Discord / Keycloak (par environnement)
-- Téléchargement, installation et mises à jour du jeu (ZIP via URLs configurables)
+- Téléchargement (pause, reprise, annulation), installation et mises à jour du jeu (ZIP via URLs configurables)
 - Statut serveur et nombre de joueurs
 - Vérification des mises à jour du launcher (GitHub Releases)
 - Une **UI social** (amis, demandes, organisations) sur le service de jeu `social`
