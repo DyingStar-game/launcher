@@ -16,6 +16,26 @@ describe('SocialPanel', () => {
     expect(screen.getByText('1')).toBeInTheDocument()
   })
 
+  it('lists friends alphabetically', async () => {
+    seedSocial({
+      friends: [
+        { id: 'p1', name: 'zed', status: 'online' },
+        { id: 'p2', name: 'Émile', status: 'offline' },
+        { id: 'p3', name: 'anna', status: 'mission' }
+      ]
+    })
+    render(<SocialPanel />)
+    await screen.findByText('anna')
+    const names = screen
+      .getAllByRole('button', { name: /Open the profile of/ })
+      .map((row) => row.getAttribute('aria-label'))
+    expect(names).toEqual([
+      'Open the profile of anna',
+      'Open the profile of Émile',
+      'Open the profile of zed'
+    ])
+  })
+
   it('opens a friend sheet, and the social page', async () => {
     seedSocial({ friends: [{ id: 'p1', name: 'Kira', status: 'online' }] })
     render(<SocialPanel />)

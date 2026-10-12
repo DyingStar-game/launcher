@@ -96,31 +96,17 @@
     "missionIn": "En mission • {{system}}"
   },
   "universe": {
-    "updateAlert": {
-      "dismiss": "Fermer l'alerte",
-      "launcher": {
-        "title": "Mise à jour du launcher disponible",
-        "downloadHint": "Télécharger la nouvelle version :",
-        "downloadLink": "Télécharger"
-      },
-      "game": {
-        "title": "Nouvelle version du jeu disponible"
-      },
-      "releaseOn": "Sortie le {{date}}"
-    },
     "game": {
-      "title": "Jeu",
       "play": "Jouer",
-      "launching": "Lancement…",
       "playDisabledMaintenance": "Le serveur est en maintenance — le lancement du jeu est désactivé.",
-      "playDisabledUpdate": "Une mise à jour du jeu est disponible — installez-la avant de jouer.",
       "playDisabledAuth": "Connectez-vous pour lancer le jeu.",
       "playDisabledAuthLoading": "Vérification de la session…",
       "sessionExpired": "Votre session a expiré. Reconnectez-vous pour lancer le jeu.",
       "playDisabledLaunching": "Lancement du jeu en cours…",
       "playDisabledRunning": "Le jeu est déjà lancé.",
       "notInstalled": "Jeu non installé",
-      "players": "{{count}} joueurs en ligne",
+      "players_one": "{{count}} joueur en ligne",
+      "players_other": "{{count}} joueurs en ligne",
       "status": {
         "online": "Opérationnel",
         "degraded": "Dégradé",
@@ -128,28 +114,22 @@
         "maintenance": "En maintenance",
         "unknown": "Inconnu",
         "unavailable": "Non disponible"
-      },
-      "viewStatus": "Voir le statut"
+      }
     },
     "files": {
       "title": "Fichiers du jeu",
-      "version": "Version : {{version}}",
-      "releaseDate": "Release : {{date}}",
-      "notInstalled": "Jeu non installé",
-      "install": "Installer",
-      "update": "Mettre à jour",
-      "verify": "Vérifier les fichiers",
+      "verify": "Détecter l'installation",
       "clearCache": "Vider le cache",
       "clearCacheToastOk": "Cache vidé.",
       "clearCacheToastPartial": "Cache partiellement vidé (certains dossiers n'ont pas pu être supprimés).",
       "clearCacheToastError": "Impossible de vider le cache.",
-      "installing": "Installation en cours...",
       "installPath": "Répertoire d'installation",
       "installPathPlaceholder": "/home/utilisateur/jeux/dyingstar",
       "browse": "Parcourir",
       "selectInstallPath": "Sélectionnez un répertoire d'installation",
       "unavailable": "Installation non disponible pour cet environnement.",
-      "unavailableBtn": "Indisponible"
+      "versionLabel": "Version",
+      "releaseLabel": "Release"
     },
     "social": {
       "title": "Social",
@@ -398,6 +378,70 @@
           "invitedTo": "Invité dans {{name}}"
         }
       }
+    },
+    "hero": {
+      "taglineTesting": "Serveur de test public · les progrès ne sont pas conservés",
+      "version": "Version {{version}}",
+      "release": "Release {{date}}"
+    },
+    "launcherUpdate": {
+      "title": "Nouvelle version du launcher disponible",
+      "download": "Télécharger"
+    },
+    "server": {
+      "openStatus": "Voir le statut du serveur",
+      "playersUnknown": "— joueurs"
+    },
+    "action": {
+      "unavailable": {
+        "title": "Indisponible",
+        "cta": "Indisponible"
+      },
+      "install": {
+        "detailNoPath": "Aucun répertoire choisi",
+        "detailPath": "Dans {{path}}",
+        "cta": "Installer"
+      },
+      "installing": {
+        "titleInstall": "Installation… {{progress}} %",
+        "titleUpdate": "Mise à jour… {{progress}} %",
+        "ctaInstall": "Installation…",
+        "ctaUpdate": "Mise à jour…",
+        "rate": "{{rate}}/s",
+        "eta": "~{{minutes}} min",
+        "etaUnderMinute": "< 1 min",
+        "ctaPause": "Pause"
+      },
+      "update": {
+        "title": "Mise à jour requise",
+        "cta": "Mettre à jour"
+      },
+      "ready": {
+        "title": "Prêt à jouer",
+        "upToDate": "À jour"
+      },
+      "running": {
+        "title": "En jeu",
+        "cta": "En jeu"
+      },
+      "serverDown": {
+        "detail": "Le serveur est actuellement indisponible",
+        "cta": "Serveur indisponible"
+      },
+      "signIn": {
+        "title": "Connexion requise"
+      },
+      "cancel": "Annuler le téléchargement",
+      "paused": {
+        "title": "En pause · {{progress}} %",
+        "cta": "Reprendre"
+      },
+      "bytes": "{{downloaded}} / {{total}}"
+    },
+    "gameUpdate": {
+      "title": "Nouvelle version du jeu disponible",
+      "releasedOn": "Sortie le {{date}}",
+      "seeChangelog": "Voir le changelog complet"
     }
   },
   "forms": {

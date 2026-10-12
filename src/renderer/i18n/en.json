@@ -96,31 +96,17 @@
     "missionIn": "In mission • {{system}}"
   },
   "universe": {
-    "updateAlert": {
-      "dismiss": "Dismiss alert",
-      "launcher": {
-        "title": "Launcher update available",
-        "downloadHint": "Download the new version:",
-        "downloadLink": "Download"
-      },
-      "game": {
-        "title": "New game version available"
-      },
-      "releaseOn": "Released {{date}}"
-    },
     "game": {
-      "title": "Game",
       "play": "Play",
-      "launching": "Launching…",
       "playDisabledMaintenance": "The server is under maintenance — launching the game is disabled.",
-      "playDisabledUpdate": "A game update is available — install it before playing.",
       "playDisabledAuth": "Sign in to launch the game.",
       "playDisabledAuthLoading": "Checking your session…",
       "sessionExpired": "Your session has expired. Sign in again to play.",
       "playDisabledLaunching": "Launching the game…",
       "playDisabledRunning": "The game is already running.",
       "notInstalled": "Game not installed",
-      "players": "{{count}} players online",
+      "players_one": "{{count}} player online",
+      "players_other": "{{count}} players online",
       "status": {
         "online": "Available",
         "degraded": "Issues ongoing",
@@ -128,28 +114,22 @@
         "maintenance": "Under maintenance",
         "unknown": "Unknown",
         "unavailable": "Unavailable"
-      },
-      "viewStatus": "View status"
+      }
     },
     "files": {
       "title": "Game files",
-      "version": "Version: {{version}}",
-      "releaseDate": "Release: {{date}}",
-      "notInstalled": "Game not installed",
-      "install": "Install",
-      "update": "Update",
-      "verify": "Verify files",
+      "verify": "Detect installation",
       "clearCache": "Clear cache",
       "clearCacheToastOk": "Cache cleared.",
       "clearCacheToastPartial": "Cache partially cleared (some folders could not be removed).",
       "clearCacheToastError": "Could not clear the cache.",
-      "installing": "Installing...",
       "installPath": "Install folder",
       "installPathPlaceholder": "/home/user/games/dyingstar",
       "browse": "Browse",
       "selectInstallPath": "Select an install folder",
       "unavailable": "Installation not available for this environment.",
-      "unavailableBtn": "Unavailable"
+      "versionLabel": "Version",
+      "releaseLabel": "Release"
     },
     "social": {
       "title": "Social",
@@ -398,6 +378,70 @@
           "invitedTo": "Invited to {{name}}"
         }
       }
+    },
+    "hero": {
+      "taglineTesting": "Public test server · progress is not kept",
+      "version": "Version {{version}}",
+      "release": "Release {{date}}"
+    },
+    "launcherUpdate": {
+      "title": "New launcher version available",
+      "download": "Download"
+    },
+    "server": {
+      "openStatus": "View the server status",
+      "playersUnknown": "— players"
+    },
+    "action": {
+      "unavailable": {
+        "title": "Unavailable",
+        "cta": "Unavailable"
+      },
+      "install": {
+        "detailNoPath": "No install folder chosen",
+        "detailPath": "In {{path}}",
+        "cta": "Install"
+      },
+      "installing": {
+        "titleInstall": "Installing… {{progress}} %",
+        "titleUpdate": "Updating… {{progress}} %",
+        "ctaInstall": "Installing…",
+        "ctaUpdate": "Updating…",
+        "rate": "{{rate}}/s",
+        "eta": "~{{minutes}} min",
+        "etaUnderMinute": "< 1 min",
+        "ctaPause": "Pause"
+      },
+      "update": {
+        "title": "Update required",
+        "cta": "Update"
+      },
+      "ready": {
+        "title": "Ready to play",
+        "upToDate": "Up to date"
+      },
+      "running": {
+        "title": "In game",
+        "cta": "In game"
+      },
+      "serverDown": {
+        "detail": "The server is currently unavailable",
+        "cta": "Server unavailable"
+      },
+      "signIn": {
+        "title": "Sign-in required"
+      },
+      "cancel": "Cancel the download",
+      "paused": {
+        "title": "Paused · {{progress}} %",
+        "cta": "Resume"
+      },
+      "bytes": "{{downloaded}} / {{total}}"
+    },
+    "gameUpdate": {
+      "title": "New game version available",
+      "releasedOn": "Released {{date}}",
+      "seeChangelog": "See the full changelog"
     }
   },
   "forms": {

@@ -18,4 +18,9 @@ describe('Button (shadcn)', () => {
     expect(button).toHaveAttribute('data-variant', 'outline')
     expect(button).toHaveClass('size-8')
   })
+
+  it('makes the main action of the home action bar glow', () => {
+    render(<Button size="xl">Play</Button>)
+    expect(screen.getByRole('button', { name: 'Play' })).toHaveClass('h-16', 'ring-4')
+  })
 })

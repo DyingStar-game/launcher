@@ -1,6 +1,6 @@
 // shadcn/ui (radix-nova, shadcn 4.21.4), owned code (ADR 0016, 0027, 0028): `cn` from @lib/cn,
-// radius caps in rem instead of px (ADR 0026), a `success` variant (ADR 0028), a `discord` variant (sign-in), and muted text
-// on `outline` and `ghost`, as the launcher's buttons had (navbar).
+// radius caps in rem instead of px (ADR 0026), a `success` variant (ADR 0028), a `discord` variant (sign-in), muted text
+// on `outline` and `ghost`, as the launcher's buttons had (navbar), and `xl` / `icon-xl` sizes (home action bar).
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@lib/cn'
@@ -38,9 +38,14 @@ const buttonVariants = cva(
           "size-6 rounded-[min(var(--radius-md),0.625rem)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
         'icon-sm':
           'size-7 rounded-[min(var(--radius-md),0.75rem)] in-data-[slot=button-group]:rounded-lg',
-        'icon-lg': 'size-9'
+        'icon-lg': 'size-9',
+        // Launcher: the home action bar's main action and its companion icon button
+        xl: "h-16 gap-3 rounded-xl px-8 text-xl font-bold tracking-wider uppercase [&_svg:not([class*='size-'])]:size-5",
+        'icon-xl': "size-14 rounded-xl [&_svg:not([class*='size-'])]:size-6"
       }
     },
+    // Launcher: the home action bar's main action glows in the accent colour
+    compoundVariants: [{ variant: 'default', size: 'xl', className: 'ring-4 ring-primary/12' }],
     defaultVariants: {
       variant: 'default',
       size: 'default'

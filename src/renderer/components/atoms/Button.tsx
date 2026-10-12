@@ -29,7 +29,8 @@ const VARIANTS = {
 
 /**
  * The launcher's size names, each a shadcn size: text and icon buttons are 36 px (`lg`,
- * `icon-lg`, ADR 0028); `none` keeps no height nor padding (inline text).
+ * `icon-lg`, ADR 0028); `cta` (64 px) and `icon-cta` (56 px) are for the home action bar only
+ * (ADR 0035); `none` keeps no height nor padding (inline text).
  */
 const SIZES = {
   md: 'lg',
@@ -37,7 +38,9 @@ const SIZES = {
   chip: 'xs',
   icon: 'icon-lg',
   'icon-sm': 'icon-sm',
-  'icon-xs': 'icon-xs'
+  'icon-xs': 'icon-xs',
+  cta: 'xl',
+  'icon-cta': 'icon-xl'
 } as const satisfies Record<string, ShadcnSize>
 
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
