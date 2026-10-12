@@ -321,7 +321,8 @@
         "characterName": "Character name",
         "alignment": "Alignment",
         "story": "Story",
-        "save": "Save"
+        "save": "Save",
+        "saved": "Profile saved."
       },
       "myProfile": "My profile",
       "manage": {

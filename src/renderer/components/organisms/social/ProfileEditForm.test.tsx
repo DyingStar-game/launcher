@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import type { PlayerProfile } from '@shared/types/social'
 import { seedSocial } from '../../../test/seedSocial'
+import { Toaster } from '@components/ui/sonner'
 import ProfileEditForm from './ProfileEditForm'
 
 const profile: PlayerProfile = {
@@ -34,12 +35,19 @@ describe('ProfileEditForm', () => {
     seedSocial({})
     vi.mocked(window.api.socialUpdateProfile).mockResolvedValue({ ok: true, data: undefined })
     const onDone = vi.fn()
-    render(<ProfileEditForm profile={profile} onDone={onDone} />)
+    render(
+      <>
+        <ProfileEditForm profile={profile} onDone={onDone} />
+        <Toaster />
+      </>
+    )
     await userEvent.clear(screen.getByRole('textbox', { name: 'Faction' }))
     await userEvent.type(screen.getByRole('textbox', { name: 'Alignment' }), 'Neutral')
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(onDone).toHaveBeenCalledOnce())
+    const message = await screen.findByText('Profile saved.')
+    expect(message.closest('[data-sonner-toast]')).not.toBeNull()
     expect(window.api.socialUpdateProfile).toHaveBeenCalledWith('universe-testing', {
       faction: null,
       rpSheet: { characterName: 'Kira Vel', alignment: 'Neutral', story: 'Born on Tarsis.' }

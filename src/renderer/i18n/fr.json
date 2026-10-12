@@ -321,7 +321,8 @@
         "characterName": "Nom du personnage",
         "alignment": "Alignement",
         "story": "Histoire",
-        "save": "Enregistrer"
+        "save": "Enregistrer",
+        "saved": "Profil enregistré."
       },
       "myProfile": "Mon profil",
       "manage": {

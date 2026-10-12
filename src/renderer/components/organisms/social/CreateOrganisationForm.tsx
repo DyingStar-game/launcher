@@ -10,7 +10,7 @@ import {
 import Button from '@components/atoms/Button'
 import Panel from '@components/atoms/Panel'
 import InputField from '@components/molecules/InputField'
-import { socialPanelAutoCloseMs } from '@lib/env'
+import { toast } from 'sonner'
 import { fieldError } from '@lib/formErrors'
 import { getSocialErrorMessage } from '@lib/socialErrors'
 
@@ -29,12 +29,13 @@ export default function CreateOrganisationForm({
     defaultValues: { name: '', ticker: '' },
     mode: 'onChange'
   })
-  const { errors, isValid, isSubmitting, isSubmitSuccessful } = form.formState
+  const { errors, isValid, isSubmitting } = form.formState
 
   const submit = form.handleSubmit(async (input) => {
     try {
       await createOrga(input)
-      setTimeout(onClose, socialPanelAutoCloseMs())
+      toast.success(t('universe.socialPage.createOrgaForm.success'))
+      onClose()
     } catch (err) {
       form.setError('root.server', { message: getSocialErrorMessage(err, t) })
     }
@@ -80,11 +81,6 @@ export default function CreateOrganisationForm({
             />
           )}
         />
-        {isSubmitSuccessful && !errors.root?.server && (
-          <p className="text-xs text-emerald-400">
-            {t('universe.socialPage.createOrgaForm.success')}
-          </p>
-        )}
         {errors.root?.server && (
           <p className="text-xs text-red-400">{errors.root.server.message}</p>
         )}

@@ -2,13 +2,20 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { seedSocial } from '../../../test/seedSocial'
+import { Toaster } from '@components/ui/sonner'
 import CreateOrganisationForm from './CreateOrganisationForm'
 
 describe('CreateOrganisationForm', () => {
   it('upper-cases the ticker and creates the organisation', async () => {
     seedSocial({})
     vi.mocked(window.api.socialCreateOrganisation).mockResolvedValue({ ok: true, data: undefined })
-    render(<CreateOrganisationForm onClose={vi.fn()} />)
+    const onClose = vi.fn()
+    render(
+      <>
+        <CreateOrganisationForm onClose={onClose} />
+        <Toaster />
+      </>
+    )
     const [name, ticker] = screen.getAllByRole('textbox')
     await userEvent.type(name, 'Nova Corp')
     await userEvent.type(ticker, 'nova12')
@@ -18,7 +25,10 @@ describe('CreateOrganisationForm', () => {
       name: 'Nova Corp',
       ticker: 'NOVA1'
     })
-    expect(await screen.findByText('Organization created!')).toBeInTheDocument()
+    // Told in a toast, the form closes at once
+    const message = await screen.findByText('Organization created!')
+    expect(message.closest('[data-sonner-toast]')).not.toBeNull()
+    expect(onClose).toHaveBeenCalledOnce()
   })
 
   it('shows why the creation was refused', async () => {
@@ -27,7 +37,13 @@ describe('CreateOrganisationForm', () => {
       ok: false,
       error: 'nameOrTickerTaken'
     })
-    render(<CreateOrganisationForm onClose={vi.fn()} />)
+    const onClose = vi.fn()
+    render(
+      <>
+        <CreateOrganisationForm onClose={onClose} />
+        <Toaster />
+      </>
+    )
     const [name, ticker] = screen.getAllByRole('textbox')
     await userEvent.type(name, 'Nova Corp')
     await userEvent.type(ticker, 'NOVA')

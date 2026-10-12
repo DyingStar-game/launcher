@@ -1,6 +1,7 @@
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import type { OrganisationProfile } from '@shared/types/social'
 import {
   RECRUITMENT_MODES,
@@ -48,13 +49,14 @@ export default function OrganisationDetailsForm({
     defaultValues: initial,
     mode: 'onChange'
   })
-  const { errors, isDirty, isValid, isSubmitting, isSubmitSuccessful } = form.formState
+  const { errors, isDirty, isValid, isSubmitting } = form.formState
   const recruitmentId = `${organisation.id}-recruitment`
 
   const submit = form.handleSubmit(async (values) => {
     try {
       await update.mutateAsync(toOrganisationPatch(initial, values))
       form.reset(values)
+      toast.success(t('universe.socialPage.manage.saved'))
     } catch (err) {
       form.setError('root.server', { message: getSocialErrorMessage(err, t) })
     }
@@ -140,11 +142,6 @@ export default function OrganisationDetailsForm({
       {errors.root?.server && (
         <p role="alert" className="text-sm text-red-400">
           {errors.root.server.message}
-        </p>
-      )}
-      {isSubmitSuccessful && !isDirty && !errors.root?.server && (
-        <p role="status" className="text-sm text-emerald-400">
-          {t('universe.socialPage.manage.saved')}
         </p>
       )}
       <div>

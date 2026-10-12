@@ -1,3 +1,6 @@
+import { Toaster } from '@components/ui/sonner'
+import { toastDurationMs } from '@lib/env'
+
 export type AppLayoutProps = {
   navbar: React.ReactNode
   /** Second header row, for the chosen universe (ADR 0034). */
@@ -6,7 +9,7 @@ export type AppLayoutProps = {
   children: React.ReactNode
 }
 
-/** Application frame: navbar, universe bar, then the page (ADR 0011). */
+/** Application frame: navbar, universe bar, then the page (ADR 0011), and the toasts. */
 export default function AppLayout({
   navbar,
   universeBar,
@@ -17,6 +20,7 @@ export default function AppLayout({
       {navbar}
       {universeBar}
       <main className="flex min-h-0 flex-1 flex-col bg-ds-bg">{children}</main>
+      <Toaster duration={toastDurationMs()} />
     </div>
   )
 }

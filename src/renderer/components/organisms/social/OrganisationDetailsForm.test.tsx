@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import type { OrganisationProfile } from '@shared/types/social'
 import { seedSocial } from '../../../test/seedSocial'
+import { Toaster } from '@components/ui/sonner'
 import OrganisationDetailsForm from './OrganisationDetailsForm'
 
 const organisation: OrganisationProfile = {
@@ -33,7 +34,12 @@ describe('OrganisationDetailsForm', () => {
   it('sends only what changed, and says it is saved', async () => {
     seedSocial({})
     vi.mocked(window.api.socialUpdateOrganisation).mockResolvedValue({ ok: true, data: undefined })
-    render(<OrganisationDetailsForm organisation={organisation} />)
+    render(
+      <>
+        <OrganisationDetailsForm organisation={organisation} />
+        <Toaster />
+      </>
+    )
     await userEvent.clear(screen.getByRole('textbox', { name: /Tag/ }))
     await userEvent.type(screen.getByRole('textbox', { name: /Tag/ }), 'nv')
     await userEvent.click(screen.getByRole('radio', { name: 'Not recruiting' }))
@@ -44,7 +50,8 @@ describe('OrganisationDetailsForm', () => {
         recruitment: 'closed'
       })
     )
-    expect(await screen.findByText('Changes saved.')).toBeInTheDocument()
+    const message = await screen.findByText('Changes saved.')
+    expect(message.closest('[data-sonner-toast]')).not.toBeNull()
   })
 
   it('explains a taken name or tag', async () => {
