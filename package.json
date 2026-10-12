@@ -97,6 +97,7 @@
     "typecheck": "pnpm run typecheck:node && pnpm run typecheck:web",
     "test": "vitest run",
     "test:browser:install": "playwright install chromium",
+    "key-art": "node scripts/key-art.mts",
     "start": "install-electron && electron-vite preview",
     "dev": "install-electron && electron-vite dev",
     "build": "pnpm run typecheck && electron-vite build",

@@ -165,6 +165,10 @@ Le process main appelle le service `social` (`src/main/services/social/`, [ADR 0
 
 Le sélecteur de la navbar change `useEnvStore().activeEnv` ; la plupart des stores sont indexés par `Env`.
 
+### Images de l’accueil
+
+La page d’accueil fait défiler en fondu les images WebP de `src/renderer/assets/key-art/`, dans l’ordre de leurs noms. Pour en ajouter une, déposer le PNG ou le JPEG dans `key-art/` à la racine du dépôt (non versionné) et lancer `make key-art` : les images nouvelles ou modifiées sont converties en WebP dans le dossier des assets, prises en compte sans toucher au code. `ARGS="--force"` reconvertit tout, `ARGS="--quality=0.9"` règle la qualité WebP (0.82 par défaut). Voir le README.
+
 ## Avant d’ouvrir une PR
 
 1. Partir de **`develop`**

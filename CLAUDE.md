@@ -27,15 +27,16 @@ The rules are enforced, not only written. Do not disable or bypass them (no `--n
 
 Go through the root `Makefile` (ADR 0002): a thin, host-side wrapper over the pnpm scripts (no Docker — Electron needs a native window). Node 24 (`.nvmrc`), pnpm 12 pinned by `packageManager`; pnpm settings live in `pnpm-workspace.yaml` (`.npmrc` is auth/registry only since pnpm 11). Versions and held-back upgrades: ADR 0006. `make help` lists every target.
 
-| Need                         | Command                                                                                            |
-| ---------------------------- | -------------------------------------------------------------------------------------------------- |
-| Install (creates `.env`)     | `make install` — `.env` comes from `.env.example`; `VITE_*` vars are baked in at build time        |
-| Hot-reload dev               | `make dev` (`PLATFORM=x11` or `PLATFORM=wayland` forces the Linux display backend; default: auto)  |
-| Production preview (testers) | `make start`                                                                                       |
-| Any pnpm script              | `make pnpm <cmd>`, flags via `ARGS`, e.g. `make pnpm typecheck:web`, `make pnpm add zod ARGS="-D"` |
-| Checks before committing     | `make check` (format, lint, typecheck, test, format check); a change is done only when it passes   |
-| Build / installer            | `make build` (→ `out/`), `make package` (current OS → `release/`), `make package-dir`              |
-| Clean                        | `make clean`                                                                                       |
+| Need                         | Command                                                                                                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Install (creates `.env`)     | `make install` — `.env` comes from `.env.example`; `VITE_*` vars are baked in at build time                                                                      |
+| Hot-reload dev               | `make dev` (`PLATFORM=x11` or `PLATFORM=wayland` forces the Linux display backend; default: auto)                                                                |
+| Production preview (testers) | `make start`                                                                                                                                                     |
+| Any pnpm script              | `make pnpm <cmd>`, flags via `ARGS`, e.g. `make pnpm typecheck:web`, `make pnpm add zod ARGS="-D"`                                                               |
+| Checks before committing     | `make check` (format, lint, typecheck, test, format check); a change is done only when it passes                                                                 |
+| Build / installer            | `make build` (→ `out/`), `make package` (current OS → `release/`), `make package-dir`                                                                            |
+| Clean                        | `make clean`                                                                                                                                                     |
+| Home page key art            | `make key-art`: PNG / JPEG dropped in `key-art/` (not versioned) → WebP in `src/renderer/assets/key-art/`, read by `lib/keyArt.ts`; never convert images by hand |
 
 `typecheck` covers main/preload (`tsconfig.node.json`) and renderer (`tsconfig.web.json`); `typecheck:node` / `typecheck:web` check one side. Prettier: single quotes, no semicolons, width 100, no trailing commas.
 

@@ -165,6 +165,10 @@ The main process calls the `social` service (`src/main/services/social/`, [ADR 0
 
 The navbar env switcher changes `useEnvStore().activeEnv`; most stores are keyed by `Env`.
 
+### Home page key art
+
+The home page fades between the WebP images of `src/renderer/assets/key-art/`, in file name order. To add one, drop the PNG or JPEG in `key-art/` at the repository root (not versioned) and run `make key-art`: it converts new or changed images to WebP into the assets folder, picked up without touching the code. `ARGS="--force"` converts everything again, `ARGS="--quality=0.9"` sets the WebP quality (0.82 by default). See the README.
+
 ## Before opening a PR
 
 1. Branch from **`develop`**
