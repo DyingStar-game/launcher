@@ -1,4 +1,5 @@
 import { getApiBase, ENDPOINTS } from '../../config/api'
+import { HTTP_TIMEOUT_MS } from '../../config/constants'
 import { AUTH_CLIENT_ID, AUTH_REALM, AUTH_REDIRECT_URI, AUTH_SCOPES } from '../../config/auth'
 import type { Env } from '@shared/types/env'
 import type { TokenSet } from './types'
@@ -55,4 +56,22 @@ export function mergeTokenSet(previous: TokenSet, refreshed: TokenSet): TokenSet
     idCandidates.find((t) => isValidGameLaunchToken(t)) ?? refreshed.id_token ?? previous.id_token
 
   return { ...previous, ...refreshed, id_token }
+}
+
+/**
+ * Ends the Keycloak session in the background (a public client may, with its refresh token), so
+ * the next sign-in asks again; false when Keycloak did not confirm.
+ */
+export async function endSession(kcBase: string, token: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${kcBase}/realms/${AUTH_REALM}/protocol/openid-connect/logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ client_id: AUTH_CLIENT_ID, refresh_token: token }).toString(),
+      signal: AbortSignal.timeout(HTTP_TIMEOUT_MS.api)
+    })
+    return res.ok
+  } catch {
+    return false
+  }
 }

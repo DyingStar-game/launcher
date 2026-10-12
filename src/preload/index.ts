@@ -141,7 +141,7 @@ const api = {
   /** Closes the OAuth window and cancels an in-flight login attempt. */
   authCancelLogin: (env: Env): Promise<void> => ipcRenderer.invoke('auth:cancel-login', env),
 
-  /** Clears stored tokens and opens Keycloak logout. */
+  /** Signs out: clears stored tokens, ends the Keycloak session and forgets the sign-in cookies, in the background. */
   authLogout: (env: Env): Promise<void> => ipcRenderer.invoke('auth:logout', env),
 
   /** Refreshes the session and returns the user profile, or null if logged out. */
