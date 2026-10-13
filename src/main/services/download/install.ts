@@ -9,6 +9,7 @@ import { extractZip } from './extract'
 import { resolveInstalledVersion } from './manifest'
 import { sendProgress } from './progress'
 import { deletePartialDownload } from './partial'
+import { listArchiveFiles, readGameFiles, removeGameFiles, writeGameFiles } from './gameFiles'
 
 /** Why a download was stopped by the player (ADR 0036). */
 type StopReason = 'paused' | 'cancelled'
@@ -73,12 +74,15 @@ export async function downloadAndInstall(
     try {
       const gameRoot = path.join(installPath, GAME_INSTALL_SUBDIR)
       sendProgress(win, 68, { key: 'preparing' })
-      if (fs.existsSync(gameRoot)) {
-        fs.rmSync(gameRoot, { recursive: true, force: true })
-      }
+      // Only the files a previous archive installed go: the player's own stay (ADR 0038)
+      const archiveFiles = await listArchiveFiles(zipFilePath)
+      const installedFiles = readGameFiles(installPath) ?? []
+      writeGameFiles(installPath, [...installedFiles, ...archiveFiles])
+      removeGameFiles(gameRoot, installedFiles)
       fs.mkdirSync(gameRoot, { recursive: true })
 
       await extractZip(zipFilePath, gameRoot, win)
+      writeGameFiles(installPath, archiveFiles)
       sendProgress(win, 99, { key: 'cleaning' })
       deletePartialDownload(installPath)
       const manifest = await resolveInstalledVersion(env, gameRoot)

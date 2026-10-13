@@ -28,6 +28,9 @@ export const GAME_DOWNLOAD_ZIP_NAME = '__game_download.zip'
 /** What identifies a partial download, beside its ZIP, for resuming it (ADR 0036). */
 export const GAME_DOWNLOAD_META_NAME = '__game_download.json'
 
+/** Files the launcher extracted into the game folder, removed on update (ADR 0038). */
+export const GAME_FILES_LIST_NAME = '__game_files.json'
+
 /** Platform-specific game executable names (relative to game root). */
 export const GAME_EXECUTABLES: Partial<Record<NodeJS.Platform, string>> = {
   win32: (import.meta.env.VITE_GAME_EXE_WINDOWS ?? 'DyingStar.exe').trim() || 'DyingStar.exe',
