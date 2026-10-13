@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '../../test/render'
 import Avatar from './Avatar'
 
 describe('Avatar', () => {
@@ -12,6 +12,11 @@ describe('Avatar', () => {
   it('shows a label instead of the initial', () => {
     render(<Avatar name="Nova Corp" label="NO" shape="square" />)
     expect(screen.getByText('NO')).toBeInTheDocument()
+  })
+
+  it('shows an icon instead of the initial', () => {
+    render(<Avatar name="" icon={<svg data-testid="icon" />} />)
+    expect(screen.getByTestId('icon')).toBeInTheDocument()
   })
 
   it('shows a presence dot for a status', () => {

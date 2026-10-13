@@ -1,4 +1,6 @@
-type Props = {
+import { cn } from '@lib/cn'
+
+export type DetailPageLayoutProps = {
   /** Back button (or nothing). */
   back?: React.ReactNode
   /** Identity block: avatar, name, status, action. */
@@ -24,18 +26,24 @@ export default function DetailPageLayout({
   aside,
   placeholder,
   scrollRef
-}: Props): React.JSX.Element {
+}: DetailPageLayoutProps): React.JSX.Element {
   return (
-    <div ref={scrollRef} className="ds-page overflow-y-auto">
+    <div ref={scrollRef} className="flex size-full min-h-0 flex-auto bg-ds-bg overflow-y-auto">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6">
         {back && <div>{back}</div>}
         {placeholder ?? (
           <>
             {header}
             {stats}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            {/* Without an aside (edit and management pages), the main column takes the width */}
+            <div
+              className={cn(
+                'grid grid-cols-1 gap-6',
+                aside && 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]'
+              )}
+            >
               <div className="flex min-w-0 flex-col gap-6">{main}</div>
-              <div className="flex min-w-0 flex-col gap-6">{aside}</div>
+              {aside && <div className="flex min-w-0 flex-col gap-6">{aside}</div>}
             </div>
           </>
         )}

@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactElement } from 'react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@components/ui/tooltip'
 
-type Props = {
+export type LabelTooltipProps = {
   /** Text of the tooltip (the trigger keeps its own `aria-label`). */
   label: string
   side?: 'top' | 'right' | 'bottom' | 'left'
@@ -20,7 +20,7 @@ export default function LabelTooltip({
   label,
   side = 'bottom',
   children
-}: Props): React.JSX.Element {
+}: LabelTooltipProps): React.JSX.Element {
   const [open, setOpen] = useState(false)
   const hoveredRef = useRef(false)
 

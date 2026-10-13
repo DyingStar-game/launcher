@@ -1,27 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '../../test/render'
 import UniverseLayout from './UniverseLayout'
 
 describe('UniverseLayout', () => {
-  it('shows banner, alert and the four panels', () => {
+  it('shows the hero, the side column, the strip and the action bar', () => {
     render(
       <UniverseLayout
-        banner={<p>Banner</p>}
-        alert={<p>Alert</p>}
-        panels={[<p key="1">A</p>, <p key="2">B</p>, <p key="3">C</p>, <p key="4">D</p>]}
+        hero={<p>Hero</p>}
+        backdrop={<p>Key art</p>}
+        side={<p>Social</p>}
+        banner={<p>Launcher update</p>}
+        actionBar={<p>Action bar</p>}
       />
     )
-    for (const text of ['Banner', 'Alert', 'A', 'B', 'C', 'D']) {
+    for (const text of ['Hero', 'Social', 'Launcher update', 'Action bar']) {
       expect(screen.getByText(text)).toBeInTheDocument()
     }
-  })
-
-  it('omits the alert wrapper without an alert', () => {
-    const { container } = render(
-      <UniverseLayout
-        panels={[<p key="1">A</p>, <p key="2">B</p>, <p key="3">C</p>, <p key="4">D</p>]}
-      />
-    )
-    expect(container.querySelector('.pt-3')).toBeNull()
+    // The backdrop is decorative
+    expect(screen.getByText('Key art').parentElement).toHaveAttribute('aria-hidden', 'true')
   })
 })

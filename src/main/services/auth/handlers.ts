@@ -29,9 +29,7 @@ export function registerAuthHandlers(win: BrowserWindow): void {
     cancelLogin(env)
   })
 
-  ipcMain.handle('auth:logout', (_event, env: Env) => {
-    logout(env)
-  })
+  ipcMain.handle('auth:logout', (_event, env: Env) => logout(env))
 
   ipcMain.handle('auth:load-user', async (_event, env: Env): Promise<UserInfo | null> => {
     return loadUserProfile(env)

@@ -44,7 +44,8 @@ const levelRules = (patterns, pure) => ({
  */
 const LAYOUT_CLASS =
   /^-?(?:m[trblxyse]?|p[trblxyse]?|space-[xy]|w|h|min-w|min-h|max-w|max-h|size|inset(?:-[xy])?|top|bottom|left|right|start|end|z|gap(?:-[xy])?|basis|order|col(?:-span|-start|-end)?|row(?:-span|-start|-end)?|flex|grow|shrink|self|justify(?:-items|-self)?|items|content|place-(?:content|items|self)|overflow(?:-[xy])?|whitespace|break)-.+$|^(?:hidden|block|inline|inline-block|inline-flex|inline-grid|flex|grid|contents|flow-root|relative|absolute|fixed|sticky|static|isolate|truncate|grow|shrink|sr-only|text-(?:left|right|center|justify|start|end))$/
-const RESPONSIVE_PREFIX = /^(?:(?:sm|md|lg|xl|2xl|min-\[[^\]]+\]|max-\[[^\]]+\]):)+/
+const RESPONSIVE_PREFIX =
+  /^(?:(?:max-)?(?:sm|md|lg|xl|2xl|nav-env|nav-full):|(?:min|max)-\[[^\]]+\]:)+/
 
 /** Collects the static class strings of a className value (literals, templates, cn() args). */
 function classStrings(node, out = []) {
@@ -81,6 +82,94 @@ const classNameLayoutOnly = {
         }
       }
     }
+  }
+}
+
+/** A rule reporting every renderer string (classes also live in `cva()` and constants) matching `pattern`. */
+function stringRule(pattern, message) {
+  return {
+    meta: { type: 'problem', schema: [] },
+    create(context) {
+      const check = (node, text) => {
+        const match = pattern.exec(text)
+        if (match) context.report({ node, message: message(match[0]) })
+      }
+      return {
+        Literal(node) {
+          if (typeof node.value === 'string') check(node, node.value)
+        },
+        TemplateElement(node) {
+          check(node, node.value.cooked ?? '')
+        }
+      }
+    }
+  }
+}
+
+/** ADR 0026: no `px` in a Tailwind arbitrary value or variant (`-[…px…]`, `[…px…]:`). */
+const noPxClasses = stringRule(
+  /\[[^\]\s]*\d(?:\.\d+)?px[^\]\s]*\]/,
+  (found) =>
+    `ADR 0026: no px in Tailwind classes (${found}); use the scale or a theme token in rem.`
+)
+
+/**
+ * ADR 0031: a theme token is used through its utility (`text-ds-muted`), never as an arbitrary
+ * value (`text-[var(--color-ds-muted)]`, `text-(--color-ds-muted)`). Variables outside the theme
+ * (`--radix-*`) and expressions (`calc()`, `color-mix()`) stay allowed.
+ */
+const noThemeVarClasses = stringRule(
+  /[\w-]+-(?:\[var\(|\()--(?:color|shadow|radius|text|font|spacing)-[\w-]+\)\]?/,
+  (found) => `ADR 0031: use the theme utility, not the variable (${found}): e.g. text-ds-muted.`
+)
+
+/** ADR 0031: equal width and height are one `size-*` class (`size-8`, not `w-8 h-8`). */
+const preferSize = stringRule(
+  /(?:^|\s)((?:[^\s:]+:)*!?)w-(\S+)(?=\s).*?\s\1h-\2(?=\s|$)|(?:^|\s)((?:[^\s:]+:)*!?)h-(\S+)(?=\s).*?\s\3w-\4(?=\s|$)/s,
+  (found) => `ADR 0031: use size-* for an equal width and height (${found.trim()}).`
+)
+
+/**
+ * ADR 0031: file names follow what the file holds. shadcn code (`components/ui/`): kebab-case, as
+ * the CLI writes it; another `.tsx`: PascalCase, the component it exports (the entry `main.tsx`
+ * aside); a `.ts`: camelCase, its function or module. A test takes its subject's name (a hook's
+ * test is a camelCase `.test.tsx`).
+ */
+const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const PASCAL = /^[A-Z][A-Za-z0-9]*$/
+const CAMEL = /^[a-z][A-Za-z0-9]*$/
+
+const filenameCase = {
+  meta: { type: 'suggestion', schema: [] },
+  create(context) {
+    return {
+      Program(node) {
+        const path = context.filename.replace(/\\/g, '/')
+        const file = path.slice(path.lastIndexOf('/') + 1)
+        const [, base, test, ext] = /^(.+?)(?:\.browser)?(\.test)?(\.d)?\.tsx?$/.exec(file) ?? []
+        if (!base || ext) return
+        const tsx = file.endsWith('.tsx')
+        const [expected, ok] = path.includes('/components/ui/')
+          ? ['kebab-case', KEBAB.test(base)]
+          : test
+            ? ['PascalCase or camelCase, as its subject', PASCAL.test(base) || CAMEL.test(base)]
+            : tsx
+              ? ['PascalCase', PASCAL.test(base) || file === 'main.tsx']
+              : ['camelCase', CAMEL.test(base)]
+        if (!ok) context.report({ node, message: `ADR 0031: ${file} should be ${expected}.` })
+      }
+    }
+  }
+}
+
+/** The launcher's own rules (ADR 0017, 0026, 0031). */
+const launcherPlugin = {
+  rules: {
+    'classname-layout-only': classNameLayoutOnly,
+    'no-px-classes': noPxClasses,
+    'no-theme-var-classes': noThemeVarClasses,
+    'filename-case': filenameCase,
+    'prefer-size': preferSize
   }
 }
 
@@ -165,10 +254,26 @@ export default defineConfig(
     }
   },
   {
+    // ADR 0031: file names by kind (shadcn kebab-case, components PascalCase, modules camelCase)
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: { launcher: launcherPlugin },
+    rules: { 'launcher/filename-case': 'error' }
+  },
+  {
+    // ADR 0026, 0031: no px, no theme variable, size-* in classes, shadcn code included
+    files: ['src/renderer/**/*.{ts,tsx}'],
+    plugins: { launcher: launcherPlugin },
+    rules: {
+      'launcher/no-px-classes': 'error',
+      'launcher/no-theme-var-classes': 'error',
+      'launcher/prefer-size': 'error'
+    }
+  },
+  {
     // ADR 0017: generated shadcn code composes Radix primitives with their own look
     files: ['src/renderer/**/*.tsx'],
     ignores: ['src/renderer/components/ui/**'],
-    plugins: { launcher: { rules: { 'classname-layout-only': classNameLayoutOnly } } },
+    plugins: { launcher: launcherPlugin },
     rules: {
       'launcher/classname-layout-only': 'error',
       // ADR 0016: tooltips are Radix (LabelTooltip), never the native `title` attribute; the
@@ -177,7 +282,33 @@ export default defineConfig(
       'react/forbid-component-props': [
         'error',
         {
-          forbid: [{ propName: 'title', allowedFor: ['PageHeader', 'SheetSection'] }]
+          forbid: [
+            {
+              propName: 'title',
+              allowedFor: ['PageHeader', 'SheetSection', 'ConfirmDialog']
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    // ADR 0031: a component's props are a named `<Component>Props` type (shadcn code and test
+    // helpers aside)
+    files: ['src/renderer/**/*.tsx'],
+    ignores: ['src/renderer/components/ui/**', 'src/renderer/**/*.test.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            ':matches(TSTypeAliasDeclaration, TSInterfaceDeclaration)[id.name=/^(Own)?Props$/]',
+          message: 'ADR 0031: name the props after the component (`AvatarProps`), not `Props`.'
+        },
+        {
+          selector:
+            'FunctionDeclaration[id.name=/^[A-Z]/] > ObjectPattern > TSTypeAnnotation > TSTypeLiteral',
+          message: 'ADR 0031: type the props with a named `<Component>Props` type, not inline.'
         }
       ]
     }

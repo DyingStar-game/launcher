@@ -1,73 +1,98 @@
-import { useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
-import { useSocialStore } from '@stores/social'
+import { useCreateOrganisation } from '@hooks/social/useSocialActions'
+import {
+  createOrganisationSchema,
+  type CreateOrganisation,
+  type CreateOrganisationInput
+} from '@shared/schemas/social'
 import Button from '@components/atoms/Button'
+import Panel from '@components/atoms/Panel'
 import InputField from '@components/molecules/InputField'
-import { socialPanelAutoCloseMs } from '@lib/env'
+import { toast } from 'sonner'
+import { fieldError } from '@lib/formErrors'
 import { getSocialErrorMessage } from '@lib/socialErrors'
 
-/** Inline form to create a new organization. */
+export type CreateOrganisationFormProps = {
+  onClose: () => void
+}
+
+/** Inline form to create a new organization (React Hook Form, ADR 0022). */
 export default function CreateOrganisationForm({
   onClose
-}: {
-  onClose: () => void
-}): React.JSX.Element {
+}: CreateOrganisationFormProps): React.JSX.Element {
   const { t } = useTranslation()
-  const { createOrga } = useSocialStore()
-  const [name, setName] = useState('')
-  const [ticker, setTicker] = useState('')
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [errorMsg, setErrorMsg] = useState('')
+  const createOrga = useCreateOrganisation().mutateAsync
+  const form = useForm<CreateOrganisationInput, unknown, CreateOrganisation>({
+    resolver: zodResolver(createOrganisationSchema),
+    defaultValues: { name: '', ticker: '' },
+    mode: 'onChange'
+  })
+  const { errors, isValid, isSubmitting } = form.formState
 
-  const handleSubmit = async (): Promise<void> => {
-    if (!name.trim() || !ticker.trim()) return
-    setStatus('loading')
-    setErrorMsg('')
+  const submit = form.handleSubmit(async (input) => {
     try {
-      await createOrga(name, ticker)
-      setStatus('success')
-      setName('')
-      setTicker('')
-      setTimeout(onClose, socialPanelAutoCloseMs())
+      await createOrga(input)
+      toast.success(t('universe.socialPage.createOrgaForm.success'))
+      onClose()
     } catch (err) {
-      setStatus('error')
-      setErrorMsg(getSocialErrorMessage(err, t))
+      form.setError('root.server', { message: getSocialErrorMessage(err, t) })
     }
-  }
+  })
 
   return (
-    <div className="ds-card flex flex-col gap-3 p-4">
-      <p className="text-[10px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.2em]">
-        {t('universe.socialPage.createOrgaForm.title')}
-      </p>
-      <InputField
-        label={t('universe.socialPage.createOrgaForm.nameLabel')}
-        value={name}
-        onChange={setName}
-        placeholder={t('universe.socialPage.createOrgaForm.namePlaceholder')}
-        disabled={status === 'loading'}
-      />
-      <InputField
-        label={t('universe.socialPage.createOrgaForm.tickerLabel')}
-        value={ticker}
-        onChange={(value) => setTicker(value.toUpperCase().slice(0, 5))}
-        placeholder={t('universe.socialPage.createOrgaForm.tickerPlaceholder')}
-        disabled={status === 'loading'}
-        action={{
-          label: t('common.create'),
-          onClick: handleSubmit,
-          loading: status === 'loading'
-        }}
-      />
-      {status === 'success' && (
-        <p className="text-xs text-emerald-400">
-          {t('universe.socialPage.createOrgaForm.success')}
+    <Panel variant="card" asChild className="flex flex-col gap-3 p-4">
+      <form onSubmit={submit} noValidate>
+        <p className="text-2xs font-semibold text-ds-muted uppercase tracking-[0.2em]">
+          {t('universe.socialPage.createOrgaForm.title')}
         </p>
-      )}
-      {status === 'error' && <p className="text-xs text-red-400">{errorMsg}</p>}
-      <Button variant="link" size="none" onClick={onClose} className="self-start">
-        {t('common.cancel')}
-      </Button>
-    </div>
+        <Controller
+          control={form.control}
+          name="name"
+          render={({ field, fieldState }) => (
+            <InputField
+              label={t('universe.socialPage.createOrgaForm.nameLabel')}
+              name={field.name}
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              maxLength={48}
+              placeholder={t('universe.socialPage.createOrgaForm.namePlaceholder')}
+              disabled={isSubmitting}
+              error={fieldError(fieldState, t)}
+            />
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="ticker"
+          render={({ field, fieldState }) => (
+            <InputField
+              label={t('universe.socialPage.createOrgaForm.tickerLabel')}
+              name={field.name}
+              value={field.value}
+              onChange={(value) => field.onChange(value.toUpperCase())}
+              onBlur={field.onBlur}
+              maxLength={5}
+              placeholder={t('universe.socialPage.createOrgaForm.tickerPlaceholder')}
+              disabled={isSubmitting}
+              error={fieldError(fieldState, t)}
+            />
+          )}
+        />
+        {errors.root?.server && (
+          <p className="text-xs text-red-400">{errors.root.server.message}</p>
+        )}
+        <div className="flex items-center gap-3">
+          <Button type="submit" variant="primary" disabled={!isValid} loading={isSubmitting}>
+            {t('common.create')}
+          </Button>
+          <Button variant="link" size="none" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+        </div>
+      </form>
+    </Panel>
   )
 }

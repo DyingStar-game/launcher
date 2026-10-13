@@ -2,6 +2,19 @@ import { ipcMain } from 'electron'
 import type { Env } from '@shared/types/env'
 import {
   acceptFriendRequest,
+  updateOrganisation,
+  getOrganisationRequests,
+  inviteToOrganisation,
+  setMemberRank,
+  removeMember,
+  getOrganisationRanks,
+  createRank,
+  updateRank,
+  deleteRank,
+  transferOrganisation,
+  disbandOrganisation,
+  answerOrganisationInvitation,
+  answerOrganisationRequest,
   createOrganisation,
   declineFriendRequest,
   getOrganisation,
@@ -10,7 +23,9 @@ import {
   joinOrganisation,
   loadSocial,
   removeFriend,
+  searchOrganisations,
   searchPlayers,
+  updateProfile,
   sendFriendRequest
 } from './service'
 
@@ -27,8 +42,23 @@ export function registerSocialHandlers(): void {
   ipcMain.removeHandler('social:decline-request')
   ipcMain.removeHandler('social:join-organisation')
   ipcMain.removeHandler('social:create-organisation')
+  ipcMain.removeHandler('social:answer-organisation-invitation')
+  ipcMain.removeHandler('social:search-organisations')
+  ipcMain.removeHandler('social:answer-organisation-request')
+  ipcMain.removeHandler('social:update-profile')
+  ipcMain.removeHandler('social:update-organisation')
+  ipcMain.removeHandler('social:get-organisation-requests')
+  ipcMain.removeHandler('social:invite-to-organisation')
+  ipcMain.removeHandler('social:set-member-rank')
+  ipcMain.removeHandler('social:remove-member')
+  ipcMain.removeHandler('social:get-organisation-ranks')
+  ipcMain.removeHandler('social:create-rank')
+  ipcMain.removeHandler('social:update-rank')
+  ipcMain.removeHandler('social:delete-rank')
+  ipcMain.removeHandler('social:transfer-organisation')
+  ipcMain.removeHandler('social:disband-organisation')
 
-  ipcMain.handle('social:load', (_event, env: Env, search?: string) => loadSocial(env, search))
+  ipcMain.handle('social:load', (_event, env: Env) => loadSocial(env))
   ipcMain.handle('social:search-players', (_event, env: Env, query: string) =>
     searchPlayers(env, query)
   )
@@ -58,7 +88,68 @@ export function registerSocialHandlers(): void {
   ipcMain.handle('social:join-organisation', (_event, env: Env, corporationId: string) =>
     joinOrganisation(env, corporationId)
   )
-  ipcMain.handle('social:create-organisation', (_event, env: Env, name: string, ticker: string) =>
-    createOrganisation(env, name, ticker)
+  ipcMain.handle('social:create-organisation', (_event, env: Env, input: unknown) =>
+    createOrganisation(env, input)
+  )
+  ipcMain.handle(
+    'social:answer-organisation-invitation',
+    (_event, env: Env, requestId: number, accept: boolean) =>
+      answerOrganisationInvitation(env, requestId, accept)
+  )
+  ipcMain.handle('social:search-organisations', (_event, env: Env, query: string) =>
+    searchOrganisations(env, query)
+  )
+  ipcMain.handle(
+    'social:answer-organisation-request',
+    (_event, env: Env, corporationId: string, requestId: number, accept: boolean) =>
+      answerOrganisationRequest(env, corporationId, requestId, accept)
+  )
+  ipcMain.handle('social:update-profile', (_event, env: Env, patch: unknown) =>
+    updateProfile(env, patch)
+  )
+  ipcMain.handle(
+    'social:update-organisation',
+    (_event, env: Env, corporationId: string, patch: unknown) =>
+      updateOrganisation(env, corporationId, patch)
+  )
+  ipcMain.handle('social:get-organisation-requests', (_event, env: Env, corporationId: string) =>
+    getOrganisationRequests(env, corporationId)
+  )
+  ipcMain.handle(
+    'social:invite-to-organisation',
+    (_event, env: Env, corporationId: string, playerId: string) =>
+      inviteToOrganisation(env, corporationId, playerId)
+  )
+  ipcMain.handle(
+    'social:set-member-rank',
+    (_event, env: Env, corporationId: string, playerId: string, rankId: number) =>
+      setMemberRank(env, corporationId, playerId, rankId)
+  )
+  ipcMain.handle(
+    'social:remove-member',
+    (_event, env: Env, corporationId: string, playerId: string) =>
+      removeMember(env, corporationId, playerId)
+  )
+  ipcMain.handle('social:get-organisation-ranks', (_event, env: Env, corporationId: string) =>
+    getOrganisationRanks(env, corporationId)
+  )
+  ipcMain.handle('social:create-rank', (_event, env: Env, corporationId: string, rank: unknown) =>
+    createRank(env, corporationId, rank)
+  )
+  ipcMain.handle(
+    'social:update-rank',
+    (_event, env: Env, corporationId: string, rankId: number, rank: unknown) =>
+      updateRank(env, corporationId, rankId, rank)
+  )
+  ipcMain.handle('social:delete-rank', (_event, env: Env, corporationId: string, rankId: number) =>
+    deleteRank(env, corporationId, rankId)
+  )
+  ipcMain.handle(
+    'social:transfer-organisation',
+    (_event, env: Env, corporationId: string, playerId: string) =>
+      transferOrganisation(env, corporationId, playerId)
+  )
+  ipcMain.handle('social:disband-organisation', (_event, env: Env, corporationId: string) =>
+    disbandOrganisation(env, corporationId)
   )
 }

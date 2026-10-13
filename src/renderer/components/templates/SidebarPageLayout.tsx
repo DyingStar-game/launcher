@@ -1,18 +1,18 @@
-type Props = {
+export type SidebarPageLayoutProps = {
   sidebar: React.ReactNode
   /** Content column; padded unless `bare` (when the content brings its own layout). */
   children: React.ReactNode
   bare?: boolean
 }
 
-/** Page with a navigation sidebar and a content column (social, lore, changelog). */
+/** Page with a navigation sidebar and a content column (social, changelog). */
 export default function SidebarPageLayout({
   sidebar,
   children,
   bare = false
-}: Props): React.JSX.Element {
+}: SidebarPageLayoutProps): React.JSX.Element {
   return (
-    <div className="ds-page">
+    <div className="flex size-full min-h-0 flex-auto bg-ds-bg">
       {sidebar}
       {bare ? (
         children

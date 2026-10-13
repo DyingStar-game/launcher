@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '../../test/render'
 import userEvent from '@testing-library/user-event'
 import InputField from './InputField'
 
@@ -48,5 +48,17 @@ describe('InputField', () => {
       />
     )
     expect(screen.getByRole('button', { name: 'Create' })).toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('is named by its label', () => {
+    render(<InputField label="Ticker" value="" onChange={vi.fn()} />)
+    expect(screen.getByRole('textbox', { name: 'Ticker' })).toBeInTheDocument()
+  })
+
+  it('shows its error and marks the input invalid', () => {
+    render(<InputField label="Ticker" value="N" onChange={vi.fn()} error="Too short" />)
+    const input = screen.getByRole('textbox', { name: 'Ticker' })
+    expect(input).toBeInvalid()
+    expect(input).toHaveAccessibleDescription('Too short')
   })
 })

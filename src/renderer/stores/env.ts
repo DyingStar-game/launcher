@@ -10,9 +10,10 @@ interface EnvState {
 }
 
 /**
- * Tracks which game environment (universe / universe-testing) the UI operates on.
+ * Tracks which game environment (universe / universe-testing) the UI operates on; the launcher
+ * opens on Universe Testing.
  */
 export const useEnvStore = create<EnvState>((set) => ({
-  activeEnv: 'universe',
+  activeEnv: 'universe-testing',
   setEnv: (env) => set({ activeEnv: env })
 }))

@@ -1,19 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { useNavigationStore } from '@stores/navigation'
-import { useSocialStore } from '@stores/social'
 import { seedSocial } from '../../../test/seedSocial'
 import SocialPanel from './SocialPanel'
-
-const setLoading = (): void => {
-  act(() =>
-    useSocialStore.setState((s) => ({
-      fetchAll: vi.fn(() => Promise.resolve()),
-      data: { ...s.data, 'universe-testing': { ...s.data['universe-testing'], status: 'loading' } }
-    }))
-  )
-}
 
 describe('SocialPanel', () => {
   it('shows friends and the number of incoming requests', async () => {
@@ -24,6 +14,26 @@ describe('SocialPanel', () => {
     render(<SocialPanel />)
     expect(await screen.findByText('Kira')).toBeInTheDocument()
     expect(screen.getByText('1')).toBeInTheDocument()
+  })
+
+  it('lists friends alphabetically', async () => {
+    seedSocial({
+      friends: [
+        { id: 'p1', name: 'zed', status: 'online' },
+        { id: 'p2', name: 'Émile', status: 'offline' },
+        { id: 'p3', name: 'anna', status: 'mission' }
+      ]
+    })
+    render(<SocialPanel />)
+    await screen.findByText('anna')
+    const names = screen
+      .getAllByRole('button', { name: /Open the profile of/ })
+      .map((row) => row.getAttribute('aria-label'))
+    expect(names).toEqual([
+      'Open the profile of anna',
+      'Open the profile of Émile',
+      'Open the profile of zed'
+    ])
   })
 
   it('opens a friend sheet, and the social page', async () => {
@@ -40,7 +50,7 @@ describe('SocialPanel', () => {
 
   it('shows a skeleton of the friend list while loading', async () => {
     seedSocial({})
-    setLoading()
+    vi.mocked(window.api.socialLoad).mockReturnValue(new Promise(() => {}))
     render(<SocialPanel />)
     expect(await screen.findByRole('status', { name: 'Loading content' })).toBeInTheDocument()
   })

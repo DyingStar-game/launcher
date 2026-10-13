@@ -38,3 +38,9 @@ app/
 .claude/settings.local.json
 .claude/.check-ok
 .claude/.check-failed
+
+# Vitest browser mode: failure screenshots (ADR 0036)
+.vitest/
+
+# Key art sources: the PNG / JPEG converted to WebP by make key-art (scripts/key-art.mts)
+/key-art/

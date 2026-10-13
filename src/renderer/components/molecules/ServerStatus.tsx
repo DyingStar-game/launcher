@@ -1,7 +1,7 @@
 import type { ServerStatusValue } from '@shared/types/game'
 import { cn } from '@lib/cn'
 
-type Props = { status: ServerStatusValue }
+export type ServerStatusProps = { status: ServerStatusValue }
 
 const STATUS_CONFIG: Record<ServerStatusValue, { color: string; pulse: boolean }> = {
   online: { color: 'bg-emerald-400', pulse: true },
@@ -13,20 +13,20 @@ const STATUS_CONFIG: Record<ServerStatusValue, { color: string; pulse: boolean }
 }
 
 /** Colored status dot with optional pulse animation for live server state. */
-export default function ServerStatus({ status }: Props): React.JSX.Element {
+export default function ServerStatus({ status }: ServerStatusProps): React.JSX.Element {
   const { color, pulse } = STATUS_CONFIG[status] ?? STATUS_CONFIG.unknown
 
   return (
-    <span className="relative inline-flex w-2.5 h-2.5 shrink-0">
+    <span className="relative inline-flex size-2.5 shrink-0">
       {pulse && (
         <span
           className={cn(
-            'animate-ping absolute inline-flex h-full w-full rounded-full opacity-50',
+            'animate-ping absolute inline-flex size-full rounded-full opacity-50',
             color
           )}
         />
       )}
-      <span className={cn('relative inline-flex rounded-full w-2.5 h-2.5', color)} />
+      <span className={cn('relative inline-flex rounded-full size-2.5', color)} />
     </span>
   )
 }

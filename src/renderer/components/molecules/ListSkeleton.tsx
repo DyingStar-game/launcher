@@ -1,15 +1,19 @@
 import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@components/ui/skeleton'
+import type { AvatarProps } from '@components/atoms/Avatar'
 
-type RowProps = {
+export type RowSkeletonProps = {
   /** Avatar shape: round for players, rounded square for organisations. */
-  avatar?: 'circle' | 'square'
+  avatar?: NonNullable<AvatarProps['shape']>
   /** A chip-sized block on the right, for rows with an action. */
   action?: boolean
 }
 
 /** Skeleton of a list row (ADR 0018): avatar, name and detail lines, optional action. */
-export function RowSkeleton({ avatar = 'circle', action = false }: RowProps): React.JSX.Element {
+export function RowSkeleton({
+  avatar = 'circle',
+  action = false
+}: RowSkeletonProps): React.JSX.Element {
   return (
     <div className="flex items-center gap-3 px-3 py-2.5">
       <Skeleton shape={avatar} className="size-8 shrink-0" />
@@ -22,13 +26,13 @@ export function RowSkeleton({ avatar = 'circle', action = false }: RowProps): Re
   )
 }
 
-type Props = RowProps & {
+export type ListSkeletonProps = RowSkeletonProps & {
   /** Number of placeholder rows. */
   rows?: number
 }
 
 /** Skeleton of a list while it loads (ADR 0018), announced as loading content. */
-export default function ListSkeleton({ rows = 3, ...row }: Props): React.JSX.Element {
+export default function ListSkeleton({ rows = 3, ...row }: ListSkeletonProps): React.JSX.Element {
   const { t } = useTranslation()
   return (
     <div

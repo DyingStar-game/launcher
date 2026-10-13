@@ -1,15 +1,16 @@
 import { useTranslation } from 'react-i18next'
 import type { Friend } from '@shared/types/social'
 import PlayerIdentity from './PlayerIdentity'
+import ListRow from '@components/atoms/ListRow'
 
-type Props = {
+export type FriendRowProps = {
   friend: Friend
   /** Opens the friend's sheet. */
   onOpen: () => void
 }
 
 /** Friend list row: avatar with presence, name and status (online / in mission / offline). */
-export default function FriendRow({ friend, onOpen }: Props): React.JSX.Element {
+export default function FriendRow({ friend, onOpen }: FriendRowProps): React.JSX.Element {
   const { t } = useTranslation()
   const statusLabel =
     friend.status === 'mission' && friend.system
@@ -17,10 +18,10 @@ export default function FriendRow({ friend, onOpen }: Props): React.JSX.Element 
       : t(`friendStatus.${friend.status}`)
 
   return (
-    <div className="flex items-center p-2 rounded-lg hover:bg-[var(--color-ds-surface-hover)]">
+    <ListRow>
       <PlayerIdentity name={friend.name} status={friend.status} onOpen={onOpen}>
-        <span className="text-xs text-[var(--color-ds-muted)]">{statusLabel}</span>
+        <span className="text-xs text-ds-muted">{statusLabel}</span>
       </PlayerIdentity>
-    </div>
+    </ListRow>
   )
 }

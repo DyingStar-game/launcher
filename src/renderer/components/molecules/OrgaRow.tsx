@@ -1,30 +1,25 @@
-import { useTranslation } from 'react-i18next'
-import type { Organisation } from '@shared/types/social'
-import Avatar from '@components/atoms/Avatar'
-import OrganisationLink from './OrganisationLink'
+import type { OrganisationRef } from '@shared/types/social'
+import OrganisationIdentity from './OrganisationIdentity'
+import ListRow from '@components/atoms/ListRow'
 
-type Props = {
-  orga: Organisation
+export type OrgaRowProps = {
+  orga: OrganisationRef
+  /** Line under the name: member count in the directory, the player's rank in their own. */
+  detail: string
   /** Opens the organisation's sheet. */
   onOpen: () => void
   /** Join action or status badge, provided by the caller. */
   action?: React.ReactNode
 }
 
-/** Organisation row: ticker avatar, name (opens its sheet), member count, then the action. */
-export default function OrgaRow({ orga, onOpen, action }: Props): React.JSX.Element {
-  const { t } = useTranslation()
-
+/** Organisation row: ticker avatar, name (opens its sheet), a detail line, then the action. */
+export default function OrgaRow({ orga, detail, onOpen, action }: OrgaRowProps): React.JSX.Element {
   return (
-    <div className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/4 transition-colors">
-      <Avatar name={orga.name} label={orga.ticker.slice(0, 2)} shape="square" />
-      <div className="flex-1 min-w-0 flex flex-col items-start">
-        <OrganisationLink organisation={orga} onOpen={onOpen} />
-        <span className="text-xs text-[var(--color-ds-muted)]">
-          {t('universe.socialPage.orga.members', { count: orga.members })}
-        </span>
-      </div>
+    <ListRow>
+      <OrganisationIdentity organisation={orga} onOpen={onOpen}>
+        <span className="text-xs text-ds-muted">{detail}</span>
+      </OrganisationIdentity>
       {action}
-    </div>
+    </ListRow>
   )
 }

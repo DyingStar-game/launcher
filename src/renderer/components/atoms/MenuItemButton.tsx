@@ -1,40 +1,39 @@
 import type React from 'react'
-import { cva } from 'class-variance-authority'
+import { cva, type VariantProps } from 'class-variance-authority'
 import { UiSoundProfile } from '@shared/types/sounds'
 import { mergeSoundHandlers, useUiSound } from '@hooks/useUiSound'
 import { cn } from '@lib/cn'
 
 const menuItemVariants = cva(
-  'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-[var(--color-ds-text)] ' +
+  'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-ds-text ' +
     'transition-colors cursor-pointer outline-none ' +
     // Radix marks the entry under the pointer or reached with the keyboard (ADR 0016)
-    'data-[highlighted]:bg-[var(--color-ds-surface-hover)] ' +
+    'data-[highlighted]:bg-ds-surface-hover ' +
     'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent',
   {
     variants: {
       selected: {
-        true: 'bg-[var(--color-ds-accent)]/15',
-        false: 'hover:bg-[var(--color-ds-surface-hover)]'
+        true: 'bg-ds-accent/15',
+        false: 'hover:bg-ds-surface-hover'
       }
     },
     defaultVariants: { selected: false }
   }
 )
 
-type Props = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'role'> & {
-  selected?: boolean
-}
+export type MenuItemButtonProps = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'role'> &
+  VariantProps<typeof menuItemVariants>
 
 /** Entry of a dropdown menu (`role="menuitem"`), with UI sounds; `selected` marks the current one. */
 export default function MenuItemButton({
-  selected = false,
+  selected,
   disabled,
   className,
   onClick,
   onMouseEnter,
   children,
   ...props
-}: Props): React.JSX.Element {
+}: MenuItemButtonProps): React.JSX.Element {
   const sound = useUiSound(UiSoundProfile.Default, { disabled: Boolean(disabled) })
   const merged = mergeSoundHandlers(sound, { onClick, onMouseEnter })
 

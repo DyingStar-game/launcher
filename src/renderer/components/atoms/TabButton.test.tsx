@@ -1,24 +1,24 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '../../test/render'
 import userEvent from '@testing-library/user-event'
 import TabButton from './TabButton'
 
 describe('TabButton', () => {
   it('calls onClick', async () => {
     const onClick = vi.fn()
-    render(<TabButton onClick={onClick}>Lore</TabButton>)
-    await userEvent.click(screen.getByRole('button', { name: 'Lore' }))
+    render(<TabButton onClick={onClick}>Social</TabButton>)
+    await userEvent.click(screen.getByRole('button', { name: 'Social' }))
     expect(onClick).toHaveBeenCalledOnce()
   })
 
-  it('fills the selected accent tab with the accent colour', () => {
+  it('highlights the selected segment like a selected tab, filling its frame', () => {
     render(
-      <TabButton tone="accent" selected>
+      <TabButton tone="segment" selected>
         Universe
       </TabButton>
     )
     const tab = screen.getByRole('button', { name: 'Universe' })
-    expect(tab).toHaveClass('bg-[var(--color-ds-accent)]', 'text-black')
+    expect(tab).toHaveClass('bg-white/10', 'text-ds-text', 'h-full')
     expect(tab).toHaveAttribute('aria-current', 'true')
   })
 
@@ -26,11 +26,11 @@ describe('TabButton', () => {
     render(
       <>
         <TabButton selected>Social</TabButton>
-        <TabButton>Lore</TabButton>
+        <TabButton>Changelog</TabButton>
       </>
     )
     expect(screen.getByRole('button', { name: 'Social' })).toHaveClass('bg-white/10')
-    expect(screen.getByRole('button', { name: 'Lore' })).toHaveClass('text-[var(--color-ds-muted)]')
-    expect(screen.getByRole('button', { name: 'Lore' })).not.toHaveAttribute('aria-current')
+    expect(screen.getByRole('button', { name: 'Changelog' })).toHaveClass('text-ds-muted')
+    expect(screen.getByRole('button', { name: 'Changelog' })).not.toHaveAttribute('aria-current')
   })
 })
