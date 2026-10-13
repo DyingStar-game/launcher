@@ -410,11 +410,14 @@
         "rate": "{{rate}}/s",
         "eta": "~{{minutes}} min",
         "etaUnderMinute": "< 1 min",
-        "ctaPause": "Pause"
+        "ctaPause": "Pause",
+        "interrupted": "Téléchargement interrompu : la progression est conservée.",
+        "failed": "L'installation a échoué."
       },
       "update": {
         "title": "Mise à jour requise",
-        "cta": "Mettre à jour"
+        "cta": "Mettre à jour",
+        "beforePlay": "Une nouvelle version du jeu est disponible : mise à jour requise avant de jouer."
       },
       "ready": {
         "title": "Prêt à jouer",

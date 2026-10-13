@@ -410,11 +410,14 @@
         "rate": "{{rate}}/s",
         "eta": "~{{minutes}} min",
         "etaUnderMinute": "< 1 min",
-        "ctaPause": "Pause"
+        "ctaPause": "Pause",
+        "interrupted": "Download interrupted: the progress made is kept.",
+        "failed": "The installation failed."
       },
       "update": {
         "title": "Update required",
-        "cta": "Update"
+        "cta": "Update",
+        "beforePlay": "A new version of the game is available: update required before playing."
       },
       "ready": {
         "title": "Ready to play",

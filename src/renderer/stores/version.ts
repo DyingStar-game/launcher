@@ -15,6 +15,11 @@ type VersionState = {
   checked: boolean
   /** Fetches launcher (GitHub) and game (API) version info from the main process. */
   checkVersions: () => Promise<void>
+  /**
+   * Refreshes the latest game versions only, while the launcher runs (ADR 0039); an environment
+   * whose API does not answer keeps the version known.
+   */
+  refreshGameVersions: () => Promise<void>
 }
 
 const defaultGameVersionInfo: GameVersionInfo = { version: null, releaseDate: null }
@@ -22,7 +27,7 @@ const defaultGameVersionInfo: GameVersionInfo = { version: null, releaseDate: nu
 /**
  * Launcher and per-env game version state for update banners.
  */
-export const useVersionStore = create<VersionState>((set) => ({
+export const useVersionStore = create<VersionState>((set, get) => ({
   currentLauncherVersion: '',
   latestLauncherVersion: null,
   latestLauncherReleaseDate: null,
@@ -52,6 +57,23 @@ export const useVersionStore = create<VersionState>((set) => ({
     } catch (err) {
       console.error('[VersionStore] Version check failed:', err)
       set({ checking: false, checked: true })
+    }
+  },
+
+  refreshGameVersions: async () => {
+    try {
+      const latest = await window.api.checkGameVersions()
+      const known = get().latestGameVersions
+      set({
+        latestGameVersions: {
+          universe: latest.universe.version ? latest.universe : known.universe,
+          'universe-testing': latest['universe-testing'].version
+            ? latest['universe-testing']
+            : known['universe-testing']
+        }
+      })
+    } catch (err) {
+      console.warn('[VersionStore] Game version refresh failed:', err)
     }
   }
 }))
