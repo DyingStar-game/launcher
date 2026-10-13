@@ -7,13 +7,7 @@ function renderNodes(nodes: BBCodeNode[]): ReactNode[] {
     if (typeof node === 'string') return node
     // A block inside the paragraph: `<hr>` cannot sit in a `<p>`.
     if (node.tag === 'hr') {
-      return (
-        <span
-          key={i}
-          role="separator"
-          className="my-2 block border-t border-[var(--color-ds-border)]"
-        />
-      )
+      return <span key={i} role="separator" className="my-2 block border-t border-ds-border" />
     }
     const children = renderNodes(node.children)
     switch (node.tag) {
@@ -39,10 +33,12 @@ function renderNodes(nodes: BBCodeNode[]): ReactNode[] {
   })
 }
 
+export type BBCodeTextProps = { text: string }
+
 /** A player's text as the game shows it, its BBCode interpreted (ADR 0014). */
-export default function BBCodeText({ text }: { text: string }): React.JSX.Element {
+export default function BBCodeText({ text }: BBCodeTextProps): React.JSX.Element {
   return (
-    <p className="text-sm text-[var(--color-ds-text)] whitespace-pre-wrap [overflow-wrap:anywhere]">
+    <p className="text-sm text-ds-text whitespace-pre-wrap [overflow-wrap:anywhere]">
       {renderNodes(parseBBCode(text))}
     </p>
   )

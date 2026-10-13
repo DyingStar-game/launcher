@@ -48,7 +48,6 @@ interface ImportMetaEnv {
   readonly VITE_AUTH_REALM: string
   readonly VITE_AUTH_REDIRECT_URI: string
   readonly VITE_UI_TOAST_DURATION_MS: string
-  readonly VITE_UI_SOCIAL_PANEL_CLOSE_MS: string
 }
 
 interface ImportMeta {

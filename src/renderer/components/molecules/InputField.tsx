@@ -1,5 +1,7 @@
-import React from 'react'
+import { useId } from 'react'
 import Button from '@components/atoms/Button'
+import { Field, FieldError, FieldLabel } from '@components/ui/field'
+import { Input } from '@components/ui/input'
 
 type InputFieldAction = {
   label: string
@@ -16,9 +18,15 @@ type InputFieldProps = {
   action?: InputFieldAction
   disabled?: boolean
   readOnly?: boolean
+  /** Field name, for forms (ADR 0022). */
+  name?: string
+  onBlur?: () => void
+  maxLength?: number
+  /** Validation message, already translated; marks the input invalid. */
+  error?: string
 }
 
-/** Labeled text input with optional action button (used in social forms). */
+/** Labelled text input with an optional action button: shadcn's Field and Input (ADR 0027). */
 export default function InputField({
   label,
   value,
@@ -26,33 +34,33 @@ export default function InputField({
   placeholder,
   action,
   disabled = false,
-  readOnly = false
+  readOnly = false,
+  name,
+  onBlur,
+  maxLength,
+  error
 }: InputFieldProps): React.JSX.Element {
+  const id = useId()
+  const errorId = `${id}-error`
+
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-[10px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.2em]">
-        {label}
-      </label>
+    <Field data-invalid={error ? true : undefined}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <div className="flex gap-2">
-        <input
+        <Input
+          id={id}
           type="text"
+          name={name}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
+          maxLength={maxLength}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
           placeholder={placeholder}
           disabled={disabled}
           readOnly={readOnly}
-          className="
-            flex-1 min-w-0
-            bg-[var(--color-ds-bg)]
-            border border-[var(--color-ds-border)]
-            rounded-lg px-3 py-2
-            text-sm text-[var(--color-ds-text)]
-            placeholder:text-[var(--color-ds-muted)]/40
-            focus:outline-none focus:border-[var(--color-ds-accent)]
-            transition-colors duration-150
-            disabled:opacity-40 disabled:cursor-not-allowed
-            read-only:cursor-default
-          "
+          className="flex-1"
         />
         {action && (
           <Button
@@ -66,6 +74,7 @@ export default function InputField({
           </Button>
         )}
       </div>
-    </div>
+      {error && <FieldError id={errorId}>{error}</FieldError>}
+    </Field>
   )
 }

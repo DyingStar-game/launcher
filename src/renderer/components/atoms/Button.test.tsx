@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '../../test/render'
 import userEvent from '@testing-library/user-event'
 import Button from './Button'
 
@@ -22,13 +22,39 @@ describe('Button', () => {
     expect(onClick).not.toHaveBeenCalled()
   })
 
-  it('renders the compact outline chip', () => {
+  it('keeps outline and ghost text muted, and subtle in its parent colour', () => {
     render(
-      <Button variant="outline" size="chip">
-        Add
-      </Button>
+      <>
+        <Button variant="outline">Mute</Button>
+        <Button variant="ghost">Cancel</Button>
+        <Button variant="subtle">Close</Button>
+      </>
     )
-    expect(screen.getByRole('button', { name: 'Add' })).toHaveClass('uppercase', 'bg-transparent')
+    expect(screen.getByRole('button', { name: 'Mute' })).toHaveClass('text-muted-foreground')
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveClass('text-muted-foreground')
+    const close = screen.getByRole('button', { name: 'Close' })
+    expect(close).toHaveClass('text-current')
+    expect(close).not.toHaveClass('text-muted-foreground')
+  })
+
+  it('draws each launcher variant with a shadcn variant (ADR 0028)', () => {
+    render(
+      <>
+        <Button variant="primary">Play</Button>
+        <Button variant="danger">Leave</Button>
+        <Button variant="success">Accept</Button>
+        <Button variant="outline" size="chip">
+          Join
+        </Button>
+      </>
+    )
+    expect(screen.getByRole('button', { name: 'Play' })).toHaveClass('bg-primary')
+    expect(screen.getByRole('button', { name: 'Leave' })).toHaveClass('text-destructive')
+    expect(screen.getByRole('button', { name: 'Accept' })).toHaveClass(
+      'text-success',
+      'bg-success/10'
+    )
+    expect(screen.getByRole('button', { name: 'Join' })).toHaveClass('h-6', 'border-border')
   })
 
   it('renders a square icon button', () => {
@@ -37,16 +63,23 @@ describe('Button', () => {
         ×
       </Button>
     )
-    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('h-9', 'w-9', 'border')
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('size-9')
   })
 
-  it('renders a frameless link button', () => {
+  it('renders an inline text button with no height nor padding', () => {
     render(
       <Button variant="link" size="none">
         Cancel
       </Button>
     )
-    expect(screen.getByRole('button', { name: 'Cancel' })).not.toHaveClass('border')
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveClass('h-auto', 'p-0')
+  })
+
+  it('gives a bare button no look, but centred content and a keyboard focus ring', () => {
+    render(<Button variant="bare">Kira</Button>)
+    const button = screen.getByRole('button', { name: 'Kira' })
+    expect(button).toHaveClass('items-center', 'focus-visible:ring-3')
+    expect(button).not.toHaveClass('border', 'bg-primary')
   })
 
   it('lets className override the variant through cn()', () => {
@@ -56,22 +89,7 @@ describe('Button', () => {
     expect(button).not.toHaveClass('inline-flex')
   })
 
-  it('does not move when pressed', () => {
-    render(<Button variant="primary">Play</Button>)
-    expect(screen.getByRole('button', { name: 'Play' }).className).not.toMatch(/translate/)
-  })
-
-  it.each([
-    ['outline-danger', 'hover:text-red-300'],
-    ['link', 'text-xs'],
-    ['name', 'hover:underline'],
-    ['subtle', 'text-current']
-  ] as const)('has a %s variant', (variant, cls) => {
-    render(<Button variant={variant}>Go</Button>)
-    expect(screen.getByRole('button', { name: 'Go' })).toHaveClass(cls)
-  })
-
-  it('gives text and icon buttons the same height', () => {
+  it('gives text and icon buttons the same 36px height', () => {
     render(
       <>
         <Button size="sm">Donate</Button>
@@ -81,9 +99,9 @@ describe('Button', () => {
         </Button>
       </>
     )
-    for (const name of ['Donate', 'Play', 'Close']) {
-      expect(screen.getByRole('button', { name })).toHaveClass('h-9')
-    }
+    expect(screen.getByRole('button', { name: 'Donate' })).toHaveClass('h-9')
+    expect(screen.getByRole('button', { name: 'Play' })).toHaveClass('h-9')
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('size-9')
   })
 
   it('keeps its size and shows a spinner while loading, disabled and busy', async () => {

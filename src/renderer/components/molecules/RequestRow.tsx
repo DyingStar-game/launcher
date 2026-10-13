@@ -1,29 +1,69 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { FriendRequest } from '@shared/types/social'
 import Button from '@components/atoms/Button'
 import LabelTooltip from './LabelTooltip'
-import PlayerIdentity from './PlayerIdentity'
+import ListRow from '@components/atoms/ListRow'
 
-type Props = {
-  req: FriendRequest
-  /** Incoming requests can be accepted or declined; outgoing ones can only be cancelled. */
-  direction: 'incoming' | 'outgoing'
-  /** Opens the player's sheet. */
-  onOpen: () => void
+/**
+ * `incoming` / `outgoing`: a friend request received or sent; `invitation`: an organisation
+ * invited the player; `application`: the player applied to an organisation; `received`: a
+ * player applied to an organisation the player recruits for.
+ */
+export type RequestKind = 'incoming' | 'outgoing' | 'invitation' | 'application' | 'received'
+
+export type RequestRowProps = {
+  /** The other party's name, for the buttons' labels. */
+  name: string
+  /** The other party: `PlayerIdentity` or `OrganisationIdentity`, opening their sheet. */
+  identity: React.ReactNode
+  /** Received requests can be accepted or declined; sent ones can only be cancelled. */
+  kind: RequestKind
   onAccept?: () => Promise<void>
   onDecline: () => Promise<void>
 }
 
-/** Friend request row: accept/decline (incoming) or cancel (outgoing). */
+/** Translation keys of the decline button and its label, per kind. */
+const declineKeys: Record<RequestKind, { label: string; aria: string }> = {
+  incoming: {
+    label: 'universe.socialPage.decline',
+    aria: 'universe.socialPage.request.declineAria'
+  },
+  outgoing: {
+    label: 'universe.socialPage.request.cancel',
+    aria: 'universe.socialPage.request.cancelAria'
+  },
+  invitation: {
+    label: 'universe.socialPage.decline',
+    aria: 'universe.socialPage.request.invitationDeclineAria'
+  },
+  application: {
+    label: 'universe.socialPage.request.withdraw',
+    aria: 'universe.socialPage.request.withdrawAria'
+  },
+  received: {
+    label: 'universe.socialPage.decline',
+    aria: 'universe.socialPage.request.applicationDeclineAria'
+  }
+}
+
+/** Translation keys of the accept button's label, for the kinds that can be accepted. */
+const acceptAria: Partial<Record<RequestKind, string>> = {
+  incoming: 'universe.socialPage.request.acceptAria',
+  invitation: 'universe.socialPage.request.invitationAcceptAria',
+  received: 'universe.socialPage.request.applicationAcceptAria'
+}
+
+/** Pending request row: accept / decline (received) or cancel / withdraw (sent). */
 export default function RequestRow({
-  req,
-  direction,
-  onOpen,
+  name,
+  identity,
+  kind,
   onAccept,
   onDecline
-}: Props): React.JSX.Element {
+}: RequestRowProps): React.JSX.Element {
   const { t } = useTranslation()
+  const accept = acceptAria[kind]
+  const decline = declineKeys[kind]
   const [status, setStatus] = useState<'idle' | 'accepting' | 'declining' | 'done'>('idle')
 
   const handleAccept = async (): Promise<void> => {
@@ -50,11 +90,11 @@ export default function RequestRow({
   const busy = status === 'accepting' || status === 'declining'
 
   return (
-    <div className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/4 transition-colors">
-      <PlayerIdentity name={req.name} onOpen={onOpen} />
+    <ListRow>
+      {identity}
 
-      {direction === 'outgoing' && (
-        <span className="shrink-0 text-[10px] font-semibold text-[var(--color-ds-muted)] uppercase tracking-[0.15em]">
+      {!accept && (
+        <span className="shrink-0 text-2xs font-semibold text-ds-muted uppercase tracking-[0.15em]">
           {t('universe.socialPage.request.sent')}
         </span>
       )}
@@ -62,7 +102,7 @@ export default function RequestRow({
       {/* Actions */}
       <div className="flex items-center gap-1.5 shrink-0">
         {/* Accepter */}
-        {direction === 'incoming' && (
+        {accept && (
           <LabelTooltip label={t('universe.socialPage.accept')}>
             <Button
               variant="success"
@@ -70,7 +110,7 @@ export default function RequestRow({
               onClick={handleAccept}
               disabled={busy}
               loading={status === 'accepting'}
-              aria-label={t('universe.socialPage.request.acceptAria', { name: req.name })}
+              aria-label={t(accept, { name })}
             >
               <CheckIcon />
             </Button>
@@ -78,30 +118,20 @@ export default function RequestRow({
         )}
 
         {/* Refuser */}
-        <LabelTooltip
-          label={
-            direction === 'incoming'
-              ? t('universe.socialPage.decline')
-              : t('universe.socialPage.request.cancel')
-          }
-        >
+        <LabelTooltip label={t(decline.label)}>
           <Button
             variant="danger"
             size="icon-sm"
             onClick={handleDecline}
             disabled={busy}
             loading={status === 'declining'}
-            aria-label={
-              direction === 'incoming'
-                ? t('universe.socialPage.request.declineAria', { name: req.name })
-                : t('universe.socialPage.request.cancelAria', { name: req.name })
-            }
+            aria-label={t(decline.aria, { name })}
           >
             <XIcon />
           </Button>
         </LabelTooltip>
       </div>
-    </div>
+    </ListRow>
   )
 }
 
@@ -111,7 +141,7 @@ function CheckIcon(): React.JSX.Element {
   return (
     <svg
       viewBox="0 0 16 16"
-      className="w-3.5 h-3.5 fill-none stroke-current stroke-[1.8]"
+      className="size-3.5 fill-none stroke-current stroke-[1.8]"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -124,7 +154,7 @@ function XIcon(): React.JSX.Element {
   return (
     <svg
       viewBox="0 0 16 16"
-      className="w-3.5 h-3.5 fill-none stroke-current stroke-[1.8]"
+      className="size-3.5 fill-none stroke-current stroke-[1.8]"
       strokeLinecap="round"
       strokeLinejoin="round"
     >

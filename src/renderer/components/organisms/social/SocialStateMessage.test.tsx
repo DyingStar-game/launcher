@@ -1,7 +1,6 @@
-import { describe, expect, it } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
-import { useSocialStore } from '@stores/social'
 import { seedSocial } from '../../../test/seedSocial'
 import SocialStateMessage from './SocialStateMessage'
 
@@ -23,22 +22,11 @@ describe('SocialStateMessage', () => {
 
   it('shows the error and retries', async () => {
     seedSocial({})
-    act(() =>
-      useSocialStore.setState((s) => ({
-        data: {
-          ...s.data,
-          'universe-testing': {
-            ...s.data['universe-testing'],
-            status: 'error',
-            error: 'sanctioned'
-          }
-        }
-      }))
-    )
+    vi.mocked(window.api.socialLoad).mockResolvedValue({ ok: false, error: 'sanctioned' })
     render(<SocialStateMessage status="error" />)
-    expect(screen.getByText(/Your account is suspended/)).toBeInTheDocument()
+    expect(await screen.findByText(/Your account is suspended/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
-    expect(window.api.socialLoad).toHaveBeenCalled()
+    expect(window.api.socialLoad).toHaveBeenCalledTimes(2)
   })
 
   it('shows a list skeleton while loading, after a short delay', async () => {

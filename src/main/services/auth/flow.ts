@@ -1,4 +1,4 @@
-import { shell, type BrowserWindow } from 'electron'
+import type { BrowserWindow } from 'electron'
 import { URL, URLSearchParams } from 'url'
 import {
   AUTH_CLIENT_ID,
@@ -13,9 +13,15 @@ import type { UserInfo } from '@shared/types/auth'
 import type { PKCESession, TokenSet } from './types'
 import { generatePKCE, generateState } from './pkce'
 import { describeGameTokenIssue, extractUser, isJwtNotExpired, pickGameLaunchToken } from './jwt'
-import { exchangeCode, getKeycloakBase, mergeTokenSet, refreshToken } from './keycloakClient'
+import {
+  endSession,
+  exchangeCode,
+  getKeycloakBase,
+  mergeTokenSet,
+  refreshToken
+} from './keycloakClient'
 import { clearStoredTokens, loadTokens, storeTokens } from './tokenStorage'
-import { closeAuthWindow, openAuthWindow } from './authWindow'
+import { clearAuthSession, closeAuthWindow, openAuthWindow } from './authWindow'
 
 let pkceSession: PKCESession | null = null
 
@@ -227,20 +233,18 @@ export async function loadUserProfile(env: Env): Promise<UserInfo | null> {
   return extractUser(merged)
 }
 
-/** Clears local tokens and opens Keycloak logout in the browser. */
-export function logout(env: Env): void {
+/**
+ * Signs out without opening anything: clears local tokens, ends the Keycloak session in the
+ * background, and forgets the sign-in window's cookies (Keycloak, Discord), so the next sign-in asks
+ * for the account again.
+ */
+export async function logout(env: Env): Promise<void> {
   const kcBase = getKeycloakBase(env)
   const tokens = loadTokens(env)
   clearStoredTokens(env)
 
-  if (kcBase && tokens?.id_token) {
-    const params = new URLSearchParams({
-      client_id: AUTH_CLIENT_ID,
-      post_logout_redirect_uri: AUTH_REDIRECT_URI,
-      id_token_hint: tokens.id_token
-    })
-    void shell.openExternal(
-      `${kcBase}/realms/${AUTH_REALM}/protocol/openid-connect/logout?${params}`
-    )
+  if (kcBase && tokens?.refresh_token && !(await endSession(kcBase, tokens.refresh_token))) {
+    console.warn('[Auth] Keycloak did not confirm the end of the session')
   }
+  await clearAuthSession()
 }

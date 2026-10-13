@@ -43,9 +43,3 @@ export function toastDurationMs(): number {
   const n = Number(import.meta.env.VITE_UI_TOAST_DURATION_MS ?? '3800')
   return Number.isFinite(n) && n > 0 ? n : 3800
 }
-
-/** Auto-close delay for the social side panel in milliseconds. */
-export function socialPanelAutoCloseMs(): number {
-  const n = Number(import.meta.env.VITE_UI_SOCIAL_PANEL_CLOSE_MS ?? '1200')
-  return Number.isFinite(n) && n > 0 ? n : 1200
-}

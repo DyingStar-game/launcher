@@ -1,16 +1,18 @@
 import axios from 'axios'
 import * as fs from 'fs'
-import * as path from 'path'
 import type { BrowserWindow } from 'electron'
-import {
-  DOWNLOAD_PROGRESS,
-  DOWNLOAD_USER_AGENT,
-  GAME_DOWNLOAD_ZIP_NAME,
-  HTTP_TIMEOUT_MS
-} from '../../config/constants'
+import { DOWNLOAD_PROGRESS, DOWNLOAD_USER_AGENT, HTTP_TIMEOUT_MS } from '../../config/constants'
 import type { Env } from '@shared/types/env'
 import { getZipUrl } from './zipUrl'
 import { sendProgress } from './progress'
+import {
+  deletePartialDownload,
+  downloadProgress,
+  fileSize,
+  partialZipPath,
+  readDownloadMeta,
+  writeDownloadMeta
+} from './partial'
 
 const ZIP_MAGIC = Buffer.from([0x50, 0x4b, 0x03, 0x04])
 
@@ -39,24 +41,84 @@ export function assertIsZipFile(filePath: string, sourceUrl: string): void {
   }
 }
 
-/** Streams the game ZIP to disk and reports progress to the renderer. */
-export async function downloadZip(env: Env, destPath: string, win: BrowserWindow): Promise<string> {
+/** Parses the start of a `Content-Range: bytes <start>-<end>/<total>` header. */
+function rangeStart(header: unknown): number | null {
+  const match = typeof header === 'string' ? header.match(/^bytes (\d+)-/) : null
+  return match ? Number(match[1]) : null
+}
+
+/**
+ * Sends download progress, with its byte counts when the size is known, at most every
+ * `minIntervalMs` (and always the last bytes).
+ */
+function reportDownload(
+  win: BrowserWindow,
+  downloaded: number,
+  total: number,
+  lastReport: { bytes: number; at: number }
+): void {
+  const now = Date.now()
+  const done = total > 0 && downloaded >= total
+  if (!done && now - lastReport.at < DOWNLOAD_PROGRESS.minIntervalMs) return
+  lastReport.at = now
+  if (total > 0) {
+    sendProgress(win, downloadProgress(downloaded, total), {
+      key: 'downloading',
+      downloaded,
+      total
+    })
+  } else if (downloaded - lastReport.bytes >= DOWNLOAD_PROGRESS.unknownChunkBytes) {
+    lastReport.bytes = downloaded
+    sendProgress(
+      win,
+      Math.min(65, 15 + (downloaded / DOWNLOAD_PROGRESS.unknownSizeCapBytes) * 50),
+      { key: 'downloadingIndeterminate', downloaded }
+    )
+  }
+}
+
+/**
+ * Streams the game ZIP to disk and reports progress to the renderer. A partial download of the
+ * same archive left in the folder is resumed with an HTTP range (ADR 0036); `signal` stops the
+ * download, leaving what was received on disk.
+ */
+export async function downloadZip(
+  env: Env,
+  destPath: string,
+  win: BrowserWindow,
+  signal: AbortSignal
+): Promise<string> {
   sendProgress(win, 0, { key: 'connecting' })
 
   const url = getZipUrl(env)
+  const zipFilePath = partialZipPath(destPath)
+  const meta = readDownloadMeta(destPath)
+  const onDisk = fileSize(zipFilePath)
+  const validator = meta?.etag ?? meta?.lastModified ?? null
+  const resumable =
+    meta !== null && meta.env === env && meta.url === url && onDisk > 0 && validator !== null
 
-  let response: Awaited<ReturnType<typeof axios.get<NodeJS.ReadableStream>>>
+  if (!resumable) deletePartialDownload(destPath)
+  if (resumable && meta.total > 0 && onDisk >= meta.total) {
+    return checkedZip(zipFilePath, url, destPath)
+  }
+
+  let response: Awaited<ReturnType<typeof axios.get<NodeJS.ReadableStream & { destroy(): void }>>>
   try {
-    response = await axios.get<NodeJS.ReadableStream>(url, {
+    response = await axios.get<NodeJS.ReadableStream & { destroy(): void }>(url, {
       responseType: 'stream',
       timeout: HTTP_TIMEOUT_MS.download,
+      signal,
       headers: {
         'User-Agent': DOWNLOAD_USER_AGENT,
-        Accept: 'application/zip, application/octet-stream, */*'
+        Accept: 'application/zip, application/octet-stream, */*',
+        // If-Range: the server sends the rest only if the archive did not change, else all of it
+        ...(resumable ? { Range: `bytes=${onDisk}-`, 'If-Range': validator } : {})
       },
-      validateStatus: (s) => s >= 200 && s < 300
+      validateStatus: (s) => (s >= 200 && s < 300) || s === 416
     })
   } catch (err) {
+    if (signal.aborted) throw err
     if (axios.isAxiosError(err)) {
       const code = err.response?.status
       const hint =
@@ -68,48 +130,93 @@ export async function downloadZip(env: Env, destPath: string, win: BrowserWindow
     throw err
   }
 
-  if (response.status !== 200) {
+  const append = response.status === 206 && resumable
+  if (
+    response.status === 416 ||
+    (response.status === 206 &&
+      (!append || rangeStart(response.headers['content-range']) !== onDisk))
+  ) {
+    // The part on disk does not match the archive served: start over
+    response.data.destroy()
+    deletePartialDownload(destPath)
+    return downloadZip(env, destPath, win, signal)
+  }
+  if (response.status !== 200 && !append) {
+    response.data.destroy()
     throw new Error(`Download rejected (HTTP ${response.status})\n${url}`)
   }
 
-  const totalLength = Number(response.headers['content-length'] ?? 0)
-  let downloaded = 0
-  let lastProgressReport = 0
+  let total: number
+  let downloaded: number
+  if (append) {
+    total = meta.total
+    downloaded = onDisk
+  } else {
+    total = Number(response.headers['content-length'] ?? 0)
+    downloaded = 0
+    const header = (name: string): string | null => {
+      const value = response.headers[name]
+      return typeof value === 'string' ? value : null
+    }
+    writeDownloadMeta(destPath, {
+      env,
+      url,
+      etag: header('etag'),
+      lastModified: header('last-modified'),
+      total
+    })
+  }
 
-  const zipFilePath = path.join(destPath, GAME_DOWNLOAD_ZIP_NAME)
-  const writer = fs.createWriteStream(zipFilePath)
+  const writer = fs.createWriteStream(zipFilePath, { flags: append ? 'a' : 'w' })
+  const lastReport = { bytes: downloaded, at: 0 }
+  reportDownload(win, downloaded, total, lastReport)
 
   await new Promise<void>((resolve, reject) => {
     const stream = response.data
-    stream.on('error', reject)
-    writer.on('error', reject)
-    writer.on('finish', () => resolve())
+    let failure: unknown = null
+    // The file is closed before settling, so it can be resumed or deleted right away
+    const fail = (err: unknown): void => {
+      if (failure !== null) return
+      failure = err
+      stream.destroy()
+      writer.end()
+    }
+    writer.on('close', () => (failure === null ? resolve() : reject(failure)))
+    writer.on('error', fail)
+    stream.on('error', fail)
+    signal.addEventListener('abort', () => fail(signal.reason), { once: true })
 
     stream.on('data', (chunk: Buffer) => {
+      if (failure !== null) return
       downloaded += chunk.length
       if (!writer.write(chunk)) {
         stream.pause()
         writer.once('drain', () => stream.resume())
       }
-      if (totalLength > 0) {
-        sendProgress(win, (downloaded / totalLength) * DOWNLOAD_PROGRESS.zipWeight, {
-          key: 'downloading',
-          downloaded,
-          total: totalLength
-        })
-      } else if (downloaded - lastProgressReport >= DOWNLOAD_PROGRESS.unknownChunkBytes) {
-        lastProgressReport = downloaded
-        sendProgress(
-          win,
-          Math.min(65, 15 + (downloaded / DOWNLOAD_PROGRESS.unknownSizeCapBytes) * 50),
-          { key: 'downloadingIndeterminate', downloaded }
-        )
-      }
+      reportDownload(win, downloaded, total, lastReport)
     })
 
-    stream.on('end', () => writer.end())
+    let ended = false
+    stream.on('end', () => {
+      ended = true
+      writer.end()
+    })
+    // A connection dropped mid-way: what was received stays, to be resumed
+    stream.on('close', () => {
+      if (!ended) fail(new Error(`Download interrupted\n${url}`))
+    })
   })
 
-  assertIsZipFile(zipFilePath, url)
+  return checkedZip(zipFilePath, url, destPath)
+}
+
+/** The downloaded ZIP, checked; a file that is not a ZIP is removed (it cannot be resumed). */
+function checkedZip(zipFilePath: string, url: string, destPath: string): string {
+  try {
+    assertIsZipFile(zipFilePath, url)
+  } catch (err) {
+    deletePartialDownload(destPath)
+    throw err
+  }
   return zipFilePath
 }

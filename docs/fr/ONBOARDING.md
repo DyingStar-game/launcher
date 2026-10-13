@@ -7,10 +7,10 @@ Bienvenue dans le dépôt **Dying Star Launcher**. Ce guide t’aide à comprend
 Un **launcher Electron** pour le jeu _Dying Star_. Il gère notamment :
 
 - Authentification Discord / Keycloak (par environnement)
-- Téléchargement, installation et mises à jour du jeu (ZIP via URLs configurables)
+- Téléchargement (pause, reprise, annulation), installation et mises à jour du jeu (ZIP via URLs configurables)
 - Statut serveur et nombre de joueurs
 - Vérification des mises à jour du launcher (GitHub Releases)
-- Articles de lore (markdown embarqué) et une **UI social** (amis, demandes, organisations) sur le service de jeu `social`
+- Une **UI social** (amis, demandes, organisations) sur le service de jeu `social`
 
 ## Arborescence
 
@@ -24,9 +24,9 @@ docs/           # Documentation contributeur (en/ et fr/)
 resources/      # Icônes et entitlements macOS
 ```
 
-Alias (Vite/TS) : `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+Alias (Vite/TS) : `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@assets`.
 
-Les composants suivent l’**atomic design** ([ADR 0011](../adr/0011-atomic-design.md)) : les imports ne vont que vers le bas, atomes / molécules / templates sont purs (pas de store), et tout composant nouveau ou modifié vient avec son `*.test.tsx` (Testing Library).
+Les composants suivent l’**atomic design** ([ADR 0011](../adr/0011-atomic-design.md)) : les imports ne vont que vers le bas, atomes / molécules / templates sont purs (pas de store), et tout composant nouveau ou modifié vient avec son `*.test.tsx` (Testing Library). Son rendu (tailles, alignements, couleurs, points de rupture) est mesuré par un `*.browser.test.tsx`, exécuté dans Chromium headless avec le vrai CSS Tailwind ([ADR 0033](../adr/0033-rendering-tests-vitest-browser.md)) ; `make install` télécharge Chromium.
 
 ## Branches
 
@@ -164,6 +164,10 @@ Le process main appelle le service `social` (`src/main/services/social/`, [ADR 0
 - `universe-testing` — test
 
 Le sélecteur de la navbar change `useEnvStore().activeEnv` ; la plupart des stores sont indexés par `Env`.
+
+### Images de l’accueil
+
+La page d’accueil fait défiler en fondu les images WebP de `src/renderer/assets/key-art/`, dans l’ordre de leurs noms. Pour en ajouter une, déposer le PNG ou le JPEG dans `key-art/` à la racine du dépôt (non versionné) et lancer `make key-art` : les images nouvelles ou modifiées sont converties en WebP dans le dossier des assets, prises en compte sans toucher au code. Une nouvelle image prend le numéro suivant le plus grand (`Mon image.png` → `key-art-05.webp`) et sa source dans `key-art/` est renommée à l’identique. `ARGS="--force"` reconvertit tout, `ARGS="--quality=0.9"` règle la qualité WebP (0.82 par défaut). Voir le README.
 
 ## Avant d’ouvrir une PR
 

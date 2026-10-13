@@ -5,36 +5,41 @@ import { mergeSoundHandlers, useUiSound } from '@hooks/useUiSound'
 import { cn } from '@lib/cn'
 
 const tabVariants = cva(
-  'relative px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-colors cursor-pointer',
+  'relative inline-flex h-9 items-center gap-2 px-3 rounded-lg text-sm whitespace-nowrap ' +
+    'transition-colors cursor-pointer',
   {
     variants: {
-      /** `accent`: the selected tab is filled with the accent colour (env switch). */
-      tone: { accent: 'px-4 font-semibold', neutral: 'font-medium' },
+      /**
+       * `segment`: one part of a framed segmented control, the frame drawn by its parent (universe
+       * switch); `neutral`: a free-standing tab (universe bar sections).
+       */
+      tone: { segment: 'h-full rounded-none px-4 font-medium', neutral: 'font-medium' },
       selected: {
         true: '',
-        false: 'text-[var(--color-ds-muted)] hover:text-[var(--color-ds-text)] hover:bg-white/5'
+        false: 'text-ds-muted hover:text-ds-text hover:bg-white/5'
       }
     },
     compoundVariants: [
-      { tone: 'accent', selected: true, className: 'bg-[var(--color-ds-accent)] text-black' },
-      { tone: 'neutral', selected: true, className: 'text-[var(--color-ds-text)] bg-white/10' }
+      { tone: 'segment', selected: true, className: 'text-ds-text bg-white/10' },
+      { tone: 'neutral', selected: true, className: 'text-ds-text bg-white/10' }
     ],
     defaultVariants: { tone: 'neutral', selected: false }
   }
 )
 
-type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof tabVariants>
+export type TabButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof tabVariants>
 
-/** One button of a segmented group (env switch, navbar sections), with UI sounds. */
+/** One button of a segmented group (universe switch, universe bar sections), with UI sounds. */
 export default function TabButton({
   tone,
-  selected = false,
+  selected,
   className,
   onClick,
   onMouseEnter,
   children,
   ...props
-}: Props): React.JSX.Element {
+}: TabButtonProps): React.JSX.Element {
   const sound = useUiSound(UiSoundProfile.Default)
   const merged = mergeSoundHandlers(sound, { onClick, onMouseEnter })
 

@@ -4,12 +4,19 @@ import { navSection, useNavigationStore } from './navigation'
 
 const state = (): ReturnType<typeof useNavigationStore.getState> => useNavigationStore.getState()
 
+// Read before any test changes the stores
+const opening = { env: useEnvStore.getState().activeEnv, view: state().currentView }
+
 beforeEach(() => {
   useEnvStore.setState({ activeEnv: 'universe-testing' })
   state().navigate('social')
 })
 
 describe('navigation store', () => {
+  it('opens the launcher on the Universe Testing home', () => {
+    expect(opening).toEqual({ env: 'universe-testing', view: 'universe-testing' })
+  })
+
   it('opens sheets in the active env and goes back through them', () => {
     state().openPlayer('p1')
     expect(state()).toMatchObject({
@@ -45,7 +52,7 @@ describe('navigation store', () => {
   })
 
   it('falls back to the social page without history', () => {
-    state().navigate('lore')
+    state().navigate('changelog')
     state().back()
     expect(state().currentView).toBe('social')
   })
@@ -59,6 +66,19 @@ describe('navigation store', () => {
   it('files the sheets under Social in the navbar', () => {
     expect(navSection('player')).toBe('social')
     expect(navSection('organisation')).toBe('social')
-    expect(navSection('lore')).toBe('lore')
+    expect(navSection('profileEdit')).toBe('social')
+    expect(navSection('organisationManage')).toBe('social')
+    expect(navSection('changelog')).toBe('changelog')
+  })
+
+  it('opens the profile edit page from the sheet, and Back returns to it', () => {
+    state().openPlayer('me')
+    state().openProfileEdit('me')
+    expect(state()).toMatchObject({
+      currentView: 'profileEdit',
+      subject: { id: 'me', env: 'universe-testing' }
+    })
+    state().back()
+    expect(state()).toMatchObject({ currentView: 'player', subject: { id: 'me' } })
   })
 })

@@ -56,9 +56,10 @@ start: .env node_modules ## Build and run the launcher in production preview mod
 # =============================================================================
 
 .PHONY: install
-install: .env ## Install dependencies
+install: .env ## Install dependencies and the headless Chromium of the rendering tests
 	@echo "$(CYAN)📦 Installing dependencies...$(RESET)"
 	@$(PNPM) install
+	@$(PNPM) test:browser:install
 
 .PHONY: dev
 dev: .env node_modules ## Run the launcher with hot reload (PLATFORM=x11|wayland on Linux)
@@ -85,6 +86,15 @@ check: node_modules ## Format, then lint, typecheck, test and check formatting (
 	@$(PNPM) test
 	@$(PNPM) format:check
 	@echo "$(GREEN)✅ All checks passed$(RESET)"
+
+# =============================================================================
+# Assets
+# =============================================================================
+
+.PHONY: key-art
+key-art: node_modules ## Convert the images in key-art/ to WebP for the home slideshow (ARGS="--force", "--quality=0.9")
+	@echo "$(CYAN)🖼️  Converting key art...$(RESET)"
+	@$(PNPM) key-art $(ARGS)
 
 # =============================================================================
 # Build & packaging
@@ -146,7 +156,7 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(CYAN)%-15s$(RESET) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "^  .{5}(build|package|package-dir) "
 	@echo ""
 	@echo "$(YELLOW)Utilities:$(RESET)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(CYAN)%-15s$(RESET) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "^  .{5}(clean) "
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(CYAN)%-15s$(RESET) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "^  .{5}(clean|key-art) "
 	@echo ""
 	@echo "$(YELLOW)Examples:$(RESET)"
 	@echo "  $(CYAN)make start$(RESET)               # Try the launcher (testers)"

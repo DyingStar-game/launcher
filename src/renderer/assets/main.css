@@ -18,6 +18,24 @@
   font-display: swap;
 }
 
+/* Every weight the classes use is loaded: a missing one falls back to another (font-medium
+   rendered as Regular) */
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./fonts/Poppins-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 @font-face {
   font-family: 'Poppins';
   src: url('./fonts/Poppins-Bold.ttf') format('truetype');
@@ -48,11 +66,21 @@
   --color-ds-success: #22c55e;
   --color-ds-warning: #f59e0b;
   --color-ds-danger: #ef4444;
+  /* Discord's brand colour: signing in goes through Discord */
+  --color-discord: #5865f2;
 
   --shadow-ds-panel: 0 12px 32px rgba(0, 0, 0, 0.35);
   --shadow-ds-card: 0 8px 24px rgba(0, 0, 0, 0.3);
   --shadow-ds-modal: 0 24px 64px rgba(0, 0, 0, 0.55);
   --radius-ds-panel: 0.75rem;
+  --shadow-ds-alert: 0 0.625rem 1.5625rem rgba(239, 68, 68, 0.25);
+  --shadow-ds-focus-ring: 0 0 0 0.125rem color-mix(in srgb, var(--color-ds-accent) 35%, transparent);
+
+  /* ADR 0026: one text step below the scale, and the navbar breakpoints, in rem */
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1rem;
+  --breakpoint-nav-env: 50rem;
+  --breakpoint-nav-full: 64rem;
 }
 
 /*
@@ -73,230 +101,74 @@
   --color-accent: var(--color-ds-surface-hover);
   --color-accent-foreground: var(--color-ds-text);
   --color-destructive: var(--color-ds-danger);
+  --color-success: var(--color-ds-success);
   --color-border: var(--color-ds-border);
   --color-input: var(--color-ds-border);
   --color-ring: var(--color-ds-accent);
 }
 
-html,
-body {
-  height: 100%;
-  min-height: 100%;
-  width: 100%;
-  background-color: var(--color-ds-bg);
-  color: var(--color-ds-text);
-  font-family: var(--font-sans);
-  overflow: hidden;
-}
-
-#root {
-  height: 100%;
-  min-height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.app-drag {
-  -webkit-app-region: drag;
-}
-
-.app-no-drag {
-  -webkit-app-region: no-drag;
-}
-
-/* Tailwind v4 dropped the pointer cursor on buttons: restore it for every enabled button. */
+/* No component carries these: the document, the root, the pointer on buttons, the scrollbars (ADR 0032). */
 @layer base {
+  html,
+  body {
+    height: 100%;
+    min-height: 100%;
+    width: 100%;
+    background-color: var(--color-ds-bg);
+    color: var(--color-ds-text);
+    font-family: var(--font-sans);
+    overflow: hidden;
+  }
+
+  #root {
+    height: 100%;
+    min-height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Tailwind v4 dropped the pointer cursor on buttons: restore it for every enabled button. */
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
   }
-}
-
-@layer components {
-  .ds-panel {
-    background-color: var(--color-ds-surface);
-    border: 1px solid var(--color-ds-border);
-    border-radius: var(--radius-ds-panel);
-    box-shadow: var(--shadow-ds-panel);
-    transition: border-color 0.15s ease;
-    min-height: 0;
-    overflow-y: auto;
+  /*
+   * Scrollbars of every scrolling element: thin, no arrows, a rounded thumb in the theme's
+   * border colour on a transparent track, lighter under the pointer. The transparent border
+   * keeps the thumb off the panel's edge.
+   */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
   }
 
-  .ds-panel:hover {
-    border-color: color-mix(in srgb, var(--color-ds-accent) 40%, transparent);
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
   }
 
-  /** Top bar: same surface as panels but no accent border on hover (avoids yellow outline when hovering child buttons). */
-  .ds-panel-bar {
-    background-color: var(--color-ds-surface);
-    border-bottom: 1px solid var(--color-ds-border);
-    border-radius: 0;
-    box-shadow: none;
+  ::-webkit-scrollbar-button {
+    display: none;
   }
 
-  .ds-panel-padded {
-    padding: 1.75rem;
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-ds-border);
+    background-clip: padding-box;
+    border: 3px solid transparent;
+    border-radius: 9999px;
   }
 
-  .ds-panel-padded-sm {
-    padding: 1.5rem;
-  }
-
-  .ds-card {
-    background-color: var(--color-ds-surface);
-    border: 1px solid var(--color-ds-border);
-    border-radius: var(--radius-ds-panel);
-    box-shadow: var(--shadow-ds-card);
-  }
-
-  .ds-modal {
-    background-color: var(--color-ds-surface);
-    border: 1px solid var(--color-ds-border);
-    border-radius: var(--radius-ds-panel);
-    box-shadow: var(--shadow-ds-modal);
-  }
-
-  .ds-section-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.24em;
-    color: var(--color-ds-muted);
-  }
-
-  .ds-sidebar {
-    width: 15rem;
-    flex-shrink: 0;
-    align-self: stretch;
-    min-height: 100%;
-    height: 100%;
-    border-right: 1px solid var(--color-ds-border);
-    background-color: color-mix(in srgb, var(--color-ds-surface) 30%, transparent);
-    backdrop-filter: blur(8px);
-    padding: 1rem 0.75rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  /** Full-height page shell (universe, social, lore). */
-  .ds-page {
-    display: flex;
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 100%;
-    width: 100%;
-    background-color: var(--color-ds-bg);
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-ds-muted);
   }
 }
 
-.lore-markdown {
-  color: var(--color-ds-text);
-  font-size: 15px;
-  line-height: 1.75;
-  max-width: 850px;
-  margin: 0 auto;
+/* Electron's window dragging has no Tailwind utility: declared as utilities (ADR 0032). */
+@utility app-drag {
+  -webkit-app-region: drag;
 }
 
-.lore-markdown h1 {
-  font-size: 2.4rem;
-  font-weight: 800;
-  margin: 2rem 0 1rem;
-  letter-spacing: -0.02em;
-}
-
-.lore-markdown h2 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin: 2rem 0 0.8rem;
-  color: var(--color-ds-text);
-}
-
-.lore-markdown h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin: 1.5rem 0 0.6rem;
-  color: var(--color-ds-muted);
-}
-
-.lore-markdown p {
-  margin: 0.8rem 0;
-  color: var(--color-ds-text);
-}
-
-.lore-markdown blockquote {
-  border-left: 3px solid var(--color-ds-accent);
-  padding: 0.8rem 1rem;
-  margin: 1.5rem 0;
-  background: var(--color-ds-surface-elevated);
-  border-radius: 8px;
-  font-style: italic;
-  color: var(--color-ds-muted);
-}
-
-.lore-markdown ul {
-  padding-left: 1.5rem;
-  margin: 1rem 0;
-}
-
-.lore-markdown li {
-  margin: 0.4rem 0;
-}
-
-.lore-markdown img {
-  width: 100%;
-  border-radius: 12px;
-  margin: 1.5rem 0;
-  box-shadow: var(--shadow-ds-panel);
-}
-
-.lore-markdown code {
-  background: var(--color-ds-surface-hover);
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-size: 0.9em;
-}
-
-.lore-markdown pre {
-  background: rgba(0, 0, 0, 0.4);
-  padding: 1rem;
-  border-radius: 12px;
-  overflow-x: auto;
-}
-
-.changelog-list {
-  list-style: disc;
-  padding-left: 1.25rem;
-  margin: 0;
-  text-align: left;
-}
-
-.changelog-list-item {
-  margin: 0.75rem 0;
-  text-align: left;
-  color: var(--color-ds-text);
-  font-size: 15px;
-  line-height: 1.65;
-}
-
-.changelog-list-item > :first-child {
-  display: inline;
-}
-
-.changelog-list-item a {
-  color: var(--color-ds-accent);
-  text-decoration: underline;
-}
-
-.changelog-list-item strong {
-  font-weight: 600;
-}
-
-.changelog-list-item code {
-  background: var(--color-ds-surface-hover);
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-size: 0.9em;
+@utility app-no-drag {
+  -webkit-app-region: no-drag;
 }

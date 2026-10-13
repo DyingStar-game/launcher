@@ -1,20 +1,20 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
-import { seedSocial } from '../../../test/seedSocial'
+import { membership, organisationRequest, seedSocial } from '../../../test/seedSocial'
 import OrganisationAction from './OrganisationAction'
 
 describe('OrganisationAction', () => {
-  it('shows "member" for an organisation the player belongs to', () => {
-    seedSocial({ memberOf: ['c1'] })
+  it('shows "member" for an organisation the player belongs to', async () => {
+    seedSocial({ memberships: [membership({ id: 'c1' })] })
     render(<OrganisationAction id="c1" name="Nova" recruitment="open" />)
-    expect(screen.getByText('Member')).toBeInTheDocument()
+    expect(await screen.findByText('Member')).toBeInTheDocument()
   })
 
-  it('shows a pending application', () => {
-    seedSocial({ appliedTo: ['c1'] })
+  it('shows a pending application', async () => {
+    seedSocial({ applications: [organisationRequest(5, 'c1')] })
     render(<OrganisationAction id="c1" name="Nova" recruitment="apply" />)
-    expect(screen.getByText('Application sent')).toBeInTheDocument()
+    expect(await screen.findByText('Application sent')).toBeInTheDocument()
   })
 
   it('shows "closed" when not recruiting', () => {

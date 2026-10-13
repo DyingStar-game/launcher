@@ -12,7 +12,6 @@ const rendererAlias = {
   '@hooks': resolve(__dirname, 'src/renderer/hooks'),
   '@lib': resolve(__dirname, 'src/renderer/lib'),
   '@assets': resolve(__dirname, 'src/renderer/assets'),
-  '@content': resolve(__dirname, 'src/renderer/content'),
   '@stores': resolve(__dirname, 'src/renderer/stores'),
   '@components': resolve(__dirname, 'src/renderer/components'),
   '@pages': resolve(__dirname, 'src/renderer/pages'),

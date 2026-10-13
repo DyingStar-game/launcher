@@ -3,8 +3,10 @@ import type { PlayerProfile } from '@shared/types/social'
 import BBCodeText from './BBCodeText'
 import SheetSection from './SheetSection'
 
+export type PlayerAboutProps = { profile: PlayerProfile }
+
 /** Biography and role-play sheet of a player; parts without data are not shown. */
-export default function PlayerAbout({ profile }: { profile: PlayerProfile }): React.JSX.Element {
+export default function PlayerAbout({ profile }: PlayerAboutProps): React.JSX.Element {
   const { t } = useTranslation()
   const hasRpSheet = Boolean(profile.characterName || profile.alignment || profile.story)
 
@@ -18,18 +20,16 @@ export default function PlayerAbout({ profile }: { profile: PlayerProfile }): Re
       {hasRpSheet && (
         <SheetSection title={t('universe.socialPage.profile.rpSheet')}>
           {profile.characterName && (
-            <p className="text-sm text-[var(--color-ds-text)]">
-              <span className="text-[var(--color-ds-muted)]">
+            <p className="text-sm text-ds-text">
+              <span className="text-ds-muted">
                 {t('universe.socialPage.profile.characterName')}{' '}
               </span>
               {profile.characterName}
             </p>
           )}
           {profile.alignment && (
-            <p className="text-sm text-[var(--color-ds-text)]">
-              <span className="text-[var(--color-ds-muted)]">
-                {t('universe.socialPage.profile.alignment')}{' '}
-              </span>
+            <p className="text-sm text-ds-text">
+              <span className="text-ds-muted">{t('universe.socialPage.profile.alignment')} </span>
               {profile.alignment}
             </p>
           )}
@@ -41,9 +41,7 @@ export default function PlayerAbout({ profile }: { profile: PlayerProfile }): Re
         </SheetSection>
       )}
       {!profile.biography && !hasRpSheet && (
-        <p className="text-sm text-[var(--color-ds-muted)]">
-          {t('universe.socialPage.profile.empty')}
-        </p>
+        <p className="text-sm text-ds-muted">{t('universe.socialPage.profile.empty')}</p>
       )}
     </>
   )

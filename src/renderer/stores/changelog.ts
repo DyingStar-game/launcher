@@ -24,7 +24,8 @@ type ChangelogState = {
   getEntries: (env: Env) => ChangelogEntryRef[]
   getCurrentId: (env: Env) => string | null
   isUnread: (id: string) => boolean
-  hasUnread: (env: Env) => boolean
+  /** Number of versions of the environment not viewed yet. */
+  unreadCount: (env: Env) => number
 }
 
 type PersistedChangelog = {
@@ -182,10 +183,8 @@ export const useChangelogStore = create<ChangelogState>()(
         return !viewedIds.includes(id)
       },
 
-      hasUnread: (env) => {
-        const entries = entriesForEnv(get().data, env)
-        return entries.some((e) => get().isUnread(e.id))
-      }
+      unreadCount: (env) =>
+        entriesForEnv(get().data, env).filter((e) => get().isUnread(e.id)).length
     }),
     {
       name: 'dyingstar-changelog',

@@ -13,7 +13,6 @@
       "@hooks/*": ["./src/renderer/hooks/*"],
       "@lib/*": ["./src/renderer/lib/*"],
       "@assets/*": ["./src/renderer/assets/*"],
-      "@content/*": ["./src/renderer/content/*"],
       "@stores/*": ["./src/renderer/stores/*"],
       "@components/*": ["./src/renderer/components/*"],
       "@pages/*": ["./src/renderer/pages/*"],

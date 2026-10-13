@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import type { OrganisationMember } from '@shared/types/social'
 import { useNavigationStore } from '@stores/navigation'
@@ -10,6 +10,9 @@ const member = (i: number): OrganisationMember => ({
   id: `m${i}`,
   name: `Member ${i}`,
   rank: i === 0 ? 'CEO' : 'Member',
+  rankId: i === 0 ? 1 : 2,
+  rankPriority: i === 0 ? 99 : 10,
+  isCeo: i === 0,
   status: 'offline'
 })
 const subject = { id: 'c1', env: 'universe-testing' as const }
@@ -62,28 +65,20 @@ describe('OrganisationMembers', () => {
     expect(await screen.findByText(/cannot be reached/)).toBeInTheDocument()
   })
 
-  it('loads again as many members as were shown before Back', async () => {
+  it('brings back every page loaded when the page comes back (Back)', async () => {
     seedSocial({})
-    act(() => useNavigationStore.getState().setPageState({ membersShown: 3 }))
     vi.mocked(window.api.socialGetOrganisationMembers)
       .mockResolvedValueOnce({ ok: true, data: { members: [0, 1].map(member), total: 4 } })
       .mockResolvedValueOnce({ ok: true, data: { members: [2, 3].map(member), total: 4 } })
     const onRestored = vi.fn()
-    render(<OrganisationMembers subject={subject} onRestored={onRestored} />)
-
+    const { rerender } = render(<OrganisationMembers subject={subject} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Load more (2 left)' }))
     expect(await screen.findByText('Member 3')).toBeInTheDocument()
-    expect(window.api.socialGetOrganisationMembers).toHaveBeenCalledTimes(2)
-    await waitFor(() => expect(onRestored).toHaveBeenCalledOnce())
-  })
 
-  it('remembers how many members were loaded', async () => {
-    seedSocial({})
-    vi.mocked(window.api.socialGetOrganisationMembers)
-      .mockResolvedValueOnce({ ok: true, data: { members: [0].map(member), total: 2 } })
-      .mockResolvedValueOnce({ ok: true, data: { members: [1].map(member), total: 2 } })
-    render(<OrganisationMembers subject={subject} />)
-    await userEvent.click(await screen.findByRole('button', { name: 'Load 1 more member' }))
-    await waitFor(() => expect(useNavigationStore.getState().pageState.membersShown).toBe(2))
+    rerender(<></>)
+    rerender(<OrganisationMembers subject={subject} onRestored={onRestored} />)
+    expect(screen.getByText('Member 3')).toBeInTheDocument()
+    await waitFor(() => expect(onRestored).toHaveBeenCalledOnce())
   })
 
   it('shows a skeleton first, then a spinner in Load more while the next page loads', async () => {

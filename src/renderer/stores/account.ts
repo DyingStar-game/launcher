@@ -7,7 +7,7 @@ type EnvAccountData = {
   status: AccountStatus
   username?: string
   email?: string
-  /** True after refresh failed — user must sign in again from Account panel. */
+  /** True after refresh failed — the player must sign in again (navbar account menu). */
   sessionExpired?: boolean
 }
 

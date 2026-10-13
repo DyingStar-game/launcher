@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, session, shell } from 'electron'
 import { loadAppIcon } from '../../icon'
 import { APP_PROTOCOL } from '../../config/constants'
 import { AUTH_WINDOW_BOUNDS } from '../../config/auth'
@@ -6,6 +6,12 @@ import { AUTH_WINDOW_BOUNDS } from '../../config/auth'
 /** Chrome-like UA so Discord OAuth pages treat the window as a normal browser. */
 const AUTH_WINDOW_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+
+/**
+ * The sign-in window's own session: Keycloak's and Discord's cookies live there, apart from the
+ * launcher's window, and are forgotten on sign-out.
+ */
+const AUTH_PARTITION = 'persist:auth'
 
 let authWindow: BrowserWindow | null = null
 
@@ -56,7 +62,8 @@ export function openAuthWindow(
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true
+      sandbox: true,
+      partition: AUTH_PARTITION
     }
   })
 
@@ -153,4 +160,9 @@ export function closeAuthWindow(): void {
   authWindow.removeAllListeners('closed')
   authWindow.close()
   authWindow = null
+}
+
+/** Forgets the sign-in window's cookies and storage (Keycloak, Discord): the next sign-in asks again. */
+export async function clearAuthSession(): Promise<void> {
+  await session.fromPartition(AUTH_PARTITION).clearStorageData()
 }

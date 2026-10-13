@@ -13,13 +13,17 @@
   "common": {
     "cancel": "Cancel",
     "loadingContent": "Loading content",
-    "close": "Close",
     "create": "Create",
     "back": "Back"
   },
   "navbar": {
+    "home": "Home",
+    "appNav": "Launcher",
+    "universeNav": "Universe sections",
+    "universeSections": "Universe sections: {{section}}",
+    "socialPending_one": "{{count}} request waiting",
+    "socialPending_other": "{{count}} requests waiting",
     "social": "Social",
-    "lore": "Lore",
     "support": "Donate",
     "more": "More",
     "openWebsite": "Open official website",
@@ -39,19 +43,27 @@
     "brandWiki": "Wiki",
     "changelog": "Changelog",
     "toggleSound": "Toggle sounds",
-    "soundVolume": "Volume"
+    "soundVolume": "Volume",
+    "account": {
+      "signIn": "Sign in with Discord",
+      "signInShort": "Sign in",
+      "requiredToPlay": "Required to play",
+      "connecting": "Signing in…",
+      "cancelShort": "Cancel",
+      "unavailableShort": "Unavailable",
+      "connected": "Signed in",
+      "cancel": "Cancel sign-in",
+      "signedInAs": "Signed in as {{name}}",
+      "profile": "My profile",
+      "signOut": "Sign out",
+      "menu": "Account of {{name}}",
+      "unavailable": "Sign-in is not available for this environment."
+    },
+    "universeSwitch": "Switch universe"
   },
   "universeTesting": {
-    "banner": "Testing environment — data is not from the live server"
-  },
-  "lore": {
-    "sidebarTitle": "Lore",
-    "sidebarSubtitle": "Articles, chronicles, archives.",
-    "selectArticle": "Select a lore article",
-    "fileNotFound": "File not found: {{file}}",
-    "articles": {
-      "origins": "Origins"
-    }
+    "banner": "Testing environment",
+    "bannerDetail": "— data is not from the live server"
   },
   "changelog": {
     "sidebarTitle": "Changelog",
@@ -61,6 +73,9 @@
     "unavailable": "Changelog is not available (URL not configured or fetch failed).",
     "empty": "No release notes yet.",
     "noEntries": "No entries for this version.",
+    "unreadCount_one": "{{count}} new version",
+    "unreadCount_other": "{{count}} new versions",
+    "new": "New",
     "unreleased": "New features",
     "versionLabel": "v{{version}}",
     "pageTitleUnreleased": "{{component}} — New features",
@@ -81,42 +96,17 @@
     "missionIn": "In mission • {{system}}"
   },
   "universe": {
-    "account": {
-      "title": "Account",
-      "disconnected": "Not connected",
-      "connectedAs": "Logged in as {{username}}",
-      "login": "Login with Discord",
-      "logout": "Logout",
-      "loading": "Connecting...",
-      "cancel": "Cancel",
-      "unavailable": "Authentication not available for this environment.",
-      "unavailableBtn": "Unavailable"
-    },
-    "updateAlert": {
-      "dismiss": "Dismiss alert",
-      "launcher": {
-        "title": "Launcher update available",
-        "downloadHint": "Download the new version:",
-        "downloadLink": "Download"
-      },
-      "game": {
-        "title": "New game version available"
-      },
-      "releaseOn": "Released {{date}}"
-    },
     "game": {
-      "title": "Game",
       "play": "Play",
-      "launching": "Launching…",
       "playDisabledMaintenance": "The server is under maintenance — launching the game is disabled.",
-      "playDisabledUpdate": "A game update is available — install it before playing.",
       "playDisabledAuth": "Sign in to launch the game.",
       "playDisabledAuthLoading": "Checking your session…",
-      "sessionExpired": "Your session has expired. Sign in again from the Account panel to play.",
+      "sessionExpired": "Your session has expired. Sign in again to play.",
       "playDisabledLaunching": "Launching the game…",
       "playDisabledRunning": "The game is already running.",
       "notInstalled": "Game not installed",
-      "players": "{{count}} players online",
+      "players_one": "{{count}} player online",
+      "players_other": "{{count}} players online",
       "status": {
         "online": "Available",
         "degraded": "Issues ongoing",
@@ -124,28 +114,22 @@
         "maintenance": "Under maintenance",
         "unknown": "Unknown",
         "unavailable": "Unavailable"
-      },
-      "viewStatus": "View status"
+      }
     },
     "files": {
       "title": "Game files",
-      "version": "Version: {{version}}",
-      "releaseDate": "Release: {{date}}",
-      "notInstalled": "Game not installed",
-      "install": "Install",
-      "update": "Update",
-      "verify": "Verify files",
+      "verify": "Detect installation",
       "clearCache": "Clear cache",
       "clearCacheToastOk": "Cache cleared.",
       "clearCacheToastPartial": "Cache partially cleared (some folders could not be removed).",
       "clearCacheToastError": "Could not clear the cache.",
-      "installing": "Installing...",
       "installPath": "Install folder",
       "installPathPlaceholder": "/home/user/games/dyingstar",
       "browse": "Browse",
       "selectInstallPath": "Select an install folder",
       "unavailable": "Installation not available for this environment.",
-      "unavailableBtn": "Unavailable"
+      "versionLabel": "Version",
+      "releaseLabel": "Release"
     },
     "social": {
       "title": "Social",
@@ -160,41 +144,21 @@
       "joinOrga": "Join",
       "accept": "Accept",
       "decline": "Decline",
-      "tabs": {
-        "friends": {
-          "label": "Friends",
-          "subtitle": "Manage your friends and status."
-        },
-        "players": {
-          "label": "Find players",
-          "subtitle": "Search players by name and send friend requests."
-        },
-        "organizations": {
-          "label": "Organizations",
-          "subtitle": "Organizations, members, and invites."
-        },
-        "requests": {
-          "label": "Requests",
-          "subtitle": "Pending friend requests."
-        }
-      },
       "createOrgaForm": {
         "title": "Create an organization",
         "nameLabel": "Organization name",
         "namePlaceholder": "Enter a unique name...",
         "success": "Organization created!",
-        "tickerLabel": "Ticker (2–5 letters or digits)",
+        "tickerLabel": "Tag (2–5 letters or digits)",
         "tickerPlaceholder": "e.g. NOVA"
       },
       "playerSearch": {
         "label": "Player name",
         "placeholder": "Start typing a name...",
-        "minChars_one": "Type at least {{count}} character to search.",
-        "minChars_other": "Type at least {{count}} characters to search.",
         "empty": "No player found. Only players who opened the social page once can be found.",
         "add": "Add",
         "addAria": "Send a friend request to {{name}}",
-        "requestSent": "Request sent",
+        "requestSent": "Friend request sent",
         "friend": "Friend",
         "you": "You"
       },
@@ -241,10 +205,7 @@
         "loadMore_one": "Load {{count}} more member",
         "loadMore_other": "Load more ({{count}} left)"
       },
-      "pendingRequests_one": "{{count}} pending request",
-      "pendingRequests_other": "{{count}} pending requests",
       "emptyFriends": "No friends yet.",
-      "emptyOrganizations": "No organizations.",
       "emptyRequests": "No pending requests.",
       "orga": {
         "members_one": "{{count}} member",
@@ -260,7 +221,16 @@
         "sent": "Sent",
         "sentTitle": "Sent requests",
         "cancel": "Cancel request",
-        "cancelAria": "Cancel request to {{name}}"
+        "cancelAria": "Cancel request to {{name}}",
+        "invitationAcceptAria": "Accept the invitation from {{name}}",
+        "invitationDeclineAria": "Decline the invitation from {{name}}",
+        "withdraw": "Withdraw application",
+        "withdrawAria": "Withdraw the application to {{name}}",
+        "invitationsTitle": "Invitations received",
+        "applicationsTitle": "Applications sent",
+        "receivedTitle": "Applications to {{name}} [{{ticker}}]",
+        "applicationAcceptAria": "Accept the application of {{name}}",
+        "applicationDeclineAria": "Decline the application of {{name}}"
       },
       "errors": {
         "unavailable": "The social service cannot be reached. Try again later.",
@@ -272,24 +242,244 @@
         "alreadyFriendsOrPending": "You are already friends, or a request is already pending.",
         "blocked": "You cannot add this player.",
         "invalidTarget": "You cannot add yourself as a friend.",
-        "nameOrTickerTaken": "This organization name or ticker is already taken.",
+        "nameOrTickerTaken": "This organization name or tag is already taken.",
         "alreadyMemberOrPending": "You are already a member, or your application is pending.",
         "recruitmentClosed": "This organization is not recruiting.",
-        "invalidInput": "Check the fields: name 3–48 characters, ticker 2–5 letters or digits.",
-        "unknown": "Something went wrong. Try again."
+        "invalidInput": "Check the fields: name 3–48 characters, tag 2–5 letters or digits.",
+        "unknown": "Something went wrong. Try again.",
+        "requestNotFound": "This request has already been answered.",
+        "forbidden": "Your rank no longer allows this action.",
+        "alreadyMember": "This player is already a member.",
+        "alreadyMemberOrInvited": "This player is already a member, or already invited.",
+        "rankNameTaken": "A rank already has this name."
       },
       "applyOrga": "Apply",
       "orgaSearch": {
-        "label": "Search organizations",
-        "placeholder": "Name or ticker...",
-        "action": "Search"
+        "label": "Organization name or tag",
+        "placeholder": "Start typing a name or tag..."
       },
       "state": {
         "unavailable": "Social is not available on this server yet.",
         "notSignedIn": "Sign in to see your friends and organizations.",
         "errorShort": "Social is unavailable right now.",
         "retry": "Retry"
+      },
+      "sections": {
+        "friends": {
+          "label": "Friends",
+          "subtitle": "Your friends, players to find, and friend requests.",
+          "tabs": {
+            "mine": "My friends",
+            "find": "Find a player",
+            "requests": "Requests"
+          }
+        },
+        "organisations": {
+          "label": "Organizations",
+          "subtitle": "Your organizations, the directory, invitations and applications.",
+          "tabs": {
+            "mine": "My organizations",
+            "find": "Find an organization",
+            "requests": "Requests"
+          }
+        }
+      },
+      "pendingCount_one": "{{count}} request waiting",
+      "pendingCount_other": "{{count}} requests waiting",
+      "emptyMyOrganisations": "You are not in any organization yet.",
+      "emptyOrganisationRequests": "No pending invitation or application.",
+      "emptyDirectory": "No organization found.",
+      "searchMinChars_one": "Type at least {{count}} character to search.",
+      "searchMinChars_other": "Type at least {{count}} characters to search.",
+      "profileEdit": {
+        "action": "Edit my profile",
+        "title": "Edit my profile",
+        "subtitle": "What other players see on your sheet. Your name comes from your account.",
+        "about": "About",
+        "faction": "Faction",
+        "biography": "Biography",
+        "rpSheet": "Role-play sheet",
+        "characterName": "Character name",
+        "alignment": "Alignment",
+        "story": "Story",
+        "save": "Save",
+        "saved": "Profile saved."
+      },
+      "myProfile": "My profile",
+      "manage": {
+        "action": "Manage",
+        "leave": "Leave",
+        "leaveTitle": "Leave {{name}}?",
+        "leaveDescription": "You will lose your rank. To come back, you will have to join or apply again.",
+        "title": "Manage {{name}}",
+        "subtitle": "What your rank lets you change.",
+        "noRight": "Your rank no longer lets you manage this organization.",
+        "saved": "Changes saved.",
+        "tabs": {
+          "details": "Details",
+          "invitations": "Invitations",
+          "members": "Members",
+          "ranks": "Ranks",
+          "leadership": "Leadership"
+        },
+        "details": {
+          "name": "Name",
+          "ticker": "Tag (2–5 letters or digits)",
+          "description": "Description",
+          "recruitment": "Recruitment"
+        },
+        "invitations": {
+          "empty": "No pending invitation. Invite players from their profile.",
+          "withdraw": "Withdraw",
+          "withdrawTitle": "Withdraw the invitation to {{name}}?",
+          "withdrawDescription": "They will no longer be able to accept it."
+        },
+        "members": {
+          "rankAria": "Rank of {{name}}",
+          "remove": "Remove",
+          "removeTitle": "Remove {{name}}?",
+          "removeDescription": "They leave the organization and lose their rank."
+        },
+        "ranks": {
+          "create": "New rank",
+          "name": "Name",
+          "priority": "Priority (0–99)",
+          "priorityValue": "priority {{priority}}",
+          "permissions": "Permissions",
+          "default": "Default rank (new members)",
+          "ceo": "CEO",
+          "edit": "Edit",
+          "delete": "Delete",
+          "deleteTitle": "Delete the rank {{name}}?",
+          "deleteDescription": "Its members get the default rank."
+        },
+        "permissions": {
+          "manage_corporation": "Edit the organization",
+          "manage_ranks": "Manage ranks",
+          "manage_members": "Manage members",
+          "invite": "Invite players",
+          "recruit": "Answer applications"
+        },
+        "leadership": {
+          "transfer": "Hand over the leadership",
+          "heir": "New CEO",
+          "onlyHeir": "Only {{name}} can take over the leadership.",
+          "noMember": "No other member to hand the leadership to.",
+          "transferTitle": "Make {{name}} the CEO?",
+          "transferDescription": "You get the highest rank below the CEO and lose the leadership actions.",
+          "disband": "Disband",
+          "disbandTitle": "Disband {{name}}?",
+          "disbandDescription": "The organization, its ranks and its memberships are deleted. This cannot be undone.",
+          "typeTag": "Type {{ticker}} to confirm"
+        },
+        "invite": {
+          "action": "Invite to an organization",
+          "to": "Invite to {{name}}",
+          "invitedTo": "Invited to {{name}}"
+        }
       }
+    },
+    "hero": {
+      "taglineTesting": "Public test server · progress is not kept",
+      "version": "Version {{version}}",
+      "release": "Release {{date}}"
+    },
+    "launcherUpdate": {
+      "title": "New launcher version available",
+      "download": "Download"
+    },
+    "server": {
+      "openStatus": "View the server status",
+      "playersUnknown": "— players"
+    },
+    "action": {
+      "unavailable": {
+        "title": "Unavailable",
+        "cta": "Unavailable"
+      },
+      "install": {
+        "detailNoPath": "No install folder chosen",
+        "detailPath": "In {{path}}",
+        "cta": "Install"
+      },
+      "installing": {
+        "titleInstall": "Installing… {{progress}} %",
+        "titleUpdate": "Updating… {{progress}} %",
+        "ctaInstall": "Installing…",
+        "ctaUpdate": "Updating…",
+        "rate": "{{rate}}/s",
+        "eta": "~{{minutes}} min",
+        "etaUnderMinute": "< 1 min",
+        "ctaPause": "Pause"
+      },
+      "update": {
+        "title": "Update required",
+        "cta": "Update"
+      },
+      "ready": {
+        "title": "Ready to play",
+        "upToDate": "Up to date"
+      },
+      "running": {
+        "title": "In game",
+        "cta": "In game"
+      },
+      "serverDown": {
+        "detail": "The server is currently unavailable",
+        "cta": "Server unavailable"
+      },
+      "signIn": {
+        "title": "Sign-in required"
+      },
+      "cancel": "Cancel the download",
+      "paused": {
+        "title": "Paused · {{progress}} %",
+        "cta": "Resume"
+      },
+      "bytes": "{{downloaded}} / {{total}}"
+    },
+    "gameUpdate": {
+      "title": "New game version available",
+      "releasedOn": "Released {{date}}",
+      "seeChangelog": "See the full changelog"
     }
+  },
+  "forms": {
+    "errors": {
+      "organisationName": "3 to 48 characters.",
+      "organisationTicker": "2 to 5 letters or digits.",
+      "faction": "64 characters at most.",
+      "biography": "2,000 characters at most.",
+      "characterName": "64 characters at most.",
+      "alignment": "32 characters at most.",
+      "story": "4,000 characters at most.",
+      "nothingChanged": "Nothing has changed.",
+      "description": "2,000 characters at most.",
+      "rankName": "1 to 32 characters.",
+      "rankPriority": "A whole number from 0 to 99.",
+      "rankPriorityBelow": "Lower than your own rank's priority."
+    }
+  },
+  "bbcode": {
+    "toolbar": "Formatting",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strike": "Strikethrough",
+    "color": "Colour",
+    "rule": "Horizontal rule",
+    "colors": {
+      "red": "Red",
+      "orange": "Orange",
+      "yellow": "Yellow",
+      "green": "Green",
+      "cyan": "Cyan",
+      "blue": "Blue",
+      "purple": "Purple",
+      "pink": "Pink",
+      "white": "White",
+      "gray": "Grey"
+    },
+    "defaultColor": "Default colour"
   }
 }

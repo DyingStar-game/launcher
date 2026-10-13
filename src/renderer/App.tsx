@@ -1,17 +1,20 @@
 import AppLayout from '@components/templates/AppLayout'
 import Navbar from '@components/organisms/layout/Navbar'
+import UniverseBar from '@components/organisms/layout/UniverseBar'
 import UniversePage from '@pages/UniversePage'
 import SocialPage from '@pages/SocialPage'
-import LorePage from '@pages/LorePage'
 import ChangelogPage from '@pages/ChangelogPage'
 import PlayerPage from '@pages/PlayerPage'
 import OrganisationPage from '@pages/OrganisationPage'
+import ProfileEditPage from '@pages/ProfileEditPage'
+import OrganisationManagePage from '@pages/OrganisationManagePage'
 import { useNavigationStore, type View } from '@stores/navigation'
 import { useEffect } from 'react'
 import { useVersionStore } from '@stores/version'
 import { useAvailabilityStore } from '@stores/availability'
 import { useChangelogStore } from '@stores/changelog'
 import { useBackgroundMusic } from '@hooks/useBackgroundMusic'
+import { useSocialAccountSync } from '@hooks/social/useSocialSnapshot'
 
 /**
  * Runs one-time startup checks: API availability, version comparison, and changelog.
@@ -29,30 +32,36 @@ function useAppStartup(): void {
   useEffect(() => {
     void fetchChangelog()
   }, [fetchChangelog])
+
+  // Social data follows sign-in and sign-out in each environment (ADR 0025)
+  useSocialAccountSync('universe')
+  useSocialAccountSync('universe-testing')
 }
 
 /** Page for a navigation view id. */
 function renderPage(view: View): React.JSX.Element {
   switch (view) {
-    case 'universe-testing':
-      return <UniversePage showTestingBanner />
     case 'social':
       return <SocialPage />
-    case 'lore':
-      return <LorePage />
     case 'changelog':
       return <ChangelogPage />
     case 'player':
       return <PlayerPage />
     case 'organisation':
       return <OrganisationPage />
+    case 'profileEdit':
+      return <ProfileEditPage />
+    case 'organisationManage':
+      return <OrganisationManagePage />
     default:
       return <UniversePage />
   }
 }
 
+type PageFrameProps = { view: View }
+
 /** Current page; keyed by the caller so each location mounts afresh. */
-function PageFrame({ view }: { view: View }): React.JSX.Element {
+function PageFrame({ view }: PageFrameProps): React.JSX.Element {
   return renderPage(view)
 }
 
@@ -65,7 +74,7 @@ function App(): React.JSX.Element {
   const subjectId = useNavigationStore((s) => s.subject?.id)
 
   return (
-    <AppLayout navbar={<Navbar />}>
+    <AppLayout navbar={<Navbar />} universeBar={<UniverseBar />}>
       <PageFrame key={`${currentView}:${subjectId ?? ''}`} view={currentView} />
     </AppLayout>
   )

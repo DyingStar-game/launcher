@@ -65,3 +65,17 @@ export function parseBBCode(source: string): BBCodeNode[] {
     )
   return walk(parse(source) as unknown[])
 }
+
+/** Colours offered by the editor's toolbar: names Godot's `RichTextLabel` reads (ADR 0029, 0030). */
+export const BBCODE_COLORS = [
+  'red',
+  'orange',
+  'yellow',
+  'green',
+  'cyan',
+  'blue',
+  'purple',
+  'pink',
+  'white',
+  'gray'
+] as const

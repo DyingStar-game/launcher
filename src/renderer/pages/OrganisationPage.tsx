@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigationStore } from '@stores/navigation'
-import { useSocialStore } from '@stores/social'
-import { useSocialResource } from '@hooks/useSocialResource'
+import { useOrganisation } from '@hooks/social/useSocialSheets'
 import { useScrollMemory } from '@hooks/usePageState'
 import BackButton from '@components/molecules/BackButton'
+import BBCodeText from '@components/molecules/BBCodeText'
 import SheetSection from '@components/molecules/SheetSection'
 import SheetStat from '@components/molecules/SheetStat'
 import OrganisationHeader from '@components/organisms/social/OrganisationHeader'
@@ -19,8 +19,7 @@ import { useDelayedFlag } from '@hooks/useDelayedFlag'
 export default function OrganisationPage(): React.JSX.Element {
   const { t, i18n } = useTranslation()
   const { subject, back } = useNavigationStore()
-  const getOrganisation = useSocialStore((s) => s.getOrganisation)
-  const state = useSocialResource(subject, getOrganisation)
+  const state = useOrganisation(subject)
   const showSkeleton = useDelayedFlag(state.kind === 'loading')
   const backButton = <BackButton onBack={back} />
   // Scroll is restored once the members loaded before are back (ADR 0013)
@@ -79,9 +78,7 @@ export default function OrganisationPage(): React.JSX.Element {
         <>
           {organisation.description && (
             <SheetSection title={t('universe.socialPage.organisation.description')}>
-              <p className="text-sm text-[var(--color-ds-text)] whitespace-pre-line">
-                {organisation.description}
-              </p>
+              <BBCodeText text={organisation.description} />
             </SheetSection>
           )}
           <OrganisationMembers subject={subject} onRestored={handleMembersRestored} />

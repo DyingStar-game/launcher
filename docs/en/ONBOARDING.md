@@ -7,10 +7,10 @@ Welcome to the **Dying Star Launcher** repository. This guide helps you understa
 A desktop **Electron** launcher for the game _Dying Star_. It handles:
 
 - Discord / Keycloak authentication (per environment)
-- Game download, install, and updates (ZIP from configurable URLs)
+- Game download (pause, resume, cancel), install, and updates (ZIP from configurable URLs)
 - Server status and player count
 - Launcher update checks (GitHub Releases)
-- Lore articles (bundled markdown) and a **social UI** (friends, requests, organisations) on the `social` game service
+- A **social UI** (friends, requests, organisations) on the `social` game service
 
 ## Repository layout
 
@@ -24,9 +24,9 @@ docs/           # Contributor docs (en/ and fr/)
 resources/      # App icons and macOS entitlements
 ```
 
-Path aliases (Vite/TS): `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@content`, `@assets`.
+Path aliases (Vite/TS): `@shared`, `@components`, `@pages`, `@stores`, `@hooks`, `@lib`, `@i18n`, `@assets`.
 
-Components follow **atomic design** ([ADR 0011](../adr/0011-atomic-design.md)): imports go down only, atoms / molecules / templates are pure (no store), and every new or modified component comes with a `*.test.tsx` (Testing Library).
+Components follow **atomic design** ([ADR 0011](../adr/0011-atomic-design.md)): imports go down only, atoms / molecules / templates are pure (no store), and every new or modified component comes with a `*.test.tsx` (Testing Library). Its rendering (sizes, alignment, colours, breakpoints) is measured by a `*.browser.test.tsx`, run in headless Chromium with the real Tailwind CSS ([ADR 0033](../adr/0033-rendering-tests-vitest-browser.md)); `make install` downloads Chromium.
 
 ## Branches
 
@@ -164,6 +164,10 @@ The main process calls the `social` service (`src/main/services/social/`, [ADR 0
 - `universe-testing` — test server / data
 
 The navbar env switcher changes `useEnvStore().activeEnv`; most stores are keyed by `Env`.
+
+### Home page key art
+
+The home page fades between the WebP images of `src/renderer/assets/key-art/`, in file name order. To add one, drop the PNG or JPEG in `key-art/` at the repository root (not versioned) and run `make key-art`: it converts new or changed images to WebP into the assets folder, picked up without touching the code. A new image takes the number after the highest one (`My image.png` → `key-art-05.webp`) and its source in `key-art/` is renamed to match. `ARGS="--force"` converts everything again, `ARGS="--quality=0.9"` sets the WebP quality (0.82 by default). See the README.
 
 ## Before opening a PR
 

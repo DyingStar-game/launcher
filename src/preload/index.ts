@@ -2,19 +2,30 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { Env } from '@shared/types/env'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
+import type { InstallOutcome, PendingDownload } from '@shared/types/install'
 import type { UserInfo } from '@shared/types/auth'
 import type { ServerStatusValue } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
 import type {
   FriendRequestOutcome,
+  InviteOutcome,
   JoinOutcome,
   OrganisationMembersPage,
+  OrganisationPendingRequest,
+  OrganisationRank,
   OrganisationProfile,
+  OrganisationSearchResult,
   PlayerProfile,
   PlayerSearchResult,
   SocialResult,
   SocialSnapshot
 } from '@shared/types/social'
+import type {
+  CreateOrganisationInput,
+  OrganisationPatch,
+  ProfilePatch,
+  RankInput
+} from '@shared/schemas/social'
 
 /**
  * Renderer-facing API exposed as `window.api`.
@@ -24,9 +35,23 @@ const api = {
   /** Opens a native folder picker; returns the chosen path or null if cancelled. */
   selectDirectory: (): Promise<string | null> => ipcRenderer.invoke('files:select-directory'),
 
-  /** Downloads and extracts the game ZIP; returns installed version metadata. */
-  installGame: (env: Env, installPath: string): Promise<{ version: string; releaseDate: string }> =>
+  /**
+   * Downloads (or resumes) and extracts the game ZIP; resolves to the installed version, or to how
+   * the player stopped it (ADR 0036).
+   */
+  installGame: (env: Env, installPath: string): Promise<InstallOutcome> =>
     ipcRenderer.invoke('files:install', env, installPath),
+
+  /** Pauses the environment's download, keeping it on disk; false once extracting. */
+  pauseInstall: (env: Env): Promise<boolean> => ipcRenderer.invoke('files:pause-install', env),
+
+  /** Cancels the environment's download, or removes a paused one; false once extracting. */
+  cancelInstall: (env: Env, installPath: string): Promise<boolean> =>
+    ipcRenderer.invoke('files:cancel-install', env, installPath),
+
+  /** The environment's paused or interrupted download in the install folder, or null. */
+  pendingDownload: (env: Env, installPath: string): Promise<PendingDownload | null> =>
+    ipcRenderer.invoke('files:pending-download', env, installPath),
 
   /** Subscribes to install/download progress events (0–100 and structured label). */
   onInstallProgress: (callback: (progress: number, label: InstallProgressLabel) => void): void => {
@@ -116,7 +141,7 @@ const api = {
   /** Closes the OAuth window and cancels an in-flight login attempt. */
   authCancelLogin: (env: Env): Promise<void> => ipcRenderer.invoke('auth:cancel-login', env),
 
-  /** Clears stored tokens and opens Keycloak logout. */
+  /** Signs out: clears stored tokens, ends the Keycloak session and forgets the sign-in cookies, in the background. */
   authLogout: (env: Env): Promise<void> => ipcRenderer.invoke('auth:logout', env),
 
   /** Refreshes the session and returns the user profile, or null if logged out. */
@@ -135,9 +160,16 @@ const api = {
     ipcRenderer.on('auth:state-changed', (_event, data) => callback(data))
   },
 
-  /** Loads friends, friend requests and organisations from `social` (organisations filtered by `search`). */
-  socialLoad: (env: Env, search?: string): Promise<SocialResult<SocialSnapshot>> =>
-    ipcRenderer.invoke('social:load', env, search),
+  /** Loads friends, friend requests, memberships and organisation requests from `social`. */
+  socialLoad: (env: Env): Promise<SocialResult<SocialSnapshot>> =>
+    ipcRenderer.invoke('social:load', env),
+
+  /** Finds organisations whose name or tag contains `query` (2 characters minimum). */
+  socialSearchOrganisations: (
+    env: Env,
+    query: string
+  ): Promise<SocialResult<OrganisationSearchResult[]>> =>
+    ipcRenderer.invoke('social:search-organisations', env, query),
 
   /** Finds players whose display name contains `query` (2 characters minimum). */
   socialSearchPlayers: (env: Env, query: string): Promise<SocialResult<PlayerSearchResult[]>> =>
@@ -186,8 +218,115 @@ const api = {
     ipcRenderer.invoke('social:join-organisation', env, corporationId),
 
   /** Creates an organisation (name + 2–5 character ticker). */
-  socialCreateOrganisation: (env: Env, name: string, ticker: string): Promise<SocialResult<void>> =>
-    ipcRenderer.invoke('social:create-organisation', env, name, ticker)
+  socialCreateOrganisation: (
+    env: Env,
+    input: CreateOrganisationInput
+  ): Promise<SocialResult<void>> => ipcRenderer.invoke('social:create-organisation', env, input),
+
+  /** Answers an organisation request as the player: accept or decline an invitation, or withdraw an application. */
+  socialAnswerOrganisationInvitation: (
+    env: Env,
+    requestId: number,
+    accept: boolean
+  ): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:answer-organisation-invitation', env, requestId, accept),
+
+  /** Accepts or declines an application received by an organisation the player recruits for. */
+  socialAnswerOrganisationRequest: (
+    env: Env,
+    corporationId: string,
+    requestId: number,
+    accept: boolean
+  ): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:answer-organisation-request', env, corporationId, requestId, accept),
+
+  /** Updates the player's own profile texts (only the fields in `patch`). */
+  socialUpdateProfile: (env: Env, patch: ProfilePatch): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:update-profile', env, patch),
+
+  /** Edits an organisation's details (changed fields only). */
+  socialUpdateOrganisation: (
+    env: Env,
+    corporationId: string,
+    patch: OrganisationPatch
+  ): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:update-organisation', env, corporationId, patch),
+
+  /** Pending applications and invitations of an organisation, for its managers. */
+  socialGetOrganisationRequests: (
+    env: Env,
+    corporationId: string
+  ): Promise<SocialResult<OrganisationPendingRequest[]>> =>
+    ipcRenderer.invoke('social:get-organisation-requests', env, corporationId),
+
+  /** Invites a player to an organisation. */
+  socialInviteToOrganisation: (
+    env: Env,
+    corporationId: string,
+    playerId: string
+  ): Promise<SocialResult<InviteOutcome>> =>
+    ipcRenderer.invoke('social:invite-to-organisation', env, corporationId, playerId),
+
+  /** Gives a member another rank. */
+  socialSetMemberRank: (
+    env: Env,
+    corporationId: string,
+    playerId: string,
+    rankId: number
+  ): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:set-member-rank', env, corporationId, playerId, rankId),
+
+  /** Removes a member, or leaves when the id is the player's own. */
+  socialRemoveMember: (
+    env: Env,
+    corporationId: string,
+    playerId: string
+  ): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:remove-member', env, corporationId, playerId),
+
+  /** An organisation's ranks, highest first. */
+  socialGetOrganisationRanks: (
+    env: Env,
+    corporationId: string
+  ): Promise<SocialResult<OrganisationRank[]>> =>
+    ipcRenderer.invoke('social:get-organisation-ranks', env, corporationId),
+
+  /** Creates a rank. */
+  socialCreateRank: (
+    env: Env,
+    corporationId: string,
+    rank: RankInput
+  ): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:create-rank', env, corporationId, rank),
+
+  /** Edits a rank (the fields given only). */
+  socialUpdateRank: (
+    env: Env,
+    corporationId: string,
+    rankId: number,
+    rank: RankInput
+  ): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:update-rank', env, corporationId, rankId, rank),
+
+  /** Deletes a rank. */
+  socialDeleteRank: (
+    env: Env,
+    corporationId: string,
+    rankId: number
+  ): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:delete-rank', env, corporationId, rankId),
+
+  /** Hands the leadership of an organisation to a member. */
+  socialTransferOrganisation: (
+    env: Env,
+    corporationId: string,
+    playerId: string
+  ): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:transfer-organisation', env, corporationId, playerId),
+
+  /** Disbands an organisation. */
+  socialDisbandOrganisation: (env: Env, corporationId: string): Promise<SocialResult<void>> =>
+    ipcRenderer.invoke('social:disband-organisation', env, corporationId)
 }
 
 /** Exposes safe APIs to the renderer (isolated context) or assigns to window in dev. */
