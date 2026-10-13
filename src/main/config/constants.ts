@@ -28,7 +28,7 @@ export const GAME_DOWNLOAD_ZIP_NAME = '__game_download.zip'
 /** What identifies a partial download, beside its ZIP, for resuming it (ADR 0036). */
 export const GAME_DOWNLOAD_META_NAME = '__game_download.json'
 
-/** Files the launcher extracted into each game folder, removed on update (ADR 0038, 0039). */
+/** Files the launcher extracted into each game folder, removed on update (ADR 0038). */
 export const GAME_FILES_LIST_NAME = 'game-files.json'
 
 /** Platform-specific game executable names (relative to game root). */
@@ -53,4 +53,23 @@ export const DOWNLOAD_PROGRESS = {
   minIntervalMs: 100,
   unknownChunkBytes: 2 * 1024 * 1024,
   unknownSizeCapBytes: 80 * 1024 * 1024
+} as const
+
+/** When a download's connection is replaced by a new one, resuming where it is (ADR 0039). */
+export const DOWNLOAD_RECONNECT = {
+  /** How often the speed of the connection is looked at. */
+  checkEveryMs: 5_000,
+  /** The span the speed is measured over; nothing received in it is a stall. */
+  windowMs: 30_000,
+  /** Below this speed, the connection is replaced. */
+  slowBytesPerSecond: parsePositiveInt(
+    import.meta.env.VITE_DOWNLOAD_SLOW_BYTES_PER_SECOND,
+    1024 * 1024
+  ),
+  /** A new connection slower than this many times the old one means the line is the limit. */
+  speedUpFactor: 2,
+  /** Connections in a row receiving nothing before the download fails (kept on disk). */
+  maxStalls: 5,
+  /** Wait before a new connection, times the connections in a row that received nothing. */
+  retryDelayMs: 2_000
 } as const

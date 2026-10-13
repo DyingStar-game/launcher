@@ -1,7 +1,13 @@
 import axios from 'axios'
 import * as fs from 'fs'
+import { setTimeout as delay } from 'timers/promises'
 import type { BrowserWindow } from 'electron'
-import { DOWNLOAD_PROGRESS, DOWNLOAD_USER_AGENT, HTTP_TIMEOUT_MS } from '../../config/constants'
+import {
+  DOWNLOAD_PROGRESS,
+  DOWNLOAD_RECONNECT,
+  DOWNLOAD_USER_AGENT,
+  HTTP_TIMEOUT_MS
+} from '../../config/constants'
 import type { Env } from '@shared/types/env'
 import { getZipUrl } from './zipUrl'
 import { sendProgress } from './progress'
@@ -77,10 +83,24 @@ function reportDownload(
   }
 }
 
+/** What the download watchdog remembers across the connections of one download (ADR 0039). */
+type ConnectionWatch = {
+  /** Speed of the connection replaced for slowness, until the next one is measured. */
+  replacedRate: number | null
+  /** False once a new connection did not help: the player's line is the limit. */
+  replaceWhenSlow: boolean
+  /** Connections in a row that received nothing (stalled, dropped or refused). */
+  stalls: number
+}
+
+/** How one connection ended: the archive is complete, or a new connection must resume it. */
+type ConnectionOutcome = 'complete' | 'reconnect'
+
 /**
  * Streams the game ZIP to disk and reports progress to the renderer. A partial download of the
- * same archive left in the folder is resumed with an HTTP range (ADR 0036); `signal` stops the
- * download, leaving what was received on disk.
+ * same archive left in the folder is resumed with an HTTP range (ADR 0036); a connection that
+ * stalls or turns slow is replaced by a new one, resuming where it is (ADR 0039); `signal` stops
+ * the download, leaving what was received on disk.
  */
 export async function downloadZip(
   env: Env,
@@ -89,7 +109,26 @@ export async function downloadZip(
   signal: AbortSignal
 ): Promise<string> {
   sendProgress(win, 0, { key: 'connecting' })
+  const watch: ConnectionWatch = { replacedRate: null, replaceWhenSlow: true, stalls: 0 }
+  while ((await downloadOnce(env, destPath, win, signal, watch)) === 'reconnect') {
+    if (watch.stalls >= DOWNLOAD_RECONNECT.maxStalls) {
+      throw new Error(`Download interrupted (no data received)\n${getZipUrl(env)}`)
+    }
+    // A server that just dropped or refused the connection gets a moment before the next one
+    if (watch.stalls > 0)
+      await delay(DOWNLOAD_RECONNECT.retryDelayMs * watch.stalls, null, { signal })
+  }
+  return checkedZip(partialZipPath(destPath), getZipUrl(env), destPath)
+}
 
+/** Downloads the archive, or what is missing of it, over one connection. */
+async function downloadOnce(
+  env: Env,
+  destPath: string,
+  win: BrowserWindow,
+  signal: AbortSignal,
+  watch: ConnectionWatch
+): Promise<ConnectionOutcome> {
   const url = getZipUrl(env)
   const zipFilePath = partialZipPath(destPath)
   const meta = readDownloadMeta(destPath)
@@ -99,9 +138,7 @@ export async function downloadZip(
     meta !== null && meta.env === env && meta.url === url && onDisk > 0 && validator !== null
 
   if (!resumable) deletePartialDownload(destPath)
-  if (resumable && meta.total > 0 && onDisk >= meta.total) {
-    return checkedZip(zipFilePath, url, destPath)
-  }
+  if (resumable && meta.total > 0 && onDisk >= meta.total) return 'complete'
 
   let response: Awaited<ReturnType<typeof axios.get<NodeJS.ReadableStream & { destroy(): void }>>>
   try {
@@ -120,6 +157,11 @@ export async function downloadZip(
   } catch (err) {
     if (signal.aborted) throw err
     if (axios.isAxiosError(err)) {
+      // No answer (connection refused, reset, timed out): tried again like a stalled connection
+      if (!err.response) {
+        watch.stalls += 1
+        return 'reconnect'
+      }
       const code = err.response?.status
       const hint =
         code === 404
@@ -139,7 +181,7 @@ export async function downloadZip(
     // The part on disk does not match the archive served: start over
     response.data.destroy()
     deletePartialDownload(destPath)
-    return downloadZip(env, destPath, win, signal)
+    return 'reconnect'
   }
   if (response.status !== 200 && !append) {
     response.data.destroy()
@@ -148,9 +190,11 @@ export async function downloadZip(
 
   let total: number
   let downloaded: number
+  let canResume: boolean
   if (append) {
     total = meta.total
     downloaded = onDisk
+    canResume = true
   } else {
     total = Number(response.headers['content-length'] ?? 0)
     downloaded = 0
@@ -158,36 +202,85 @@ export async function downloadZip(
       const value = response.headers[name]
       return typeof value === 'string' ? value : null
     }
-    writeDownloadMeta(destPath, {
-      env,
-      url,
-      etag: header('etag'),
-      lastModified: header('last-modified'),
-      total
-    })
+    const etag = header('etag')
+    const lastModified = header('last-modified')
+    canResume = (etag ?? lastModified) !== null
+    writeDownloadMeta(destPath, { env, url, etag, lastModified, total })
   }
 
   const writer = fs.createWriteStream(zipFilePath, { flags: append ? 'a' : 'w' })
   const lastReport = { bytes: downloaded, at: 0 }
   reportDownload(win, downloaded, total, lastReport)
 
-  await new Promise<void>((resolve, reject) => {
+  return new Promise<ConnectionOutcome>((resolve, reject) => {
     const stream = response.data
+    let stopped = false
     let failure: unknown = null
+    let outcome: ConnectionOutcome = 'complete'
+    const received = downloaded
+    // Bytes on disk over time; the first sample is the latest one at least a window old
+    const samples = [{ at: Date.now(), bytes: downloaded }]
+
+    const onAbort = (): void => fail(signal.reason)
+    const watchdog = setInterval(() => {
+      const now = Date.now()
+      samples.push({ at: now, bytes: downloaded })
+      while (samples.length > 1 && now - samples[1].at >= DOWNLOAD_RECONNECT.windowMs) {
+        samples.shift()
+      }
+      const oldest = samples[0]
+      if (now - oldest.at < DOWNLOAD_RECONNECT.windowMs) return
+      const rate = ((downloaded - oldest.bytes) * 1000) / (now - oldest.at)
+      if (rate === 0) {
+        replaceConnection()
+        return
+      }
+      if (watch.replacedRate !== null) {
+        // The first measure since a reconnection for slowness: did it help?
+        if (rate < watch.replacedRate * DOWNLOAD_RECONNECT.speedUpFactor) {
+          watch.replaceWhenSlow = false
+        }
+        watch.replacedRate = null
+        return
+      }
+      if (rate < DOWNLOAD_RECONNECT.slowBytesPerSecond && watch.replaceWhenSlow && canResume) {
+        watch.replacedRate = rate
+        replaceConnection()
+      }
+    }, DOWNLOAD_RECONNECT.checkEveryMs)
+
     // The file is closed before settling, so it can be resumed or deleted right away
-    const fail = (err: unknown): void => {
-      if (failure !== null) return
-      failure = err
+    const stop = (): void => {
+      stopped = true
       stream.destroy()
       writer.end()
     }
-    writer.on('close', () => (failure === null ? resolve() : reject(failure)))
+    const fail = (err: unknown): void => {
+      if (stopped) return
+      failure = err
+      stop()
+    }
+    /** Closes this connection: the download goes on over a new one, from what is on disk. */
+    const replaceConnection = (): void => {
+      if (stopped) return
+      outcome = 'reconnect'
+      stop()
+    }
+    writer.on('close', () => {
+      clearInterval(watchdog)
+      signal.removeEventListener('abort', onAbort)
+      if (downloaded > received) watch.stalls = 0
+      else if (outcome === 'reconnect') watch.stalls += 1
+      if (failure === null) resolve(outcome)
+      else reject(failure)
+    })
     writer.on('error', fail)
-    stream.on('error', fail)
-    signal.addEventListener('abort', () => fail(signal.reason), { once: true })
+    // A connection reset or dropped mid-way: a new one resumes from what was received
+    stream.on('error', replaceConnection)
+    signal.addEventListener('abort', onAbort, { once: true })
 
     stream.on('data', (chunk: Buffer) => {
-      if (failure !== null) return
+      if (stopped) return
       downloaded += chunk.length
       if (!writer.write(chunk)) {
         stream.pause()
@@ -201,13 +294,10 @@ export async function downloadZip(
       ended = true
       writer.end()
     })
-    // A connection dropped mid-way: what was received stays, to be resumed
     stream.on('close', () => {
-      if (!ended) fail(new Error(`Download interrupted\n${url}`))
+      if (!ended) replaceConnection()
     })
   })
-
-  return checkedZip(zipFilePath, url, destPath)
 }
 
 /** The downloaded ZIP, checked; a file that is not a ZIP is removed (it cannot be resumed). */
