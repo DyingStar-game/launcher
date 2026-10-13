@@ -8,10 +8,14 @@ import type { AddressInfo } from 'net'
 import type { BrowserWindow } from 'electron'
 
 vi.mock('./zipUrl', () => ({ getZipUrl: vi.fn() }))
+// The launcher's data folder, where the game's file list lives (ADR 0038)
+const dataDir = vi.hoisted(() => ({ path: '' }))
+vi.mock('electron', () => ({ app: { getPath: () => dataDir.path } }))
 
 import { getZipUrl } from './zipUrl'
 import { cancelInstall, downloadAndInstall, pauseInstall } from './install'
 import { findPendingDownload, writeDownloadMeta } from './partial'
+import { readGameFiles } from './gameFiles'
 
 /** A ZIP holding stored (uncompressed) files, by path. */
 function zipOf(files: Record<string, string>): Buffer {
@@ -80,6 +84,7 @@ beforeEach(async () => {
   archive = ARCHIVE
   requests = []
   installPath = fs.mkdtempSync(path.join(os.tmpdir(), 'ds-install-'))
+  dataDir.path = fs.mkdtempSync(path.join(os.tmpdir(), 'ds-launcher-data-'))
   server = http.createServer((req, res) => {
     requests.push(req.headers)
     const range = req.headers.range?.match(/^bytes=(\d+)-$/)
@@ -123,6 +128,7 @@ afterEach(async () => {
   server.closeAllConnections()
   await new Promise((resolve) => server.close(resolve))
   fs.rmSync(installPath, { recursive: true, force: true })
+  fs.rmSync(dataDir.path, { recursive: true, force: true })
   vi.clearAllMocks()
 })
 
@@ -143,7 +149,7 @@ describe('downloadAndInstall', () => {
       version: '20261012000000',
       releaseDate: '2026-10-12'
     })
-    expect(filesLeft()).toEqual(['DyingStar', '__game_files.json'])
+    expect(filesLeft()).toEqual(['DyingStar'])
     expect(requests[0].range).toBeUndefined()
   })
 
@@ -164,7 +170,7 @@ describe('downloadAndInstall', () => {
       status: 'installed'
     })
     expect(requests[1]).toMatchObject({ range: `bytes=${HALF}-`, 'if-range': ETAG })
-    expect(filesLeft()).toEqual(['DyingStar', '__game_files.json'])
+    expect(filesLeft()).toEqual(['DyingStar'])
   })
 
   it('downloads it all again when the archive changed', async () => {
@@ -256,9 +262,7 @@ describe('downloadAndInstall', () => {
     await downloadAndInstall('universe', installPath, win)
 
     expect(fs.readdirSync(gameRoot).sort()).toEqual(['old.dll', 'version.json'])
-    expect(
-      JSON.parse(fs.readFileSync(path.join(installPath, '__game_files.json'), 'utf8'))
-    ).toEqual(['version.json'])
+    expect(readGameFiles(gameRoot)).toEqual(['version.json'])
   })
 
   it('has nothing to pause once nothing runs', () => {

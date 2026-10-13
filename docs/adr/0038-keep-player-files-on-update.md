@@ -34,17 +34,19 @@ Removing the old files is still needed: a file dropped from the archive must not
 
 We take option 1.
 
-- After a successful extraction, main writes the archive's file list (paths relative to the game
-  folder, from the ZIP entries) to `__game_files.json` in the install path, beside the game folder
-  (like `__game_download.json`, ADR 0036), out of the game's reach.
+- After a successful extraction, main records the archive's file list (paths relative to the game
+  folder, from the ZIP entries) in the launcher's data folder (`app.getPath('userData')`, like the
+  stored tokens), not in the install path, which is the player's: `game-files.json` holds one list
+  per game folder, keyed by its absolute path
+  (`{ "<installPath>/<GAME_INSTALL_SUBDIR>": ["version.json", …] }`).
 - On install or update, instead of removing the game folder, main:
   1. reads the list; before extracting, rewrites it as the union of the old list and the new
      archive's entries, so an extraction that fails midway leaves nothing untracked;
   2. removes each listed file still on disk, skipping any path that would resolve outside the
      game folder, then the listed folders left empty, deepest first;
   3. extracts the archive (overwriting), then writes the new archive's list alone.
-- No list (a game installed before this change, or found with Detect installation): nothing is
-  removed, the archive is extracted over the folder. Files dropped from the archive since that
+- No list (a game installed before this change, found with Detect installation, moved by hand,
+  or the launcher's data cleared): nothing is removed, the archive is extracted over the folder. Files dropped from the archive since that
   install stay (see Consequences); the list written after it makes the next updates clean.
 - A file that is both in the archive and changed by the player (`client.ini`, which the player
   may edit) is replaced by the archive's copy, as today: the maintainer chose (2026-10-13) to keep
@@ -60,8 +62,11 @@ We take option 1.
   the game folder, untracked, until the player removes them or reinstalls in an empty folder. A
   Godot export keeps the same file names from one build to the next (executable, `.pck`,
   libraries), so this should be rare.
+- The install path holds only the game and, while a download is paused, its partial archive
+  (ADR 0036). The list follows the game folder's path: moving the folder by hand, or clearing the
+  launcher's data, loses it, and the next update removes nothing.
 - Removing files one by one is slower than removing the folder, negligible beside the download
   and extraction.
-- Tests: Node tests on a temporary folder: player files kept, listed files and emptied folders
+- Tests: Node tests on temporary folders (the launcher's data folder mocked): player files kept, listed files and emptied folders
   removed, paths outside the game folder ignored, no list → nothing removed, union written before
   extraction.

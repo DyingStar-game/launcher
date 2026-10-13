@@ -76,13 +76,13 @@ export async function downloadAndInstall(
       sendProgress(win, 68, { key: 'preparing' })
       // Only the files a previous archive installed go: the player's own stay (ADR 0038)
       const archiveFiles = await listArchiveFiles(zipFilePath)
-      const installedFiles = readGameFiles(installPath) ?? []
-      writeGameFiles(installPath, [...installedFiles, ...archiveFiles])
+      const installedFiles = readGameFiles(gameRoot) ?? []
+      writeGameFiles(gameRoot, [...installedFiles, ...archiveFiles])
       removeGameFiles(gameRoot, installedFiles)
       fs.mkdirSync(gameRoot, { recursive: true })
 
       await extractZip(zipFilePath, gameRoot, win)
-      writeGameFiles(installPath, archiveFiles)
+      writeGameFiles(gameRoot, archiveFiles)
       sendProgress(win, 99, { key: 'cleaning' })
       deletePartialDownload(installPath)
       const manifest = await resolveInstalledVersion(env, gameRoot)

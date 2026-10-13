@@ -1,8 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import { readGameFiles, removeGameFiles, writeGameFiles } from './gameFiles'
+
+const dataDir = vi.hoisted(() => ({ path: '' }))
+vi.mock('electron', () => ({ app: { getPath: () => dataDir.path } }))
 
 let installPath: string
 let gameRoot: string
@@ -24,22 +27,34 @@ beforeEach(() => {
   installPath = fs.mkdtempSync(path.join(os.tmpdir(), 'ds-game-files-'))
   gameRoot = path.join(installPath, 'DyingStar')
   fs.mkdirSync(gameRoot)
+  dataDir.path = fs.mkdtempSync(path.join(os.tmpdir(), 'ds-launcher-data-'))
 })
 
 afterEach(() => {
   fs.rmSync(installPath, { recursive: true, force: true })
+  fs.rmSync(dataDir.path, { recursive: true, force: true })
 })
 
 describe('readGameFiles / writeGameFiles', () => {
-  it('reads back the recorded files, once each', () => {
-    writeGameFiles(installPath, ['b.dll', 'a.pck', 'b.dll'])
-    expect(readGameFiles(installPath)).toEqual(['a.pck', 'b.dll'])
+  it("reads back the recorded files, once each, from the launcher's data folder", () => {
+    writeGameFiles(gameRoot, ['b.dll', 'a.pck', 'b.dll'])
+    expect(readGameFiles(gameRoot)).toEqual(['a.pck', 'b.dll'])
+    expect(fs.readdirSync(installPath)).toEqual(['DyingStar'])
+    expect(fs.readdirSync(dataDir.path)).toEqual(['game-files.json'])
   })
 
-  it('is null when nothing was recorded or the list is unreadable', () => {
-    expect(readGameFiles(installPath)).toBeNull()
-    fs.writeFileSync(path.join(installPath, '__game_files.json'), '{')
-    expect(readGameFiles(installPath)).toBeNull()
+  it('keeps one list per game folder', () => {
+    const otherRoot = path.join(installPath, 'Other')
+    writeGameFiles(gameRoot, ['a.pck'])
+    writeGameFiles(otherRoot, ['b.pck'])
+    expect(readGameFiles(gameRoot)).toEqual(['a.pck'])
+    expect(readGameFiles(otherRoot)).toEqual(['b.pck'])
+  })
+
+  it('is null when nothing was recorded or the lists are unreadable', () => {
+    expect(readGameFiles(gameRoot)).toBeNull()
+    fs.writeFileSync(path.join(dataDir.path, 'game-files.json'), '{')
+    expect(readGameFiles(gameRoot)).toBeNull()
   })
 })
 
