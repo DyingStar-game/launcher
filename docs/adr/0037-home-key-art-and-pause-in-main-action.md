@@ -22,13 +22,14 @@ maintainer chose (2026-10-12) to put Pause in the main action, as the original d
 ## Decision
 
 - **Key art**: the hero's frame is filled by `KeyArtSlideshow` (the `backdrop` slot of
-  `UniverseLayout`), the same images for both universes, listed in `lib/keyArt.ts` (`KEY_ART`). Each
-  image covers the whole frame without being stretched (`object-cover`); with several, they fade
-  into one another in a loop (8 s each, a 1.5 s fade; no fade when the system asks for reduced
-  motion). A light dark band at the bottom, fading out just above the universe's name (fixed
-  height, as the name sits at a fixed distance from the bottom), light text under the name and a
-  text shadow keep the text readable while the rest of the image stays clear. Images are WebP in `assets/key-art/` (the first one: 3440 × 1440,
-  230 KB, from a 5.7 MB PNG).
+  `UniverseLayout`), the same images for both universes: every WebP in `assets/key-art/`, in file
+  name order (`KEY_ART` in `lib/keyArt.ts`). Each image covers the whole frame without being
+  stretched (`object-cover`); with several, they fade into one another in a loop (8 s each, a 1.5 s
+  fade; no fade when the system asks for reduced motion). A light dark band at the bottom, fading
+  out just above the universe's name (fixed height, as the name sits at a fixed distance from the
+  bottom), light text under the name and a text shadow keep the text readable while the rest of the
+  image stays clear. `make key-art` converts the PNG / JPEG of `key-art/` (not versioned) to WebP,
+  numbered `key-art-<NN>` (the first one: 3440 × 1440, 230 KB, from a 5.7 MB PNG).
 - **Pause in the main action**: while downloading, the main action is **Pause**; once paused, it is
   **Resume** (as in ADR 0036). The only icon button is **Cancel**, at the end of the detail line, right above the end of the
   progress, while
@@ -41,6 +42,6 @@ maintainer chose (2026-10-12) to put Pause in the main action, as the original d
 ## Consequences
 
 - The emblem placeholder (`KeyArtPlaceholder`, `DyingStarEmblem`) is removed.
-- Adding an image is adding a file to `assets/key-art/` and to `KEY_ART`; per-universe images
-  would make `KEY_ART` a record keyed by environment.
+- Adding an image is running `make key-art`, without touching the code; per-universe images would
+  make `KEY_ART` a record keyed by environment.
 - The main action is never greyed out while the download can still be stopped.

@@ -82,7 +82,7 @@ Le fond de la page d’accueil fait défiler en fondu les images WebP de `src/re
 2. Lancer `make key-art` : chaque image nouvelle ou modifiée est convertie en WebP (même définition, bien plus légère) et placée dans `src/renderer/assets/key-art/` sous le numéro suivant le plus grand déjà pris (`Mon image.png` → `key-art-05.webp`) ; la source est renommée à l’identique dans `key-art/` (`key-art-05.png`), pour retrouver le même WebP à la prochaine conversion.
 3. Elle apparaît dans le carrousel au prochain lancement, après les autres, sans toucher au code. Pour changer l’ordre, renommer les fichiers `key-art-<NN>` (source et WebP).
 
-Options : `make key-art ARGS="--force"` reconvertit tout, `ARGS="--quality=0.9"` change la qualité WebP (de 0 à 1, 0.82 par défaut). La conversion passe par le Chromium headless des tests de rendu, installé par `make install` : aucun outil d’image à installer. Pour retirer une image, supprimer son `.webp`.
+Options : `make key-art ARGS="--force"` reconvertit tout, `ARGS="--quality=0.9"` change la qualité WebP (de 0 à 1, 0.82 par défaut). La conversion passe par le Chromium headless des tests de rendu, installé par `make install` : aucun outil d’image à installer. Pour retirer une image, supprimer son `.webp` et sa source dans `key-art/` (sinon `make key-art` la reconvertit).
 
 ## Variables d’environnement
 
