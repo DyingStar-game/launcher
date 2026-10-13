@@ -25,8 +25,9 @@ maintainer chose (2026-10-12) to put Pause in the main action, as the original d
   `UniverseLayout`), the same images for both universes, listed in `lib/keyArt.ts` (`KEY_ART`). Each
   image covers the whole frame without being stretched (`object-cover`); with several, they fade
   into one another in a loop (8 s each, a 1.5 s fade; no fade when the system asks for reduced
-  motion). A light dark gradient over them, from the bottom and the left, and a text shadow under
-  the universe's name keep the text readable while the image stays visible. Images are WebP in `assets/key-art/` (the first one: 3440 × 1440,
+  motion). A light dark band at the bottom, fading out just above the universe's name (fixed
+  height, as the name sits at a fixed distance from the bottom), light text under the name and a
+  text shadow keep the text readable while the rest of the image stays clear. Images are WebP in `assets/key-art/` (the first one: 3440 × 1440,
   230 KB, from a 5.7 MB PNG).
 - **Pause in the main action**: while downloading, the main action is **Pause**; once paused, it is
   **Resume** (as in ADR 0036). The only icon button is **Cancel**, at the end of the detail line, right above the end of the

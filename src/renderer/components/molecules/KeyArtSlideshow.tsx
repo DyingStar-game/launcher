@@ -9,8 +9,10 @@ export type KeyArtSlideshowProps = {
 }
 
 /**
- * Full-frame images fading into one another in a loop, under a dark gradient that keeps the text
- * laid over them readable (bottom and left, where the universe's name sits). Decorative.
+ * Full-frame images fading into one another in a loop, under a dark band at the bottom that keeps
+ * the universe's name and the lines under it readable, fading out just above the name; the rest of
+ * the image stays clear. Fixed height, as the name sits at a fixed distance from the bottom.
+ * Decorative.
  */
 export default function KeyArtSlideshow({
   images,
@@ -38,8 +40,7 @@ export default function KeyArtSlideshow({
           )}
         />
       ))}
-      <div className="absolute inset-0 bg-linear-to-t from-ds-bg/90 via-ds-bg/30 via-35% to-transparent to-60%" />
-      <div className="absolute inset-0 bg-linear-to-r from-ds-bg/85 via-ds-bg/40 via-30% to-transparent to-60%" />
+      <div className="absolute inset-x-0 bottom-0 h-72 bg-linear-to-t from-ds-bg/60 via-ds-bg/45 via-55% to-transparent" />
     </div>
   )
 }
