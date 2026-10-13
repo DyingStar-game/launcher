@@ -1,11 +1,21 @@
 // Converts the home page's key art to WebP: every PNG / JPEG dropped in `key-art/` (not versioned)
-// becomes `src/renderer/assets/key-art/<name>.webp`, which the home slideshow picks up by itself.
+// becomes `src/renderer/assets/key-art/key-art-<NN>.webp`, which the home slideshow picks up by
+// itself. A new image takes the number after the highest one and its source is renamed to match,
+// so it keeps the same WebP when converted again.
 // Encodes with the headless Chromium of the rendering tests (no image tool to install).
 //
 //   make key-art                      convert what is new or changed
 //   make key-art ARGS="--force"       convert everything again
 //   make key-art ARGS="--quality=0.9" WebP quality, 0 to 1 (default 0.82)
-import { readdirSync, readFileSync, statSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import {
+  readdirSync,
+  readFileSync,
+  renameSync,
+  statSync,
+  writeFileSync,
+  mkdirSync,
+  existsSync
+} from 'node:fs'
 import { basename, extname, join, resolve } from 'node:path'
 import { chromium, type Browser } from 'playwright'
 
@@ -26,14 +36,15 @@ if (!(quality > 0 && quality <= 1)) {
   process.exit(1)
 }
 
-/** `My Image 02.PNG` → `my-image-02.webp` */
-const targetName = (file: string): string =>
-  basename(file, extname(file))
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '') + '.webp'
+/** `key-art-04.png` → 4; `null` for a name outside the numbering */
+const NUMBERED = /^key-art-(\d+)$/
+const numberOf = (file: string): number | null => {
+  const match = NUMBERED.exec(basename(file, extname(file)).toLowerCase())
+  return match ? Number(match[1]) : null
+}
+
+/** `key-art-04.PNG` → `key-art-04.webp` */
+const targetName = (file: string): string => basename(file, extname(file)).toLowerCase() + '.webp'
 
 const kb = (bytes: number): string => `${Math.round(bytes / 1024)} KB`
 
@@ -44,7 +55,22 @@ if (!existsSync(SOURCE_DIR)) {
 }
 mkdirSync(TARGET_DIR, { recursive: true })
 
-const sources = readdirSync(SOURCE_DIR).filter((file) => extname(file).toLowerCase() in TYPES)
+const isImage = (file: string): boolean => extname(file).toLowerCase() in TYPES
+let next =
+  Math.max(
+    0,
+    ...[...readdirSync(SOURCE_DIR), ...readdirSync(TARGET_DIR)]
+      .map(numberOf)
+      .filter((n) => n !== null)
+  ) + 1
+for (const file of readdirSync(SOURCE_DIR).filter(isImage).sort()) {
+  if (numberOf(file) !== null) continue
+  const numbered = `key-art-${String(next++).padStart(2, '0')}${extname(file).toLowerCase()}`
+  renameSync(join(SOURCE_DIR, file), join(SOURCE_DIR, numbered))
+  console.log(`${file} → key-art/${numbered}`)
+}
+
+const sources = readdirSync(SOURCE_DIR).filter(isImage)
 const todo = sources.filter((file) => {
   const target = join(TARGET_DIR, targetName(file))
   return (

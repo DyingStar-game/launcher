@@ -167,7 +167,7 @@ The navbar env switcher changes `useEnvStore().activeEnv`; most stores are keyed
 
 ### Home page key art
 
-The home page fades between the WebP images of `src/renderer/assets/key-art/`, in file name order. To add one, drop the PNG or JPEG in `key-art/` at the repository root (not versioned) and run `make key-art`: it converts new or changed images to WebP into the assets folder, picked up without touching the code. `ARGS="--force"` converts everything again, `ARGS="--quality=0.9"` sets the WebP quality (0.82 by default). See the README.
+The home page fades between the WebP images of `src/renderer/assets/key-art/`, in file name order. To add one, drop the PNG or JPEG in `key-art/` at the repository root (not versioned) and run `make key-art`: it converts new or changed images to WebP into the assets folder, picked up without touching the code. A new image takes the number after the highest one (`My image.png` → `key-art-05.webp`) and its source in `key-art/` is renamed to match. `ARGS="--force"` converts everything again, `ARGS="--quality=0.9"` sets the WebP quality (0.82 by default). See the README.
 
 ## Before opening a PR
 
