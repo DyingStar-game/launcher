@@ -20,7 +20,8 @@ describe('ChangelogSidebar', () => {
       moduleKind: 'launcher',
       kind: 'release',
       version,
-      date: null
+      date: null,
+      yanked: false
     })
     const saved = useChangelogStore.getState()
     act(() =>

@@ -73,6 +73,8 @@
     "unavailable": "Changelog is not available (URL not configured or fetch failed).",
     "empty": "No release notes yet.",
     "noEntries": "No entries for this version.",
+    "uncategorized": "Other changes",
+    "yanked": "Withdrawn",
     "unreadCount_one": "{{count}} new version",
     "unreadCount_other": "{{count}} new versions",
     "new": "New",

@@ -68,7 +68,7 @@ function fingerprintForUnreleased(
 ): string | null {
   const component = data?.components[componentId]
   if (!component) return null
-  return unreleasedFingerprint(component.unreleased)
+  return unreleasedFingerprint(component.unreleased.entries)
 }
 
 function viewedPatchForEntry(

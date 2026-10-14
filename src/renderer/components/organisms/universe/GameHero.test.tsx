@@ -6,6 +6,7 @@ import { useFilesStore } from '@stores/files'
 import { useVersionStore } from '@stores/version'
 import { useChangelogStore } from '@stores/changelog'
 import { useNavigationStore } from '@stores/navigation'
+import { changelogFixture, item } from '../../../test/changelogFixture'
 import GameHero from './GameHero'
 
 const saved = {
@@ -31,18 +32,22 @@ function seed(version: string, latest: string): void {
         universe: { version: latest, releaseDate: null }
       }
     }))
+    const fixture = changelogFixture()
     useChangelogStore.setState({
-      data: {
-        generated_at: '',
-        components: {
-          DyingStar: {
-            unreleased: { en: [], fr: [] },
-            releases: [
-              { version: '0.4.3', date: '2026-10-10', entries: { en: ['New ships'], fr: [] } }
-            ]
-          }
+      data: changelogFixture({
+        DyingStar: {
+          ...fixture.components.DyingStar,
+          releases: [
+            {
+              version: '0.4.3',
+              date: '2026-10-10',
+              yanked: false,
+              url: null,
+              entries: { en: [item('New ships', 'added', 'vehicles')], fr: [] }
+            }
+          ]
         }
-      }
+      })
     })
   })
 }
