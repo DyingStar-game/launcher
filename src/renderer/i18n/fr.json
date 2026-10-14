@@ -16,6 +16,10 @@
     "create": "Créer",
     "back": "Retour"
   },
+  "renderError": {
+    "message": "Cette partie du launcher n'a pas pu s'afficher.",
+    "retry": "Réessayer"
+  },
   "navbar": {
     "home": "Accueil",
     "appNav": "Launcher",

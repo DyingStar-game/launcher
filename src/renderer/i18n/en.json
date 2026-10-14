@@ -16,6 +16,10 @@
     "create": "Create",
     "back": "Back"
   },
+  "renderError": {
+    "message": "This part of the launcher could not be displayed.",
+    "retry": "Try again"
+  },
   "navbar": {
     "home": "Home",
     "appNav": "Launcher",
