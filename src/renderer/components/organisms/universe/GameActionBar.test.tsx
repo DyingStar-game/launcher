@@ -4,10 +4,12 @@ import userEvent from '@testing-library/user-event'
 import { useAccountStore } from '@stores/account'
 import { useAvailabilityStore } from '@stores/availability'
 import { useEnvStore } from '@stores/env'
-import { useFilesStore, type EnvFilesData } from '@stores/files'
-import { useGameStore } from '@stores/game'
+import { useFilesStore, type EnvFilesData, type InstallRunOutcome } from '@stores/files'
+import { useGameStore, type PlayOutcome } from '@stores/game'
 import { useVersionStore } from '@stores/version'
+import { pollIntervalMinutes } from '@lib/env'
 import type { ServerStatusValue } from '@shared/types/game'
+import { Toaster } from '@components/ui/sonner'
 import GameActionBar from './GameActionBar'
 
 const saved = {
@@ -17,8 +19,8 @@ const saved = {
   version: useVersionStore.getState()
 }
 const login = vi.fn(() => Promise.resolve())
-const install = vi.fn(() => Promise.resolve())
-const play = vi.fn(() => Promise.resolve())
+const install = vi.fn(() => Promise.resolve<InstallRunOutcome>('installed'))
+const play = vi.fn(() => Promise.resolve<PlayOutcome>('launched'))
 
 /** The testing environment's files. */
 function files(patch: Partial<EnvFilesData>): void {
@@ -90,6 +92,21 @@ describe('GameActionBar', () => {
     expect(screen.getByRole('link', { name: 'Available' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Play' }))
     expect(play).toHaveBeenCalledOnce()
+  })
+
+  it('tells an update is needed when Play finds a newer version online', async () => {
+    play.mockResolvedValueOnce('updateRequired')
+    render(
+      <>
+        <GameActionBar />
+        <Toaster />
+      </>
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Play' }))
+    const message = await screen.findByText(
+      'A new version of the game is available: update required before playing.'
+    )
+    expect(message.closest('[data-sonner-toast]')).not.toBeNull()
   })
 
   it('opens the files panel by itself while the game is not installed', async () => {
@@ -206,6 +223,38 @@ describe('GameActionBar', () => {
     expect(window.api.installGame).toHaveBeenCalledWith('universe-testing', '/games')
   })
 
+  it('tells the download was interrupted, kept to resume', async () => {
+    const pending = { downloaded: 512 * 1024 ** 2, total: 1024 ** 3, progress: 35 }
+    files({ installed: false, version: null, paused: pending })
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.mocked(window.api.installGame).mockRejectedValue(new Error('Download interrupted'))
+    vi.mocked(window.api.pendingDownload).mockResolvedValue(pending)
+    render(
+      <>
+        <GameActionBar />
+        <Toaster />
+      </>
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Resume' }))
+    const message = await screen.findByText('Download interrupted: the progress made is kept.')
+    expect(message.closest('[data-sonner-toast]')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Resume' })).toBeInTheDocument()
+  })
+
+  it('tells the installation failed when nothing could be kept', async () => {
+    install.mockResolvedValueOnce('failed')
+    files({ installed: false, version: null })
+    render(
+      <>
+        <GameActionBar />
+        <Toaster />
+      </>
+    )
+    await userEvent.keyboard('{Escape}')
+    await userEvent.click(screen.getByRole('button', { name: 'Install' }))
+    expect(await screen.findByText('The installation failed.')).toBeInTheDocument()
+  })
+
   it('cancels a paused download, back to installing', async () => {
     files({
       installed: false,
@@ -235,7 +284,10 @@ describe('GameActionBar', () => {
 
   it('updates, then offers Play without launching the game', async () => {
     latest('20261012000000')
-    const update = vi.fn(async () => files({ version: '20261012000000' }))
+    const update = vi.fn(async (): Promise<InstallRunOutcome> => {
+      files({ version: '20261012000000' })
+      return 'installed'
+    })
     act(() => useFilesStore.setState({ update }))
     render(<GameActionBar />)
     expect(screen.getByText('Update required')).toBeInTheDocument()
@@ -244,6 +296,26 @@ describe('GameActionBar', () => {
     expect(update).toHaveBeenCalledOnce()
     expect(await screen.findByRole('button', { name: 'Play' })).toBeEnabled()
     expect(play).not.toHaveBeenCalled()
+  })
+
+  it('offers an update released during a maintenance once the poll sees it', () => {
+    vi.useFakeTimers()
+    try {
+      server('maintenance')
+      const refreshGameVersions = vi.fn(async () => {
+        latest('20261013000000')
+        server('online')
+      })
+      act(() => useVersionStore.setState({ refreshGameVersions }))
+      render(<GameActionBar />)
+      expect(refreshGameVersions).not.toHaveBeenCalled()
+      act(() => vi.advanceTimersByTime(pollIntervalMinutes() * 60 * 1000))
+      expect(refreshGameVersions).toHaveBeenCalledOnce()
+      expect(useGameStore.getState().fetchServerStatus).toHaveBeenCalledTimes(2)
+      expect(screen.getByText('Update required')).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it.each([

@@ -95,19 +95,27 @@ async function fetchLatestLauncherReleaseFromGithub(
   }
 }
 
-/** Registers the IPC handler that checks launcher and game versions. */
+/** Latest game version of each environment, from its API `/version`. */
+async function fetchLatestGameVersions(): Promise<Record<Env, GameVersionInfo>> {
+  const envs: Env[] = ['universe', 'universe-testing']
+  const payloads = await Promise.all(envs.map((env) => fetchRemoteGameVersion(env)))
+
+  const toInfo = (p: RemoteVersionPayload | null): GameVersionInfo => ({
+    version: p?.version ? normalizeGameVersion(p.version) : null,
+    releaseDate: p?.releaseDate ?? null
+  })
+
+  return { universe: toInfo(payloads[0]), 'universe-testing': toInfo(payloads[1]) }
+}
+
+/** Registers the IPC handlers that check launcher and game versions. */
 export function registerVersionHandlers(): void {
+  ipcMain.removeHandler('version:check')
   ipcMain.handle('version:check', async (): Promise<VersionCheckResult> => {
     const currentLauncherVersion = app.getVersion()
     const githubRepoUrl = (import.meta.env.VITE_LAUNCHER_GITHUB_REPO_URL ?? '').trim()
 
-    const envs: Env[] = ['universe', 'universe-testing']
-    const payloads = await Promise.all(envs.map((env) => fetchRemoteGameVersion(env)))
-
-    const toInfo = (p: RemoteVersionPayload | null): GameVersionInfo => ({
-      version: p?.version ? normalizeGameVersion(p.version) : null,
-      releaseDate: p?.releaseDate ?? null
-    })
+    const latestGameVersions = await fetchLatestGameVersions()
 
     let latestLauncherVersion: string | null = null
     let latestLauncherReleaseDate: string | null = null
@@ -127,10 +135,11 @@ export function registerVersionHandlers(): void {
       latestLauncherVersion,
       latestLauncherReleaseDate,
       launcherUpdateAvailable,
-      latestGameVersions: {
-        universe: toInfo(payloads[0]),
-        'universe-testing': toInfo(payloads[1])
-      }
+      latestGameVersions
     }
   })
+
+  // Game only, polled while the launcher runs: GitHub limits unauthenticated requests (ADR 0039)
+  ipcMain.removeHandler('version:check-game')
+  ipcMain.handle('version:check-game', fetchLatestGameVersions)
 }

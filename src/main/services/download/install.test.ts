@@ -8,6 +8,11 @@ import type { AddressInfo } from 'net'
 import type { BrowserWindow } from 'electron'
 
 vi.mock('./zipUrl', () => ({ getZipUrl: vi.fn() }))
+// Connections tried again without waiting (ADR 0039)
+vi.mock('../../config/constants', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../config/constants')>()
+  return { ...actual, DOWNLOAD_RECONNECT: { ...actual.DOWNLOAD_RECONNECT, retryDelayMs: 1 } }
+})
 // The launcher's data folder, where the game's file list lives (ADR 0038)
 const dataDir = vi.hoisted(() => ({ path: '' }))
 vi.mock('electron', () => ({ app: { getPath: () => dataDir.path } }))
@@ -87,6 +92,8 @@ beforeEach(async () => {
   dataDir.path = fs.mkdtempSync(path.join(os.tmpdir(), 'ds-launcher-data-'))
   server = http.createServer((req, res) => {
     requests.push(req.headers)
+    // A server gone after dropping the first connection: the others get no answer
+    if (mode === 'drop' && requests.length > 1) return void req.socket.destroy()
     const range = req.headers.range?.match(/^bytes=(\d+)-$/)
     const start = range && req.headers['if-range'] === ETAG ? Number(range[1]) : 0
     const body = archive.subarray(start)
@@ -206,9 +213,12 @@ describe('downloadAndInstall', () => {
     expect(filesLeft()).toEqual([])
   })
 
-  it('keeps an interrupted download, to resume it', async () => {
+  it('keeps an interrupted download, to resume it, once new connections fail too', async () => {
     mode = 'drop'
-    await expect(downloadAndInstall('universe', installPath, win)).rejects.toThrow()
+    await expect(downloadAndInstall('universe', installPath, win)).rejects.toThrow(
+      'Download interrupted'
+    )
+    expect(requests).toHaveLength(6)
     expect(findPendingDownload('universe', installPath)).toMatchObject({
       downloaded: HALF
     })

@@ -1,10 +1,11 @@
+import { toast } from 'sonner'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { DownloadIcon, PauseIcon, PlayIcon, RefreshCwIcon, XIcon } from 'lucide-react'
 import { useEnvStore } from '@stores/env'
 import { useGameStore } from '@stores/game'
-import { useFilesStore, type EnvFilesData } from '@stores/files'
+import { useFilesStore, type EnvFilesData, type InstallRunOutcome } from '@stores/files'
 import { useVersionStore } from '@stores/version'
 import { useAvailabilityStore } from '@stores/availability'
 import { useAccountStore } from '@stores/account'
@@ -88,6 +89,7 @@ export default function GameActionBar(): React.JSX.Element {
     syncInstalledVersions
   } = useFilesStore()
   const latest = useVersionStore((s) => s.latestGameVersions[activeEnv])
+  const refreshGameVersions = useVersionStore((s) => s.refreshGameVersions)
   const latestVersion = latest.version
   const available = useAvailabilityStore((s) => s.available[activeEnv])
   const account = useAccountStore((s) => s.data[activeEnv])
@@ -104,12 +106,20 @@ export default function GameActionBar(): React.JSX.Element {
     void syncInstalledVersions()
   }, [activeEnv, syncInstalledVersions])
 
+  // The game version is polled with the status: an update released during a maintenance shows
+  // once it ends, without restarting the launcher (ADR 0039)
   useEffect(() => {
     if (!available) return
     void fetchServerStatus()
-    const id = window.setInterval(() => void fetchServerStatus(), pollIntervalMinutes() * 60 * 1000)
+    const id = window.setInterval(
+      () => {
+        void fetchServerStatus()
+        void refreshGameVersions()
+      },
+      pollIntervalMinutes() * 60 * 1000
+    )
     return () => window.clearInterval(id)
-  }, [activeEnv, available, fetchServerStatus])
+  }, [activeEnv, available, fetchServerStatus, refreshGameVersions])
 
   const action = gameAction({
     available,
@@ -124,6 +134,16 @@ export default function GameActionBar(): React.JSX.Element {
     running: gameRunning
   })
 
+  /** Tells the player an install or update stopped on an error (paused ones are on purpose). */
+  const reportInstall = (outcome: InstallRunOutcome): void => {
+    if (outcome === 'interrupted') toast.error(t('universe.action.installing.interrupted'))
+    if (outcome === 'failed') toast.error(t('universe.action.installing.failed'))
+  }
+
+  const handlePlay = async (): Promise<void> => {
+    if ((await play()) === 'updateRequired') toast.warning(t('universe.action.update.beforePlay'))
+  }
+
   const handleInstall = (): void => {
     if (!files.installPath.trim()) {
       setPathError(true)
@@ -132,7 +152,7 @@ export default function GameActionBar(): React.JSX.Element {
     }
     setPathError(false)
     setFilesOpen(false)
-    void install()
+    void install().then(reportInstall)
   }
 
   const ready = t('universe.action.ready.title')
@@ -198,7 +218,7 @@ export default function GameActionBar(): React.JSX.Element {
       soundProfile={UiSoundProfile.PlayGame}
       disabled={action !== 'play'}
       loading={action === 'launching'}
-      onClick={() => void play()}
+      onClick={() => void handlePlay()}
     >
       <PlayIcon aria-hidden="true" />
       {t('universe.game.play')}
@@ -236,7 +256,12 @@ export default function GameActionBar(): React.JSX.Element {
       )
     ),
     paused: (
-      <Button variant="primary" size="cta" className="w-70" onClick={() => void resume()}>
+      <Button
+        variant="primary"
+        size="cta"
+        className="w-70"
+        onClick={() => void resume().then(reportInstall)}
+      >
         <PlayIcon aria-hidden="true" />
         {t('universe.action.paused.cta')}
       </Button>
@@ -248,7 +273,12 @@ export default function GameActionBar(): React.JSX.Element {
       </Button>
     ),
     update: (
-      <Button variant="primary" size="cta" className="w-70" onClick={() => void update()}>
+      <Button
+        variant="primary"
+        size="cta"
+        className="w-70"
+        onClick={() => void update().then(reportInstall)}
+      >
         <RefreshCwIcon aria-hidden="true" />
         {t('universe.action.update.cta')}
       </Button>

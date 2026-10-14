@@ -16,6 +16,10 @@
     "create": "Create",
     "back": "Back"
   },
+  "renderError": {
+    "message": "This part of the launcher could not be displayed.",
+    "retry": "Try again"
+  },
   "navbar": {
     "home": "Home",
     "appNav": "Launcher",
@@ -73,6 +77,8 @@
     "unavailable": "Changelog is not available (URL not configured or fetch failed).",
     "empty": "No release notes yet.",
     "noEntries": "No entries for this version.",
+    "uncategorized": "Other changes",
+    "yanked": "Withdrawn",
     "unreadCount_one": "{{count}} new version",
     "unreadCount_other": "{{count}} new versions",
     "new": "New",
@@ -80,6 +86,13 @@
     "versionLabel": "v{{version}}",
     "pageTitleUnreleased": "{{component}} — New features",
     "pageTitleRelease": "{{component}} — v{{version}}",
+    "devBuilds_one": "{{count}} development build",
+    "devBuilds_other": "{{count}} development builds",
+    "devGroupInProgress": "v{{version}} · in progress",
+    "devBuildLabel": "Build {{time}}",
+    "pageTitleDevBuild": "{{component}} — Build {{time}}",
+    "includesDevBuilds_one": "Includes {{count}} development build.",
+    "includesDevBuilds_other": "Includes {{count}} development builds.",
     "components": {
       "DyingStar": "Dying Star",
       "launcher": "Launcher",
@@ -410,11 +423,14 @@
         "rate": "{{rate}}/s",
         "eta": "~{{minutes}} min",
         "etaUnderMinute": "< 1 min",
-        "ctaPause": "Pause"
+        "ctaPause": "Pause",
+        "interrupted": "Download interrupted: the progress made is kept.",
+        "failed": "The installation failed."
       },
       "update": {
         "title": "Update required",
-        "cta": "Update"
+        "cta": "Update",
+        "beforePlay": "A new version of the game is available: update required before playing."
       },
       "ready": {
         "title": "Ready to play",

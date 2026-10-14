@@ -3,13 +3,19 @@ import { useTranslation } from 'react-i18next'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
 import Panel from '@components/atoms/Panel'
+import SectionLabel from '@components/atoms/SectionLabel'
+import { Badge } from '@components/ui/badge'
 import ChangelogEntryItem from '@components/molecules/ChangelogEntryItem'
-import { resolveChangelogEntries } from '@lib/changelogEntries'
+import { formatDevBuild, resolveChangelogGroups } from '@lib/changelogEntries'
 import TextSkeleton from '@components/molecules/TextSkeleton'
 import { Skeleton } from '@components/ui/skeleton'
 import { useDelayedFlag } from '@hooks/useDelayedFlag'
 
-/** Renders the selected changelog version entries as left-aligned bullet list. */
+/**
+ * Renders the selected changelog version: a heading per type, then its entries as a left-aligned
+ * bullet list, each starting with its area (ADR 0040). A dev release is titled by its build time,
+ * a stable release says how many dev releases it gathers (ADR 0042).
+ */
 export default function ChangelogContent(): React.JSX.Element {
   const { t, i18n } = useTranslation()
   const { activeEnv } = useEnvStore()
@@ -65,12 +71,24 @@ export default function ChangelogContent(): React.JSX.Element {
   const componentLabel = t(`changelog.components.${current.componentId}`, {
     defaultValue: current.componentId
   })
+  const build =
+    current.devOf !== null && current.version
+      ? formatDevBuild(current.version, i18n.language)
+      : null
   const title =
     current.kind === 'unreleased'
       ? t('changelog.pageTitleUnreleased', { component: componentLabel })
-      : t('changelog.pageTitleRelease', { component: componentLabel, version: current.version })
+      : build
+        ? t('changelog.pageTitleDevBuild', { component: componentLabel, time: build })
+        : t('changelog.pageTitleRelease', { component: componentLabel, version: current.version })
+  // Under the title: the date, or a dev release's version (its title already holds the date)
+  const subtitle = build ? current.version : current.date
 
-  const bullets = resolveChangelogEntries(data, current, i18n.language)
+  const groups = resolveChangelogGroups(data, current, i18n.language)
+  // Entries written before types: no heading when they are all there is
+  const showHeadings = groups.some((group) => group.label !== null)
+  // French typography: a space before the colon
+  const areaSeparator = i18n.language.startsWith('fr') ? ' : ' : ': '
 
   return (
     <div className="flex min-h-0 flex-1 flex-col min-w-0 p-6">
@@ -78,24 +96,49 @@ export default function ChangelogContent(): React.JSX.Element {
         <div className="h-full overflow-y-auto px-10 py-8 text-left">
           <header className="mb-6 text-left">
             <h1 className="text-xl font-bold text-ds-text">{title}</h1>
-            {current.date && (
-              <p className="mt-1 text-xs text-ds-muted tabular-nums">{current.date}</p>
+            {(subtitle || current.yanked) && (
+              <div className="mt-1 flex items-center gap-2">
+                {subtitle && <p className="text-xs text-ds-muted tabular-nums">{subtitle}</p>}
+                {current.yanked && <Badge variant="destructive">{t('changelog.yanked')}</Badge>}
+              </div>
+            )}
+            {current.devCount > 0 && (
+              <p className="mt-1 text-xs text-ds-muted">
+                {t('changelog.includesDevBuilds', { count: current.devCount })}
+              </p>
             )}
           </header>
 
-          {bullets.length === 0 ? (
+          {groups.length === 0 ? (
             <p className="text-sm text-ds-muted">{t('changelog.noEntries')}</p>
           ) : (
-            <ul className="m-0 list-disc pl-5 text-left">
-              {bullets.map((entry, index) => (
-                <li
-                  key={`${current.id}-${index}`}
-                  className="my-3 text-left text-[0.9375rem] leading-[1.65] text-ds-text"
-                >
-                  <ChangelogEntryItem text={entry} />
-                </li>
+            <div className="flex flex-col gap-6">
+              {groups.map((group) => (
+                <section key={group.type ?? 'uncategorized'}>
+                  {showHeadings && (
+                    <SectionLabel as="h2">
+                      {group.label ?? t('changelog.uncategorized')}
+                    </SectionLabel>
+                  )}
+                  <ul className="m-0 list-disc pl-5 text-left">
+                    {group.entries.map((entry, index) => (
+                      <li
+                        key={`${current.id}-${group.type}-${index}`}
+                        className="my-3 text-left text-[0.9375rem] leading-[1.65] text-ds-text"
+                      >
+                        <ChangelogEntryItem
+                          text={
+                            entry.area
+                              ? `**${entry.area}**${areaSeparator}${entry.text}`
+                              : entry.text
+                          }
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </Panel>

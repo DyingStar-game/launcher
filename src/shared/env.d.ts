@@ -37,6 +37,7 @@ interface ImportMetaEnv {
   readonly VITE_HTTP_TIMEOUT_VERSION_PING_MS: string
   readonly VITE_HTTP_TIMEOUT_GITHUB_MS: string
   readonly VITE_DOWNLOAD_TIMEOUT_MS: string
+  readonly VITE_DOWNLOAD_SLOW_BYTES_PER_SECOND: string
   readonly VITE_GAME_PROCESS_POLL_MS: string
   readonly VITE_GAME_INSTALL_SUBDIR: string
   readonly VITE_GAME_EXE_WINDOWS: string

@@ -1,7 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
 import type { ChangelogEntryRef } from '@shared/types/changelog'
 import { act, render, screen } from '../../../test/render'
 import { useChangelogStore } from '@stores/changelog'
+import { useEnvStore } from '@stores/env'
 import ChangelogSidebar from './ChangelogSidebar'
 
 describe('ChangelogSidebar', () => {
@@ -20,7 +22,10 @@ describe('ChangelogSidebar', () => {
       moduleKind: 'launcher',
       kind: 'release',
       version,
-      date: null
+      date: null,
+      yanked: false,
+      devOf: null,
+      devCount: 0
     })
     const saved = useChangelogStore.getState()
     act(() =>
@@ -36,5 +41,73 @@ describe('ChangelogSidebar', () => {
     expect(screen.getByRole('button', { name: /1\.0\.0.*New/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /0\.9\.0/ })).not.toHaveTextContent('New')
     act(() => useChangelogStore.setState(saved))
+  })
+
+  describe('dev releases (ADR 0042)', () => {
+    const saved = { changelog: useChangelogStore.getState(), env: useEnvStore.getState() }
+    afterEach(() =>
+      act(() => {
+        useChangelogStore.setState(saved.changelog)
+        useEnvStore.setState(saved.env)
+      })
+    )
+
+    const dev = (version: string, devOf: string): ChangelogEntryRef => ({
+      id: `env:DyingStar:${version}`,
+      env: 'universe-testing',
+      componentId: 'DyingStar',
+      moduleKind: 'game',
+      kind: 'release',
+      version,
+      date: '2026-10-14',
+      yanked: false,
+      devOf,
+      devCount: 0
+    })
+
+    function show(env: 'universe' | 'universe-testing', entries: ChangelogEntryRef[]): void {
+      act(() => {
+        useEnvStore.setState({ activeEnv: env })
+        useChangelogStore.setState({
+          loading: false,
+          data: null,
+          getEntries: () => entries,
+          getCurrentId: () => null,
+          isUnread: (id) => id.endsWith('1530'),
+          syncSelectionForEnv: vi.fn()
+        })
+      })
+      render(<ChangelogSidebar />)
+    }
+
+    it('folds the builds of each version on Universe Testing, the newest open', async () => {
+      show('universe-testing', [
+        dev('0.2.0-dev.202611011530', '0.2.0'),
+        dev('0.1.0-dev.202610141530', '0.1.0'),
+        dev('0.1.0-dev.202610101200', '0.1.0')
+      ])
+      const newest = screen.getByRole('button', { name: /v0\.2\.0 · in progress/ })
+      expect(newest).toHaveAttribute('aria-expanded', 'true')
+      const older = screen.getByRole('button', { name: /v0\.1\.0 · in progress/ })
+      expect(older).toHaveAttribute('aria-expanded', 'false')
+      // One of its two builds unread
+      expect(older).toHaveTextContent('1')
+      expect(screen.getAllByRole('button', { name: /^Build / })).toHaveLength(1)
+      await userEvent.click(older)
+      expect(screen.getAllByRole('button', { name: /^Build / })).toHaveLength(3)
+    })
+
+    it('folds the builds of a release under it on Universe', () => {
+      show('universe', [
+        { ...dev('0.1.0', '0.1.0'), devOf: null, devCount: 2 },
+        dev('0.1.0-dev.202610141530', '0.1.0'),
+        dev('0.1.0-dev.202610101200', '0.1.0')
+      ])
+      expect(screen.getByRole('button', { name: /v0\.1\.0/ })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /2 development builds/ })).toHaveAttribute(
+        'aria-expanded',
+        'false'
+      )
+    })
   })
 })

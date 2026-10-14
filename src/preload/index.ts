@@ -135,6 +135,11 @@ const api = {
     latestGameVersions: Record<Env, { version: string | null; releaseDate: string | null }>
   }> => ipcRenderer.invoke('version:check'),
 
+  /** Fetches the latest game version of each environment (ADR 0039). */
+  checkGameVersions: (): Promise<
+    Record<Env, { version: string | null; releaseDate: string | null }>
+  > => ipcRenderer.invoke('version:check-game'),
+
   /** Opens the in-app OAuth window on the Keycloak Discord login page. */
   authLogin: (env: Env): Promise<void> => ipcRenderer.invoke('auth:login', env),
 

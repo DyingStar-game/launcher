@@ -68,7 +68,7 @@ function fingerprintForUnreleased(
 ): string | null {
   const component = data?.components[componentId]
   if (!component) return null
-  return unreleasedFingerprint(component.unreleased)
+  return unreleasedFingerprint(component.unreleased.entries)
 }
 
 function viewedPatchForEntry(
@@ -179,6 +179,10 @@ export const useChangelogStore = create<ChangelogState>()(
           if (!fingerprint) return false
           return unreleasedSeenFingerprint[`${env}:${componentId}`] !== fingerprint
         }
+
+        // On Universe a dev release is a detail of its release: never unread (ADR 0042)
+        const release = data.components[componentId]?.releases.find((r) => r.version === suffix)
+        if (env === 'universe' && release?.dev) return false
 
         return !viewedIds.includes(id)
       },

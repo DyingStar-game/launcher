@@ -174,7 +174,7 @@ La page d’accueil fait défiler en fondu les images WebP de `src/renderer/asse
 1. Partir de **`develop`**
 2. `make check`
 3. PR focalisée, style cohérent avec le dépôt
-4. Pour un changement visible utilisateur, remplir les sections `<!-- CHANGELOG_EN -->` et `<!-- CHANGELOG_FR -->` dans la description de la PR — les entrées sont enregistrées automatiquement à la fusion
+4. Pour un changement visible utilisateur, remplir les sections `<!-- CHANGELOG_EN -->` et `<!-- CHANGELOG_FR -->` dans la description de la PR : un titre `### Added` / `### Fixed`… par type et un `[domaine]` en tête de chaque entrée ([format](https://github.com/DyingStar-game/changelog/blob/main/docs/adr/0001-changelog-format.md)) ; un contrôle de la PR les vérifie, et elles sont enregistrées automatiquement à la fusion
 5. Lire [CONTRIBUTING.md](CONTRIBUTING.md) et les [ADR](../adr/README.md) de la zone touchée
 
 ## Aide
