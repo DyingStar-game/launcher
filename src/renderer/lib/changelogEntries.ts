@@ -1,5 +1,6 @@
 import type {
   ChangelogEntryRef,
+  ChangelogGroup,
   ChangelogLocaleEntries,
   GlobalChangelog
 } from '@shared/types/changelog'
@@ -10,7 +11,7 @@ export const LAUNCHER_COMPONENT_ID = 'launcher'
 
 export type ChangelogModuleKind = 'game' | 'service' | 'launcher'
 
-function hasEntries(entries: { en: string[]; fr: string[] }): boolean {
+function hasEntries(entries: ChangelogLocaleEntries): boolean {
   return entries.en.length > 0 || entries.fr.length > 0
 }
 
@@ -62,7 +63,7 @@ export function buildChangelogEntryRefs(data: GlobalChangelog, env: Env): Change
 
     if (env === 'universe-testing') {
       if (moduleKind === 'launcher') continue
-      if (!hasEntries(component.unreleased)) continue
+      if (!hasEntries(component.unreleased.entries)) continue
 
       refs.push({
         id: entryId(env, componentId, 'unreleased'),
@@ -71,7 +72,8 @@ export function buildChangelogEntryRefs(data: GlobalChangelog, env: Env): Change
         moduleKind,
         kind: 'unreleased',
         version: null,
-        date: null
+        date: null,
+        yanked: false
       })
       continue
     }
@@ -86,7 +88,8 @@ export function buildChangelogEntryRefs(data: GlobalChangelog, env: Env): Change
         moduleKind,
         kind: 'release',
         version: release.version,
-        date: release.date
+        date: release.date,
+        yanked: release.yanked
       })
     }
   }
@@ -94,24 +97,37 @@ export function buildChangelogEntryRefs(data: GlobalChangelog, env: Env): Change
   return refs
 }
 
-/** Resolves localized bullet entries for a sidebar ref. */
-export function resolveChangelogEntries(
+/**
+ * Resolves the entries of a sidebar ref for display (ADR 0040): grouped by type in the JSON's
+ * `types` order, entries without a type (written before types existed) last; each area as its
+ * label in the reader's language. English entries when there are none in the reader's language.
+ */
+export function resolveChangelogGroups(
   data: GlobalChangelog,
   ref: ChangelogEntryRef,
   locale: string
-): string[] {
+): ChangelogGroup[] {
   const component = data.components[ref.componentId]
   if (!component) return []
 
+  const localeEntries =
+    ref.kind === 'unreleased'
+      ? component.unreleased.entries
+      : component.releases.find((r) => r.version === ref.version)?.entries
+  if (!localeEntries) return []
+
   const lang = locale.startsWith('fr') ? 'fr' : 'en'
+  const items = localeEntries[lang].length > 0 ? localeEntries[lang] : localeEntries.en
 
-  if (ref.kind === 'unreleased') {
-    const entries = component.unreleased[lang]
-    return entries.length > 0 ? entries : component.unreleased.en
-  }
-
-  const release = component.releases.find((r) => r.version === ref.version)
-  if (!release) return []
-  const entries = release.entries[lang]
-  return entries.length > 0 ? entries : release.entries.en
+  return [...Object.keys(data.types), null].flatMap((type): ChangelogGroup[] => {
+    const entries = items
+      .filter((item) => item.type === type && item.text.trim())
+      .map((item) => ({
+        area: item.area === null ? null : (component.areas[item.area]?.[lang] ?? item.area),
+        text: item.text
+      }))
+    if (entries.length === 0) return []
+    const label = type === null ? null : (data.types[type]?.[lang] ?? type)
+    return [{ type, label, entries }]
+  })
 }

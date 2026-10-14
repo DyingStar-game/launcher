@@ -2,11 +2,17 @@ name: Update Changelog
 
 on:
   pull_request:
-    types: [closed]
+    types: [opened, edited, synchronize, reopened, closed]
 
 jobs:
+  check:
+    if: github.event.action != 'closed'
+    uses: DyingStar-game/changelog/.github/workflows/check-entry.yml@main
+    with:
+      component: launcher
+
   extract:
-    if: github.event.pull_request.merged == true
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     outputs:
       entry_en: ${{ steps.parse.outputs.entry_en }}

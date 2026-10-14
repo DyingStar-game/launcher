@@ -1,4 +1,6 @@
 import AppLayout from '@components/templates/AppLayout'
+import ErrorBoundary from '@components/atoms/ErrorBoundary'
+import RenderErrorNotice from '@components/molecules/RenderErrorNotice'
 import Navbar from '@components/organisms/layout/Navbar'
 import UniverseBar from '@components/organisms/layout/UniverseBar'
 import UniversePage from '@pages/UniversePage'
@@ -60,7 +62,7 @@ function renderPage(view: View): React.JSX.Element {
 
 type PageFrameProps = { view: View }
 
-/** Current page; keyed by the caller so each location mounts afresh. */
+/** Current page; its boundary is keyed by the caller so each location mounts afresh. */
 function PageFrame({ view }: PageFrameProps): React.JSX.Element {
   return renderPage(view)
 }
@@ -74,8 +76,25 @@ function App(): React.JSX.Element {
   const subjectId = useNavigationStore((s) => s.subject?.id)
 
   return (
-    <AppLayout navbar={<Navbar />} universeBar={<UniverseBar />}>
-      <PageFrame key={`${currentView}:${subjectId ?? ''}`} view={currentView} />
+    // A zone that fails to render is replaced alone, the rest keeps working (ADR 0041)
+    <AppLayout
+      navbar={
+        <ErrorBoundary fallback={() => null}>
+          <Navbar />
+        </ErrorBoundary>
+      }
+      universeBar={
+        <ErrorBoundary fallback={() => null}>
+          <UniverseBar />
+        </ErrorBoundary>
+      }
+    >
+      <ErrorBoundary
+        key={`${currentView}:${subjectId ?? ''}`}
+        fallback={(reset) => <RenderErrorNotice onRetry={reset} />}
+      >
+        <PageFrame view={currentView} />
+      </ErrorBoundary>
     </AppLayout>
   )
 }

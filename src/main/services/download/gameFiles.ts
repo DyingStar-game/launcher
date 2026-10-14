@@ -44,7 +44,7 @@ export function readGameFiles(gameRoot: string): string[] | null {
   return files.filter((file): file is string => typeof file === 'string')
 }
 
-/** Records the files the launcher installed in a game folder (ADR 0039). */
+/** Records the files the launcher installed in a game folder (ADR 0038). */
 export function writeGameFiles(gameRoot: string, files: string[]): void {
   const lists = readLists()
   lists[path.resolve(gameRoot)] = [...new Set(files)].sort()

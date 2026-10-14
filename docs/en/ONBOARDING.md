@@ -174,7 +174,7 @@ The home page fades between the WebP images of `src/renderer/assets/key-art/`, i
 1. Branch from **`develop`**
 2. Run `make check`
 3. Keep changes focused; match existing code style
-4. For user-visible changes, fill in the `<!-- CHANGELOG_EN -->` and `<!-- CHANGELOG_FR -->` sections in the PR description — entries are recorded automatically on merge
+4. For user-visible changes, fill in the `<!-- CHANGELOG_EN -->` and `<!-- CHANGELOG_FR -->` sections in the PR description: one `### Added` / `### Fixed`… heading per type and an `[area]` at the start of each entry ([format](https://github.com/DyingStar-game/changelog/blob/main/docs/adr/0001-changelog-format.md)); a PR check verifies them, and they are recorded automatically on merge
 5. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [ADRs](../adr/README.md) of the area you touch
 
 ## Getting help

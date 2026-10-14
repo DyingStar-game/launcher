@@ -16,6 +16,10 @@
     "create": "Créer",
     "back": "Retour"
   },
+  "renderError": {
+    "message": "Cette partie du launcher n'a pas pu s'afficher.",
+    "retry": "Réessayer"
+  },
   "navbar": {
     "home": "Accueil",
     "appNav": "Launcher",
@@ -73,6 +77,8 @@
     "unavailable": "Changelog indisponible (URL non configurée ou échec du téléchargement).",
     "empty": "Aucune note de version pour l'instant.",
     "noEntries": "Aucune entrée pour cette version.",
+    "uncategorized": "Autres changements",
+    "yanked": "Retirée",
     "unreadCount_one": "{{count}} nouvelle version",
     "unreadCount_other": "{{count}} nouvelles versions",
     "new": "Nouveau",
@@ -410,11 +416,14 @@
         "rate": "{{rate}}/s",
         "eta": "~{{minutes}} min",
         "etaUnderMinute": "< 1 min",
-        "ctaPause": "Pause"
+        "ctaPause": "Pause",
+        "interrupted": "Téléchargement interrompu : la progression est conservée.",
+        "failed": "L'installation a échoué."
       },
       "update": {
         "title": "Mise à jour requise",
-        "cta": "Mettre à jour"
+        "cta": "Mettre à jour",
+        "beforePlay": "Une nouvelle version du jeu est disponible : mise à jour requise avant de jouer."
       },
       "ready": {
         "title": "Prêt à jouer",

@@ -2,7 +2,7 @@ import { ElectronAPI } from '@electron-toolkit/preload'
 import type { Env } from '@shared/types/env'
 import type { UserInfo } from '@shared/types/auth'
 import type { InstallOutcome, InstallResult, PendingDownload } from '@shared/types/install'
-import type { VersionCheckResult } from '@shared/types/version'
+import type { GameVersionInfo, VersionCheckResult } from '@shared/types/version'
 import type { ServerStatusValue } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
@@ -71,6 +71,7 @@ declare global {
       onFullscreenChanged: (callback: (fullscreen: boolean) => void) => void
       closeWindow: () => Promise<void>
       checkVersions: () => Promise<VersionCheckResult>
+      checkGameVersions: () => Promise<Record<Env, GameVersionInfo>>
       authLogin: (env: Env) => Promise<void>
       authCancelLogin: (env: Env) => Promise<void>
       authLogout: (env: Env) => Promise<void>

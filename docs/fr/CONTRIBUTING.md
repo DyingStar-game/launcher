@@ -51,7 +51,7 @@ Sujets clairs à l’impératif, par ex. :
 - [ ] Basée sur `develop` à jour
 - [ ] `make check` OK
 - [ ] Changement conforme aux ADR acceptés de la zone ; nouvelle décision importante consignée en ADR
-- [ ] Changement visible décrit dans les sections `CHANGELOG_EN` / `CHANGELOG_FR` de la description de PR (enregistré à la fusion)
+- [ ] Changement visible décrit dans les sections `CHANGELOG_EN` / `CHANGELOG_FR` de la description de PR (titre de type et `[domaine]` par entrée, [format](https://github.com/DyingStar-game/changelog/blob/main/docs/adr/0001-changelog-format.md) ; vérifié sur la PR, enregistré à la fusion)
 - [ ] Pas de secrets ni de `.env` commité
 - [ ] Captures d’écran pour changements UI (optionnel)
 

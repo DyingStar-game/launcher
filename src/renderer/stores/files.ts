@@ -26,6 +26,13 @@ export type EnvFilesData = {
   stopping: 'pause' | 'cancel' | null
 }
 
+/**
+ * How an install or update ended: done, stopped by the player, stopped by an error with the
+ * download kept on disk (interrupted) or not (failed), or not started.
+ */
+export type InstallRunOutcome =
+  'installed' | 'paused' | 'cancelled' | 'interrupted' | 'failed' | 'ignored'
+
 /** Outcome of clearing Godot shader/chunk caches. */
 export type ClearGodotCacheOutcome = 'success' | 'partial' | 'error'
 
@@ -33,12 +40,12 @@ type FilesState = {
   data: Record<Env, EnvFilesData>
   setInstallPath: (path: string) => void
   selectDirectory: () => Promise<void>
-  install: () => Promise<void>
-  update: () => Promise<void>
+  install: () => Promise<InstallRunOutcome>
+  update: () => Promise<InstallRunOutcome>
   /** Pauses the active environment's download, kept on disk (ADR 0036). */
   pause: () => Promise<void>
   /** Resumes the active environment's paused install or update. */
-  resume: () => Promise<void>
+  resume: () => Promise<InstallRunOutcome>
   /** Cancels the active environment's download, running or paused. */
   cancel: () => Promise<void>
   verify: () => Promise<void>
@@ -121,12 +128,12 @@ export const useFilesStore = create<FilesState>()(
       }
 
       /** Runs (or resumes) an install or update, and applies how it ended (ADR 0036). */
-      const runInstall = async (kind: 'install' | 'update'): Promise<void> => {
+      const runInstall = async (kind: 'install' | 'update'): Promise<InstallRunOutcome> => {
         const env = useEnvStore.getState().activeEnv
         const { installPath, paused } = get().data[env]
         if (!installPath) {
           console.warn('[FilesStore] No install directory set.')
-          return
+          return 'ignored'
         }
 
         installedVersionSyncGeneration += 1
@@ -150,11 +157,11 @@ export const useFilesStore = create<FilesState>()(
           if (outcome.status === 'paused') {
             // One update, straight to paused: no flash of the state before the download
             patchEnv(set, env, { ...stopped, paused: await findPending(env) })
-            return
+            return 'paused'
           }
           if (outcome.status === 'cancelled') {
             patchEnv(set, env, { ...stopped, progress: 0, paused: null })
-            return
+            return 'cancelled'
           }
 
           const { version, releaseDate } = outcome
@@ -181,10 +188,13 @@ export const useFilesStore = create<FilesState>()(
           await get().syncInstalledVersions()
           void useVersionStore.getState().checkVersions()
           void useChangelogStore.getState().fetch()
+          return 'installed'
         } catch (err) {
           console.error(`[FilesStore] ${kind} failed:`, err)
           // An interrupted download stays on disk: it shows as paused, to resume
-          patchEnv(set, env, { ...stopped, progress: 0, paused: await findPending(env) })
+          const paused = await findPending(env)
+          patchEnv(set, env, { ...stopped, progress: 0, paused })
+          return paused ? 'interrupted' : 'failed'
         }
       }
 
