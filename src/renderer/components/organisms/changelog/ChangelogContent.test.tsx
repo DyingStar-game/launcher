@@ -76,4 +76,56 @@ describe('ChangelogContent', () => {
     showRelease([item('Older entry')], true)
     expect(screen.getByText('Withdrawn')).toBeInTheDocument()
   })
+
+  describe('dev releases (ADR 0042)', () => {
+    const data = changelogFixture({
+      DyingStar: {
+        ...fixture.components.DyingStar,
+        releases: [
+          {
+            version: '0.1.0',
+            date: '2026-10-31',
+            yanked: false,
+            dev: false,
+            url: null,
+            entries: { en: [], fr: [] }
+          },
+          {
+            version: '0.1.0-dev.202610141530',
+            date: '2026-10-14',
+            yanked: false,
+            dev: true,
+            url: null,
+            entries: { en: [item('New dashboard', 'added', 'vehicles')], fr: [] }
+          }
+        ]
+      }
+    })
+
+    function show(id: string): void {
+      act(() => {
+        useEnvStore.setState({ activeEnv: 'universe' })
+        useChangelogStore.setState({
+          data,
+          loading: false,
+          fetched: true,
+          currentByEnv: { universe: id, 'universe-testing': null }
+        })
+      })
+      render(<ChangelogContent />)
+    }
+
+    it('titles a dev release by its build time, its version underneath', () => {
+      show('universe:DyingStar:0.1.0-dev.202610141530')
+      expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/^Dying Star — Build /)
+      expect(screen.getByText('0.1.0-dev.202610141530')).toBeInTheDocument()
+    })
+
+    it('shows the entries of its dev releases in a stable release', () => {
+      show('universe:DyingStar:0.1.0')
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Dying Star — v0.1.0')
+      expect(screen.getByText('Includes 1 development build.')).toBeInTheDocument()
+      expect(screen.getByRole('listitem')).toHaveTextContent('Vehicles: New dashboard')
+    })
+  })
 })

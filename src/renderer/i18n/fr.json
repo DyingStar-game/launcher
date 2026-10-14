@@ -86,6 +86,13 @@
     "versionLabel": "v{{version}}",
     "pageTitleUnreleased": "{{component}} — Nouveautés sur Universe Testing",
     "pageTitleRelease": "{{component}} — v{{version}}",
+    "devBuilds_one": "{{count}} build de développement",
+    "devBuilds_other": "{{count}} builds de développement",
+    "devGroupInProgress": "v{{version}} · en cours",
+    "devBuildLabel": "Build du {{time}}",
+    "pageTitleDevBuild": "{{component}} — Build du {{time}}",
+    "includesDevBuilds_one": "Regroupe {{count}} build de développement.",
+    "includesDevBuilds_other": "Regroupe {{count}} builds de développement.",
     "components": {
       "DyingStar": "Dying Star",
       "launcher": "Launcher",

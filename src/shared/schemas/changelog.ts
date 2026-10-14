@@ -26,6 +26,11 @@ const releaseSchema = z.object({
   version: z.string(),
   date: z.string(),
   yanked: z.boolean(),
+  /**
+   * Dev release, cut by a testing build (`0.1.0-dev.202610141530`, ADR 0042); absent from a JSON
+   * written before dev releases: not one.
+   */
+  dev: z.boolean().optional(),
   /** GitHub compare page of the version, null when the component does not tag releases. */
   url: z.string().nullable(),
   entries: localeEntriesSchema

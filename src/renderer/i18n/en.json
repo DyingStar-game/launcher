@@ -86,6 +86,13 @@
     "versionLabel": "v{{version}}",
     "pageTitleUnreleased": "{{component}} — New features",
     "pageTitleRelease": "{{component}} — v{{version}}",
+    "devBuilds_one": "{{count}} development build",
+    "devBuilds_other": "{{count}} development builds",
+    "devGroupInProgress": "v{{version}} · in progress",
+    "devBuildLabel": "Build {{time}}",
+    "pageTitleDevBuild": "{{component}} — Build {{time}}",
+    "includesDevBuilds_one": "Includes {{count}} development build.",
+    "includesDevBuilds_other": "Includes {{count}} development builds.",
     "components": {
       "DyingStar": "Dying Star",
       "launcher": "Launcher",
