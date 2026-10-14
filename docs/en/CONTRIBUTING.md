@@ -51,7 +51,7 @@ Use clear, imperative subjects, e.g.:
 - [ ] Based on latest `develop`
 - [ ] `make check` passes (or only pre-existing warnings documented)
 - [ ] Change follows the accepted ADRs of the area; new significant decision recorded as an ADR
-- [ ] User-visible changes described in the `CHANGELOG_EN` / `CHANGELOG_FR` sections of the PR description (recorded on merge)
+- [ ] User-visible changes described in the `CHANGELOG_EN` / `CHANGELOG_FR` sections of the PR description (type heading and `[area]` per entry, [format](https://github.com/DyingStar-game/changelog/blob/main/docs/adr/0001-changelog-format.md); checked on the PR, recorded on merge)
 - [ ] No secrets or `.env` files committed
 - [ ] Screenshots attached for UI changes (optional but appreciated)
 
