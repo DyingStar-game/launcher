@@ -31,7 +31,8 @@ launcher read version 1 without checking it: version 2 breaks the page.
 
 We take option 2.
 
-- **Main** checks the JSON against `globalChangelogSchema` (Zod, `shared/schemas/changelog.ts`,
+- **Main** reads `global.v2.json` (`VITE_CHANGELOG_JSON_URL`): `global.json` stays at version 1
+  for launcher 1.0.0 (ADR 0002 of the changelog repository). It checks the JSON against `globalChangelogSchema` (Zod, `shared/schemas/changelog.ts`,
   the shared types are inferred from it); a mismatch is logged and `changelog:fetch` returns
   null: the page says the changelog is unavailable.
 - **`resolveChangelogGroups`** (`lib/changelogEntries`) gives the entries of a version grouped by
@@ -47,8 +48,7 @@ We take option 2.
 
 ## Consequences
 
-- The launcher must ship with the changelog repository's switch to version 2: from then on an
-  older launcher cannot read the changelog (its page breaks), and this one cannot read version 1
-  (unavailable).
+- Launcher 1.0.0 keeps reading `global.json` at version 1; this one reads only version 2, in
+  `global.v2.json` (a version 1 JSON there would make the changelog unavailable).
 - Every unreleased section's fingerprint changes once: players see their unread badges once.
 - A new type or area needs no launcher change: labels come with the JSON.
