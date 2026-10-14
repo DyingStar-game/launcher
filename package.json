@@ -1,6 +1,6 @@
 {
   "name": "dying-star-launcher",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "packageManager": "pnpm@12.10.1",
   "description": "Launcher for DyingStar Game",
   "engines": {
