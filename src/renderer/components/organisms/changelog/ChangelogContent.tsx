@@ -6,14 +6,15 @@ import Panel from '@components/atoms/Panel'
 import SectionLabel from '@components/atoms/SectionLabel'
 import { Badge } from '@components/ui/badge'
 import ChangelogEntryItem from '@components/molecules/ChangelogEntryItem'
-import { resolveChangelogGroups } from '@lib/changelogEntries'
+import { formatDevBuild, resolveChangelogGroups } from '@lib/changelogEntries'
 import TextSkeleton from '@components/molecules/TextSkeleton'
 import { Skeleton } from '@components/ui/skeleton'
 import { useDelayedFlag } from '@hooks/useDelayedFlag'
 
 /**
  * Renders the selected changelog version: a heading per type, then its entries as a left-aligned
- * bullet list, each starting with its area (ADR 0040).
+ * bullet list, each starting with its area (ADR 0040). A dev release is titled by its build time,
+ * a stable release says how many dev releases it gathers (ADR 0042).
  */
 export default function ChangelogContent(): React.JSX.Element {
   const { t, i18n } = useTranslation()
@@ -70,10 +71,18 @@ export default function ChangelogContent(): React.JSX.Element {
   const componentLabel = t(`changelog.components.${current.componentId}`, {
     defaultValue: current.componentId
   })
+  const build =
+    current.devOf !== null && current.version
+      ? formatDevBuild(current.version, i18n.language)
+      : null
   const title =
     current.kind === 'unreleased'
       ? t('changelog.pageTitleUnreleased', { component: componentLabel })
-      : t('changelog.pageTitleRelease', { component: componentLabel, version: current.version })
+      : build
+        ? t('changelog.pageTitleDevBuild', { component: componentLabel, time: build })
+        : t('changelog.pageTitleRelease', { component: componentLabel, version: current.version })
+  // Under the title: the date, or a dev release's version (its title already holds the date)
+  const subtitle = build ? current.version : current.date
 
   const groups = resolveChangelogGroups(data, current, i18n.language)
   // Entries written before types: no heading when they are all there is
@@ -87,13 +96,16 @@ export default function ChangelogContent(): React.JSX.Element {
         <div className="h-full overflow-y-auto px-10 py-8 text-left">
           <header className="mb-6 text-left">
             <h1 className="text-xl font-bold text-ds-text">{title}</h1>
-            {(current.date || current.yanked) && (
+            {(subtitle || current.yanked) && (
               <div className="mt-1 flex items-center gap-2">
-                {current.date && (
-                  <p className="text-xs text-ds-muted tabular-nums">{current.date}</p>
-                )}
+                {subtitle && <p className="text-xs text-ds-muted tabular-nums">{subtitle}</p>}
                 {current.yanked && <Badge variant="destructive">{t('changelog.yanked')}</Badge>}
               </div>
+            )}
+            {current.devCount > 0 && (
+              <p className="mt-1 text-xs text-ds-muted">
+                {t('changelog.includesDevBuilds', { count: current.devCount })}
+              </p>
             )}
           </header>
 

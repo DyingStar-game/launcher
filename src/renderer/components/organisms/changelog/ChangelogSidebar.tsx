@@ -1,17 +1,55 @@
 import type React from 'react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react'
+import type { ChangelogEntryRef, ChangelogSidebarBlock } from '@shared/types/changelog'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
 import SidebarItemButton from '@components/atoms/SidebarItemButton'
 import PageSidebar from '@components/atoms/PageSidebar'
+import PendingCount from '@components/molecules/PendingCount'
 import { Badge } from '@components/ui/badge'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@components/ui/collapsible'
 import { Skeleton } from '@components/ui/skeleton'
 import { useDelayedFlag } from '@hooks/useDelayedFlag'
+import { formatDevBuild, groupDevReleases, isReleased } from '@lib/changelogEntries'
 
-/** Sidebar list of changelog versions grouped by component/module. */
-export default function ChangelogSidebar(): React.JSX.Element {
+function blockComponent(block: ChangelogSidebarBlock): string {
+  return block.kind === 'entry' ? block.entry.componentId : block.componentId
+}
+
+type DevGroupProps = {
+  label: string
+  unread: number
+  defaultOpen: boolean
+  children: React.ReactNode
+}
+
+/** The dev releases of a version, folded under a trigger showing how many are unread (ADR 0042). */
+function DevGroup({ label, unread, defaultOpen, children }: DevGroupProps): React.JSX.Element {
   const { t } = useTranslation()
+  const [open, setOpen] = useState(defaultOpen)
+  const Chevron = open ? ChevronDownIcon : ChevronRightIcon
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger asChild>
+        <SidebarItemButton className="flex w-full items-center justify-between gap-2">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <Chevron className="size-4 shrink-0" aria-hidden="true" />
+            <span>{label}</span>
+          </span>
+          <PendingCount count={unread} label={t('changelog.unreadCount', { count: unread })} />
+        </SidebarItemButton>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="flex flex-col pl-4">{children}</CollapsibleContent>
+    </Collapsible>
+  )
+}
+
+/** Sidebar list of changelog versions grouped by component/module, dev releases folded. */
+export default function ChangelogSidebar(): React.JSX.Element {
+  const { t, i18n } = useTranslation()
   const { activeEnv } = useEnvStore()
   const { data, loading, getEntries, getCurrentId, select, isUnread, syncSelectionForEnv } =
     useChangelogStore()
@@ -20,10 +58,48 @@ export default function ChangelogSidebar(): React.JSX.Element {
 
   const entries = getEntries(activeEnv)
   const currentId = getCurrentId(activeEnv)
+  const blocks = groupDevReleases(entries)
 
   useEffect(() => {
     syncSelectionForEnv(activeEnv)
   }, [activeEnv, data, syncSelectionForEnv])
+
+  const renderEntry = (entry: ChangelogEntryRef): React.JSX.Element => {
+    const build =
+      entry.devOf !== null && entry.version ? formatDevBuild(entry.version, i18n.language) : null
+    const label =
+      entry.kind === 'unreleased'
+        ? t('changelog.unreleased')
+        : build
+          ? t('changelog.devBuildLabel', { time: build })
+          : t('changelog.versionLabel', { version: entry.version })
+
+    return (
+      <SidebarItemButton
+        key={entry.id}
+        active={currentId === entry.id}
+        onClick={() => select(entry.id)}
+        className="flex w-full items-center justify-between gap-2"
+      >
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span>{label}</span>
+          {entry.date && !build && (
+            <span className="text-2xs text-ds-muted tabular-nums">{entry.date}</span>
+          )}
+        </span>
+        {isUnread(entry.id) && currentId !== entry.id && <Badge>{t('changelog.new')}</Badge>}
+      </SidebarItemButton>
+    )
+  }
+
+  const devGroupLabel = (block: Extract<ChangelogSidebarBlock, { kind: 'dev' }>): string => {
+    if (activeEnv === 'universe') {
+      return t('changelog.devBuilds', { count: block.entries.length })
+    }
+    return data && isReleased(data, block.componentId, block.version)
+      ? t('changelog.versionLabel', { version: block.version })
+      : t('changelog.devGroupInProgress', { version: block.version })
+  }
 
   return (
     <PageSidebar className="overflow-y-auto">
@@ -55,35 +131,35 @@ export default function ChangelogSidebar(): React.JSX.Element {
         <p className="px-3 py-2 text-xs text-ds-muted">{t('changelog.empty')}</p>
       )}
 
-      {entries.map((entry, index) => {
-        const showHeader = index === 0 || entries[index - 1].componentId !== entry.componentId
-        const label =
-          entry.kind === 'unreleased'
-            ? t('changelog.unreleased')
-            : t('changelog.versionLabel', { version: entry.version })
+      {blocks.map((block, index) => {
+        const componentId = blockComponent(block)
+        const showHeader = index === 0 || blockComponent(blocks[index - 1]) !== componentId
+        const key = block.kind === 'entry' ? block.entry.id : `${componentId}:dev:${block.version}`
+        // Open: the group holding the selection, and on Universe Testing the newest version
+        const newestOfComponent =
+          blocks.findIndex((b) => b.kind === 'dev' && b.componentId === componentId) === index
 
         return (
-          <div key={entry.id}>
+          <div key={key}>
             {showHeader && (
               <p className="px-3 pt-2 pb-1 text-2xs font-semibold uppercase tracking-widest text-ds-muted">
-                {t(`changelog.components.${entry.componentId}`, {
-                  defaultValue: entry.componentId
-                })}
+                {t(`changelog.components.${componentId}`, { defaultValue: componentId })}
               </p>
             )}
-            <SidebarItemButton
-              active={currentId === entry.id}
-              onClick={() => select(entry.id)}
-              className="flex w-full items-center justify-between gap-2"
-            >
-              <span className="flex min-w-0 flex-col gap-0.5">
-                <span>{label}</span>
-                {entry.date && (
-                  <span className="text-2xs text-ds-muted tabular-nums">{entry.date}</span>
-                )}
-              </span>
-              {isUnread(entry.id) && currentId !== entry.id && <Badge>{t('changelog.new')}</Badge>}
-            </SidebarItemButton>
+            {block.kind === 'entry' ? (
+              renderEntry(block.entry)
+            ) : (
+              <DevGroup
+                label={devGroupLabel(block)}
+                unread={block.entries.filter((e) => isUnread(e.id)).length}
+                defaultOpen={
+                  block.entries.some((e) => e.id === currentId) ||
+                  (activeEnv === 'universe-testing' && newestOfComponent)
+                }
+              >
+                {block.entries.map(renderEntry)}
+              </DevGroup>
+            )}
           </div>
         )
       })}

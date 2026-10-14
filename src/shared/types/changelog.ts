@@ -30,6 +30,11 @@ export type ChangelogGroup = {
   entries: ChangelogDisplayEntry[]
 }
 
+/** A sidebar line: a version, or the dev releases of a version folded together (ADR 0042). */
+export type ChangelogSidebarBlock =
+  | { kind: 'entry'; entry: ChangelogEntryRef }
+  | { kind: 'dev'; componentId: string; version: string; entries: ChangelogEntryRef[] }
+
 /** Sidebar / store identifier for a changelog section. */
 export type ChangelogEntryKind = 'unreleased' | 'release'
 
@@ -45,4 +50,8 @@ export type ChangelogEntryRef = {
   date: string | null
   /** Withdrawn release (`[YANKED]`). */
   yanked: boolean
+  /** Dev release (ADR 0042): the version it leads to (`0.1.0` for `0.1.0-dev.…`), else null. */
+  devOf: string | null
+  /** Stable release on Universe: how many dev releases it includes (ADR 0042). */
+  devCount: number
 }
