@@ -92,6 +92,8 @@ export default function GameActionBar(): React.JSX.Element {
   const refreshGameVersions = useVersionStore((s) => s.refreshGameVersions)
   const latestVersion = latest.version
   const available = useAvailabilityStore((s) => s.available[activeEnv])
+  const authAvailable = useAvailabilityStore((s) => s.authAvailable[activeEnv])
+  const checkAuthAvailability = useAvailabilityStore((s) => s.checkAuthAvailability)
   const account = useAccountStore((s) => s.data[activeEnv])
   const login = useAccountStore((s) => s.login)
 
@@ -111,15 +113,18 @@ export default function GameActionBar(): React.JSX.Element {
   useEffect(() => {
     if (!available) return
     void fetchServerStatus()
+    void checkAuthAvailability(activeEnv)
     const id = window.setInterval(
       () => {
         void fetchServerStatus()
         void refreshGameVersions()
+        // The sign-in server can go down or come back on its own (ADR 0043)
+        void checkAuthAvailability(activeEnv)
       },
       pollIntervalMinutes() * 60 * 1000
     )
     return () => window.clearInterval(id)
-  }, [activeEnv, available, fetchServerStatus, refreshGameVersions])
+  }, [activeEnv, available, fetchServerStatus, refreshGameVersions, checkAuthAvailability])
 
   const action = gameAction({
     available,
@@ -128,6 +133,7 @@ export default function GameActionBar(): React.JSX.Element {
     paused: files.paused !== null,
     updateAvailable: isGameUpdateAvailable(files.installed, files.version, latestVersion),
     serverStatus: status,
+    authAvailable,
     accountStatus: account.status,
     sessionExpired: account.sessionExpired ?? false,
     launching: isLaunching,
@@ -199,6 +205,10 @@ export default function GameActionBar(): React.JSX.Element {
         status === 'maintenance'
           ? t('universe.game.playDisabledMaintenance')
           : t('universe.action.serverDown.detail')
+    },
+    authDown: {
+      title: account.status === 'connected' ? ready : t('universe.action.signIn.title'),
+      detail: t('universe.action.authDown.detail')
     },
     checkingSession: { title: ready, detail: t('universe.game.playDisabledAuthLoading') },
     signIn: {
@@ -286,6 +296,7 @@ export default function GameActionBar(): React.JSX.Element {
     running: blocked(t('universe.action.running.cta')),
     launching: playButton,
     serverDown: blocked(t('universe.action.serverDown.cta')),
+    authDown: blocked(t('universe.action.authDown.cta')),
     checkingSession: playButton,
     signIn: (
       <Button

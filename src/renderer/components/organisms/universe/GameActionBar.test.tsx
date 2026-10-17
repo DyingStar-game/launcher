@@ -14,11 +14,13 @@ import GameActionBar from './GameActionBar'
 
 const saved = {
   account: useAccountStore.getState(),
+  availability: useAvailabilityStore.getState(),
   files: useFilesStore.getState(),
   game: useGameStore.getState(),
   version: useVersionStore.getState()
 }
 const login = vi.fn(() => Promise.resolve())
+const checkAuthAvailability = vi.fn(() => Promise.resolve())
 const install = vi.fn(() => Promise.resolve<InstallRunOutcome>('installed'))
 const play = vi.fn(() => Promise.resolve<PlayOutcome>('launched'))
 
@@ -64,7 +66,11 @@ function latest(version: string): void {
 beforeEach(() => {
   act(() => {
     useEnvStore.setState({ activeEnv: 'universe-testing' })
-    useAvailabilityStore.setState({ available: { universe: false, 'universe-testing': true } })
+    useAvailabilityStore.setState({
+      available: { universe: false, 'universe-testing': true },
+      authAvailable: { universe: true, 'universe-testing': true },
+      checkAuthAvailability
+    })
     useAccountStore.setState({ login })
     useFilesStore.setState({ install, syncInstalledVersions: vi.fn(() => Promise.resolve()) })
     useGameStore.setState({ play, fetchServerStatus: vi.fn(() => Promise.resolve()) })
@@ -78,6 +84,7 @@ beforeEach(() => {
 afterEach(() => {
   act(() => {
     useAccountStore.setState(saved.account, true)
+    useAvailabilityStore.setState(saved.availability, true)
     useFilesStore.setState(saved.files, true)
     useGameStore.setState(saved.game, true)
     useVersionStore.setState(saved.version, true)
@@ -334,6 +341,27 @@ describe('GameActionBar', () => {
     expect(screen.queryByRole('button', { name: 'Play' })).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
     expect(login).toHaveBeenCalledOnce()
+  })
+
+  it.each(['disconnected', 'connected'] as const)(
+    'blocks sign-in and Play while the sign-in server is down (%s)',
+    (status) => {
+      account(status)
+      act(() =>
+        useAvailabilityStore.setState({
+          authAvailable: { universe: true, 'universe-testing': false }
+        })
+      )
+      render(<GameActionBar />)
+      expect(screen.getByText('The sign-in server is not responding')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Sign-in unavailable' })).toBeDisabled()
+      expect(screen.queryByRole('button', { name: 'Play' })).not.toBeInTheDocument()
+    }
+  )
+
+  it('checks the sign-in server with the status', () => {
+    render(<GameActionBar />)
+    expect(checkAuthAvailability).toHaveBeenCalledWith('universe-testing')
   })
 
   it('asks to sign in again when the session has expired', () => {

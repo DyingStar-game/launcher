@@ -40,7 +40,7 @@ function AccountBlock({
     <Button variant="secondary" size="sm" className="h-12 gap-3 p-2 pr-3" {...props}>
       {avatar}
       <span className="flex min-w-0 flex-col items-start leading-tight">
-        <span className="max-w-40 truncate">{heading}</span>
+        <span className="max-w-44 truncate">{heading}</span>
         <span
           className={cn(
             'text-xs font-normal',
@@ -51,6 +51,35 @@ function AccountBlock({
         </span>
       </span>
     </Button>
+  )
+}
+
+type DisabledAccountBlockProps = {
+  /** Why sign-in is off, in the tooltip and as the accessible name. */
+  reason: string
+  heading: string
+  subtitle: string
+}
+
+/** The account block when sign-in cannot be offered, with why in a tooltip. */
+function DisabledAccountBlock({
+  reason,
+  heading,
+  subtitle
+}: DisabledAccountBlockProps): React.JSX.Element {
+  // A disabled button gets no pointer events: the tooltip sits on a focusable wrapper
+  return (
+    <LabelTooltip label={reason}>
+      <span tabIndex={0} className="inline-flex rounded-lg">
+        <AccountBlock
+          disabled
+          aria-label={reason}
+          avatar={<Avatar name="" icon={<UserIcon className="size-4" aria-hidden="true" />} />}
+          heading={heading}
+          subtitle={subtitle}
+        />
+      </span>
+    </LabelTooltip>
   )
 }
 
@@ -72,7 +101,8 @@ function ProfileItem(): React.JSX.Element | null {
 
 /**
  * The player's account in the universe bar, for the active environment, always as the same block:
- * "Sign in / Required to play" with the Discord logo, "Signing in… / Cancel" while the sign-in
+ * "Sign in / Required to play" with the Discord logo, "Sign-in unavailable / Server unreachable"
+ * while the sign-in server does not answer, "Signing in… / Cancel" while the sign-in
  * window is open, or the player's avatar, name and "Signed in", opening My profile and Sign out.
  */
 export default function AccountMenu(): React.JSX.Element {
@@ -80,22 +110,27 @@ export default function AccountMenu(): React.JSX.Element {
   const { activeEnv } = useEnvStore()
   const { data, login, logout, cancelLogin } = useAccountStore()
   const available = useAvailabilityStore((s) => s.available[activeEnv])
+  const authAvailable = useAvailabilityStore((s) => s.authAvailable[activeEnv])
   const { status, username } = data[activeEnv]
 
   if (!available) {
-    // A disabled button gets no pointer events: the tooltip sits on a focusable wrapper
     return (
-      <LabelTooltip label={t('navbar.account.unavailable')}>
-        <span tabIndex={0} className="inline-flex rounded-lg">
-          <AccountBlock
-            disabled
-            aria-label={t('navbar.account.unavailable')}
-            avatar={<Avatar name="" icon={<UserIcon className="size-4" aria-hidden="true" />} />}
-            heading={t('navbar.account.signInShort')}
-            subtitle={t('navbar.account.unavailableShort')}
-          />
-        </span>
-      </LabelTooltip>
+      <DisabledAccountBlock
+        reason={t('navbar.account.unavailable')}
+        heading={t('navbar.account.signInShort')}
+        subtitle={t('navbar.account.unavailableShort')}
+      />
+    )
+  }
+
+  // The sign-in server is down while the universe is up (ADR 0043); a signed-in player keeps the menu
+  if (!authAvailable && status !== 'connected') {
+    return (
+      <DisabledAccountBlock
+        reason={t('navbar.account.authDown')}
+        heading={t('navbar.account.authDownShort')}
+        subtitle={t('navbar.account.authDownSubtitle')}
+      />
     )
   }
 
