@@ -104,6 +104,10 @@ const api = {
   checkEnvAvailability: (): Promise<Record<Env, boolean>> =>
     ipcRenderer.invoke('env:check-availability'),
 
+  /** Whether the status page reports an environment's sign-in server up (ADR 0043). */
+  checkAuthAvailability: (env: Env): Promise<boolean> =>
+    ipcRenderer.invoke('env:check-auth-availability', env),
+
   /** Quits the entire application. */
   quitApp: (): Promise<void> => ipcRenderer.invoke('app:quit'),
 

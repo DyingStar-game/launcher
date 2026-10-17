@@ -28,7 +28,10 @@ function account(status: 'connected' | 'disconnected' | 'loading', username?: st
 beforeEach(() => {
   act(() => {
     useEnvStore.setState({ activeEnv: 'universe' })
-    useAvailabilityStore.setState({ available: { universe: true, 'universe-testing': true } })
+    useAvailabilityStore.setState({
+      available: { universe: true, 'universe-testing': true },
+      authAvailable: { universe: true, 'universe-testing': true }
+    })
   })
 })
 
@@ -82,5 +85,32 @@ describe('AccountMenu', () => {
     expect(
       screen.getByRole('button', { name: 'Sign-in is not available for this environment.' })
     ).toBeDisabled()
+  })
+
+  it('says sign-in is unavailable while the sign-in server does not answer', () => {
+    act(() =>
+      useAvailabilityStore.setState({
+        authAvailable: { universe: false, 'universe-testing': true }
+      })
+    )
+    account('disconnected')
+    render(<AccountMenu />)
+    expect(
+      screen.getByRole('button', {
+        name: 'The sign-in server is not responding. Try again later.'
+      })
+    ).toBeDisabled()
+    expect(screen.getByText('Sign-in unavailable')).toBeInTheDocument()
+  })
+
+  it('keeps the signed-in player menu while the sign-in server does not answer', () => {
+    act(() =>
+      useAvailabilityStore.setState({
+        authAvailable: { universe: false, 'universe-testing': true }
+      })
+    )
+    account('connected', 'Kira')
+    render(<AccountMenu />)
+    expect(screen.getByRole('button', { name: 'Account of Kira' })).toBeEnabled()
   })
 })

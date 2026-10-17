@@ -1,5 +1,11 @@
 import { ipcMain } from 'electron'
-import { getApiBase, ENDPOINTS, getStatusComponentId, getStatusMetricId } from '../config/api'
+import {
+  getApiBase,
+  ENDPOINTS,
+  getAuthStatusComponentId,
+  getStatusComponentId,
+  getStatusMetricId
+} from '../config/api'
 import { HTTP_TIMEOUT_MS } from '../config/constants'
 import type { Env } from '@shared/types/env'
 import type { GameStatusResult, ServerStatusValue } from '@shared/types/game'
@@ -135,7 +141,7 @@ async function pingAvailability(apiBase: string): Promise<boolean> {
   }
 }
 
-/** Registers IPC handlers for env availability and server status. */
+/** Registers IPC handlers for env availability, sign-in server availability and server status. */
 export function registerGameStatusHandlers(): void {
   ipcMain.removeHandler('env:check-availability')
   ipcMain.handle('env:check-availability', async (): Promise<Record<Env, boolean>> => {
@@ -153,6 +159,16 @@ export function registerGameStatusHandlers(): void {
       universe: results[0],
       'universe-testing': results[1]
     }
+  })
+
+  // The sign-in server has its own status component: down while the universe is up, sign-in is
+  // off; unknown (status page unreachable) does not block it (ADR 0043)
+  ipcMain.removeHandler('env:check-auth-availability')
+  ipcMain.handle('env:check-auth-availability', async (_event, env: Env): Promise<boolean> => {
+    const base = getApiBase(env)
+    if (!base) return false
+    const { status } = await fetchStatus(base, getAuthStatusComponentId(env))
+    return status !== 'offline' && status !== 'maintenance'
   })
 
   ipcMain.removeHandler('game:get-server-status')

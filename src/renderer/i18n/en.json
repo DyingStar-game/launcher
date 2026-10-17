@@ -61,7 +61,10 @@
       "profile": "My profile",
       "signOut": "Sign out",
       "menu": "Account of {{name}}",
-      "unavailable": "Sign-in is not available for this environment."
+      "unavailable": "Sign-in is not available for this environment.",
+      "authDownShort": "Sign-in unavailable",
+      "authDownSubtitle": "Server unreachable",
+      "authDown": "The sign-in server is not responding. Try again later."
     },
     "universeSwitch": "Switch universe"
   },
@@ -443,6 +446,10 @@
       "serverDown": {
         "detail": "The server is currently unavailable",
         "cta": "Server unavailable"
+      },
+      "authDown": {
+        "detail": "The sign-in server is not responding",
+        "cta": "Sign-in unavailable"
       },
       "signIn": {
         "title": "Sign-in required"

@@ -8,6 +8,7 @@ const ready: GameActionState = {
   paused: false,
   updateAvailable: false,
   serverStatus: 'online',
+  authAvailable: true,
   accountStatus: 'connected',
   sessionExpired: false,
   launching: false,
@@ -30,6 +31,9 @@ describe('gameAction', () => {
     [{ launching: true }, 'launching'],
     [{ serverStatus: 'maintenance', accountStatus: 'disconnected' }, 'serverDown'],
     [{ serverStatus: 'degraded' }, 'serverDown'],
+    [{ serverStatus: 'offline', authAvailable: false }, 'serverDown'],
+    [{ authAvailable: false }, 'authDown'],
+    [{ authAvailable: false, accountStatus: 'disconnected' }, 'authDown'],
     [{ accountStatus: 'loading' }, 'checkingSession'],
     [{ accountStatus: 'disconnected' }, 'signIn'],
     [{ sessionExpired: true }, 'signIn']

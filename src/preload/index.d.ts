@@ -64,6 +64,7 @@ declare global {
       onGameRunningChanged: (callback: (running: boolean) => void) => void
       getServerStatus: (env: Env) => Promise<ServerStatusResult>
       checkEnvAvailability: () => Promise<Record<Env, boolean>>
+      checkAuthAvailability: (env: Env) => Promise<boolean>
       quitApp: () => Promise<void>
       minimizeWindow: () => Promise<void>
       toggleFullscreen: () => Promise<boolean>

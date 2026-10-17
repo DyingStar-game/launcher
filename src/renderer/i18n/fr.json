@@ -61,7 +61,10 @@
       "profile": "Mon profil",
       "signOut": "Se déconnecter",
       "menu": "Compte de {{name}}",
-      "unavailable": "La connexion n'est pas disponible pour cet environnement."
+      "unavailable": "La connexion n'est pas disponible pour cet environnement.",
+      "authDownShort": "Connexion indisponible",
+      "authDownSubtitle": "Serveur injoignable",
+      "authDown": "Le serveur de connexion ne répond pas. Réessayez plus tard."
     },
     "universeSwitch": "Changer d'univers"
   },
@@ -443,6 +446,10 @@
       "serverDown": {
         "detail": "Le serveur est actuellement indisponible",
         "cta": "Serveur indisponible"
+      },
+      "authDown": {
+        "detail": "Le serveur de connexion ne répond pas",
+        "cta": "Connexion indisponible"
       },
       "signIn": {
         "title": "Connexion requise"
