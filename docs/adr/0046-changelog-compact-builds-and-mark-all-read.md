@@ -15,7 +15,8 @@ Universe Testing lists one line per testing build, folded under its version ("v0
 progress"). Each line reads "Build du 01/06/2026 01:59" followed by a "New" badge: in the
 sidebar's narrow column the line wraps, and "Build" repeats on every line under a group that
 already says what they are. A tester coming back after a few weeks finds dozens of unread builds,
-and has to open each one to clear them.
+and has to open each one to clear them; the changelog opens on the build they read last, not
+the newest.
 
 ## Options considered
 
@@ -42,9 +43,13 @@ We take option 2, and one button for the universe.
 - **Unread:** every sidebar line shows a dot (`UnreadDot`, labelled "New") instead of the "New"
   badge, versions and builds alike: one look for one meaning. Group triggers keep their count
   (`PendingCount`).
-- **Mark all as read:** a button under the sidebar's heading, shown while the active universe has
-  unread versions; it marks every version of that universe as read (`markAllViewed`), the
-  unreleased sections included. The other universe is left as it is. The dots disappearing are
+- **Version shown at launch:** the newest one. The version shown is kept for the session only
+  (coming back to the page keeps it), no longer between launches: a tester coming back days later
+  landed on the build they last read, below the new ones. The stored read state goes to version 2,
+  which drops the version kept by older launchers.
+- **Mark all as read:** a button under the sidebar's heading, always shown and disabled once the
+  active universe has nothing unread (a button vanishing on click moved the whole list); it marks
+  every version of that universe as read (`markAllViewed`), the unreleased sections included. The other universe is left as it is. The dots disappearing are
   the feedback: no toast.
 
 ## Consequences
@@ -53,3 +58,4 @@ We take option 2, and one button for the universe.
 - The social and changelog pages lose 32 px of content width (752 px left at the minimum
   window of 1024 px).
 - Clearing a backlog is one click; a version read by mistake cannot be marked unread again.
+- Reopening the launcher no longer brings back the version read last.

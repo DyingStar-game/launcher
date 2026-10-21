@@ -8,6 +8,7 @@ import { useEnvStore } from '@stores/env'
 import Button from '@components/atoms/Button'
 import SidebarItemButton from '@components/atoms/SidebarItemButton'
 import PageSidebar from '@components/atoms/PageSidebar'
+import LabelTooltip from '@components/molecules/LabelTooltip'
 import PendingCount from '@components/molecules/PendingCount'
 import UnreadDot from '@components/molecules/UnreadDot'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@components/ui/collapsible'
@@ -64,6 +65,7 @@ export default function ChangelogSidebar(): React.JSX.Element {
     syncSelectionForEnv
   } = useChangelogStore()
   const waiting = loading && !data
+  const allRead = unreadCount(activeEnv) === 0
   const showSkeleton = useDelayedFlag(waiting)
 
   const entries = getEntries(activeEnv)
@@ -123,16 +125,20 @@ export default function ChangelogSidebar(): React.JSX.Element {
             ? t('changelog.sidebarSubtitleTesting')
             : t('changelog.sidebarSubtitle')}
         </p>
-        {unreadCount(activeEnv) > 0 && (
-          <Button
-            variant="outline"
-            onClick={() => markAllViewed(activeEnv)}
-            className="mt-2 w-full"
-          >
-            <CheckCheckIcon aria-hidden="true" />
-            {t('changelog.markAllRead')}
-          </Button>
-        )}
+        {/* Always there, disabled once everything is read: the sidebar does not move on click */}
+        <div className="mt-2 flex">
+          <LabelTooltip label={allRead ? t('changelog.allRead') : null} disabled className="w-full">
+            <Button
+              variant="outline"
+              disabled={allRead}
+              onClick={() => markAllViewed(activeEnv)}
+              className="w-full"
+            >
+              <CheckCheckIcon aria-hidden="true" />
+              {t('changelog.markAllRead')}
+            </Button>
+          </LabelTooltip>
+        </div>
       </div>
 
       {/* Versions skeleton while the changelog loads (ADR 0018); "empty" only once it answered */}

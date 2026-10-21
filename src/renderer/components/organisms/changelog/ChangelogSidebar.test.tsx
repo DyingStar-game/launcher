@@ -153,9 +153,12 @@ describe('ChangelogSidebar', () => {
       expect(markAllViewed).toHaveBeenCalledWith('universe-testing')
     })
 
-    it('is not offered when everything is read', () => {
+    it('stays in place, disabled, saying why, when everything is read (ADR 0048)', async () => {
       show(0)
-      expect(screen.queryByRole('button', { name: 'Mark all as read' })).not.toBeInTheDocument()
+      const button = screen.getByRole('button', { name: 'Mark all as read' })
+      expect(button).toBeDisabled()
+      await userEvent.hover(button)
+      expect(await screen.findByRole('tooltip')).toHaveTextContent('Everything is already read')
     })
   })
 })

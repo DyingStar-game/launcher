@@ -68,18 +68,15 @@ function DisabledAccountBlock({
   heading,
   subtitle
 }: DisabledAccountBlockProps): React.JSX.Element {
-  // A disabled button gets no pointer events: the tooltip sits on a focusable wrapper
   return (
-    <LabelTooltip label={reason}>
-      <span tabIndex={0} className="inline-flex rounded-lg">
-        <AccountBlock
-          disabled
-          aria-label={reason}
-          avatar={<Avatar name="" icon={<UserIcon className="size-4" aria-hidden="true" />} />}
-          heading={heading}
-          subtitle={subtitle}
-        />
-      </span>
+    <LabelTooltip label={reason} disabled>
+      <AccountBlock
+        disabled
+        aria-label={reason}
+        avatar={<Avatar name="" icon={<UserIcon className="size-4" aria-hidden="true" />} />}
+        heading={heading}
+        subtitle={subtitle}
+      />
     </LabelTooltip>
   )
 }
