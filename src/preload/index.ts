@@ -144,13 +144,13 @@ const api = {
     Record<Env, { version: string | null; releaseDate: string | null }>
   > => ipcRenderer.invoke('version:check-game'),
 
-  /** Opens the in-app OAuth window on the Keycloak Discord login page. */
+  /** Opens the Keycloak Discord sign-in page in the system browser. */
   authLogin: (env: Env): Promise<void> => ipcRenderer.invoke('auth:login', env),
 
-  /** Closes the OAuth window and cancels an in-flight login attempt. */
+  /** Cancels an in-flight sign-in: a callback arriving later is refused. */
   authCancelLogin: (env: Env): Promise<void> => ipcRenderer.invoke('auth:cancel-login', env),
 
-  /** Signs out: clears stored tokens, ends the Keycloak session and forgets the sign-in cookies, in the background. */
+  /** Signs out: clears stored tokens and ends the Keycloak session, in the background. */
   authLogout: (env: Env): Promise<void> => ipcRenderer.invoke('auth:logout', env),
 
   /** Refreshes the session and returns the user profile, or null if logged out. */

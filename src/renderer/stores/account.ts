@@ -13,7 +13,7 @@ type EnvAccountData = {
 
 type AccountState = {
   data: Record<Env, EnvAccountData>
-  /** Opens OAuth login in an in-app window for the active environment. */
+  /** Opens OAuth login in the system browser for the active environment. */
   login: () => Promise<void>
   /** Logs out and clears local session for the active environment. */
   logout: () => Promise<void>

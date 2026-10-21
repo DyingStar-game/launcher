@@ -48,7 +48,7 @@ describe('AccountMenu', () => {
     expect(login).toHaveBeenCalledOnce()
   })
 
-  it('cancels while the sign-in window is open', async () => {
+  it('cancels while waiting for the sign-in in the browser', async () => {
     account('loading')
     render(<AccountMenu />)
     await userEvent.click(screen.getByRole('button', { name: 'Cancel sign-in' }))

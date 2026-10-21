@@ -14,13 +14,13 @@ export function registerAuthHandlers(win: BrowserWindow): void {
 
   ipcMain.handle('auth:login', async (_event, env: Env) => {
     try {
-      await startLogin(env, win)
+      await startLogin(env)
     } catch (err) {
-      console.error('[Auth] Failed to open auth window:', err)
+      console.error('[Auth] Failed to open the sign-in page in the browser:', err)
       win.webContents.send('auth:state-changed', {
         env,
         status: 'error',
-        error: 'auth_window_failed'
+        error: 'browser_open_failed'
       })
     }
   })

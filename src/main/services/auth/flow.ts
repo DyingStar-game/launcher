@@ -1,4 +1,4 @@
-import type { BrowserWindow } from 'electron'
+import { shell } from 'electron'
 import { URL, URLSearchParams } from 'url'
 import {
   AUTH_CLIENT_ID,
@@ -21,7 +21,6 @@ import {
   refreshToken
 } from './keycloakClient'
 import { clearStoredTokens, loadTokens, storeTokens } from './tokenStorage'
-import { clearAuthSession, closeAuthWindow, openAuthWindow } from './authWindow'
 
 let pkceSession: PKCESession | null = null
 
@@ -51,8 +50,11 @@ function buildAuthorizationUrl(kcBase: string, challenge: string, state: string)
   return `${kcBase}/realms/${AUTH_REALM}/protocol/openid-connect/auth?${params}`
 }
 
-/** Opens the in-app OAuth window on the Keycloak authorization URL (PKCE). */
-export async function startLogin(env: Env, parentWindow: BrowserWindow | null): Promise<void> {
+/**
+ * Opens the Keycloak authorization URL (PKCE) in the system browser; the result arrives later
+ * through `dyingstar://auth/callback`.
+ */
+export async function startLogin(env: Env): Promise<void> {
   const kcBase = getKeycloakBase(env)
   if (!kcBase) throw new Error(`Auth unavailable for env: ${env}`)
 
@@ -60,30 +62,16 @@ export async function startLogin(env: Env, parentWindow: BrowserWindow | null): 
   const state = generateState()
   pkceSession = { env, verifier, state }
 
-  const authUrl = buildAuthorizationUrl(kcBase, challenge, state)
-
-  return new Promise<void>((resolve) => {
-    openAuthWindow(parentWindow, authUrl, {
-      onCallback: (callbackUrl) => {
-        void handleOAuthCallback(callbackUrl).finally(resolve)
-      },
-      onAbort: () => {
-        if (pkceSession?.env === env) pkceSession = null
-        eventSender?.send('auth:state-changed', { env, status: 'disconnected' })
-        resolve()
-      },
-      onLoadFailed: (error) => {
-        if (pkceSession?.env === env) pkceSession = null
-        eventSender?.send('auth:state-changed', { env, status: 'error', error })
-        resolve()
-      }
-    })
-  })
+  try {
+    await shell.openExternal(buildAuthorizationUrl(kcBase, challenge, state))
+  } catch (err) {
+    if (pkceSession?.env === env) pkceSession = null
+    throw err
+  }
 }
 
-/** Closes the OAuth window and clears any in-flight PKCE session. */
+/** Drops the in-flight PKCE session: a callback arriving later is refused. */
 export function cancelLogin(env: Env): void {
-  closeAuthWindow()
   if (pkceSession?.env === env) pkceSession = null
 }
 
@@ -233,11 +221,7 @@ export async function loadUserProfile(env: Env): Promise<UserInfo | null> {
   return extractUser(merged)
 }
 
-/**
- * Signs out without opening anything: clears local tokens, ends the Keycloak session in the
- * background, and forgets the sign-in window's cookies (Keycloak, Discord), so the next sign-in asks
- * for the account again.
- */
+/** Signs out without opening anything: clears local tokens and ends the Keycloak session in the background. */
 export async function logout(env: Env): Promise<void> {
   const kcBase = getKeycloakBase(env)
   const tokens = loadTokens(env)
@@ -246,5 +230,4 @@ export async function logout(env: Env): Promise<void> {
   if (kcBase && tokens?.refresh_token && !(await endSession(kcBase, tokens.refresh_token))) {
     console.warn('[Auth] Keycloak did not confirm the end of the session')
   }
-  await clearAuthSession()
 }

@@ -5,19 +5,16 @@ vi.mock('./tokenStorage', () => ({
   loadTokens: vi.fn(),
   storeTokens: vi.fn()
 }))
-vi.mock('./authWindow', () => ({
-  clearAuthSession: vi.fn(() => Promise.resolve()),
-  closeAuthWindow: vi.fn(),
-  openAuthWindow: vi.fn()
-}))
+vi.mock('electron', () => ({ shell: { openExternal: vi.fn(() => Promise.resolve()) } }))
 vi.mock('./keycloakClient', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./keycloakClient')>()),
   getKeycloakBase: vi.fn(() => 'https://kc.test/auth')
 }))
 
-import { clearStoredTokens, loadTokens } from './tokenStorage'
-import { clearAuthSession } from './authWindow'
-import { logout } from './flow'
+import { shell } from 'electron'
+import { APP_PROTOCOL } from '../../config/constants'
+import { clearStoredTokens, loadTokens, storeTokens } from './tokenStorage'
+import { cancelLogin, handleOAuthCallback, logout, setAuthEventSender, startLogin } from './flow'
 
 const tokens = {
   access_token: 'access',
@@ -33,8 +30,76 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
+/** Opens the sign-in page and returns the `state` it was given. */
+async function startAndReadState(): Promise<string> {
+  await startLogin('universe-testing')
+  const url = new URL(vi.mocked(shell.openExternal).mock.calls[0][0])
+  return url.searchParams.get('state') ?? ''
+}
+
+describe('startLogin', () => {
+  it('opens the Keycloak authorize URL in the system browser, with PKCE and the Discord hint', async () => {
+    await startLogin('universe-testing')
+
+    expect(shell.openExternal).toHaveBeenCalledOnce()
+    const url = new URL(vi.mocked(shell.openExternal).mock.calls[0][0])
+    expect(url.origin + url.pathname).toMatch(
+      /^https:\/\/kc\.test\/auth\/realms\/.+\/protocol\/openid-connect\/auth$/
+    )
+    expect(url.searchParams.get('kc_idp_hint')).toBe('discord')
+    expect(url.searchParams.get('code_challenge_method')).toBe('S256')
+    expect(url.searchParams.get('redirect_uri')).toMatch(/:\/\/auth\/callback$/)
+  })
+
+  it('signs in when the browser hands the callback back', async () => {
+    const send = vi.fn()
+    setAuthEventSender({ send })
+    const state = await startAndReadState()
+    const payload = Buffer.from(JSON.stringify({ sub: 'player', preferred_username: 'Nova' }))
+    const idToken = `e30.${payload.toString('base64url')}.sig`
+    vi.stubGlobal(
+      'fetch',
+      fetchMock.mockResolvedValue(Response.json({ ...tokens, id_token: idToken }))
+    )
+
+    await handleOAuthCallback(`${APP_PROTOCOL}://auth/callback?code=abc&state=${state}`)
+
+    expect(storeTokens).toHaveBeenCalledWith('universe-testing', expect.anything())
+    expect(send).toHaveBeenCalledWith(
+      'auth:state-changed',
+      expect.objectContaining({
+        env: 'universe-testing',
+        status: 'connected',
+        user: expect.objectContaining({ username: 'Nova' })
+      })
+    )
+  })
+
+  it('refuses a callback arriving after the sign-in was cancelled', async () => {
+    const send = vi.fn()
+    setAuthEventSender({ send })
+    const state = await startAndReadState()
+    cancelLogin('universe-testing')
+    vi.stubGlobal('fetch', fetchMock)
+
+    await handleOAuthCallback(`${APP_PROTOCOL}://auth/callback?code=abc&state=${state}`)
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(send).toHaveBeenCalledWith(
+      'auth:state-changed',
+      expect.objectContaining({ status: 'error', error: 'invalid_callback' })
+    )
+  })
+
+  it('fails when the browser cannot be opened', async () => {
+    vi.mocked(shell.openExternal).mockRejectedValueOnce(new Error('no browser'))
+
+    await expect(startLogin('universe-testing')).rejects.toThrow('no browser')
+  })
+})
+
 describe('logout', () => {
-  it('ends the Keycloak session in the background and forgets the sign-in cookies', async () => {
+  it('ends the Keycloak session in the background', async () => {
     vi.stubGlobal('fetch', fetchMock.mockResolvedValue(new Response(null, { status: 204 })))
     vi.mocked(loadTokens).mockReturnValue(tokens)
     await logout('universe-testing')
@@ -44,7 +109,6 @@ describe('logout', () => {
     expect(url).toMatch(/^https:\/\/kc\.test\/auth\/realms\/.+\/protocol\/openid-connect\/logout$/)
     expect(init?.method).toBe('POST')
     expect(new URLSearchParams(String(init?.body)).get('refresh_token')).toBe('refresh-1')
-    expect(clearAuthSession).toHaveBeenCalledOnce()
   })
 
   it('still signs out locally when Keycloak cannot be reached', async () => {
@@ -54,17 +118,16 @@ describe('logout', () => {
     await logout('universe-testing')
 
     expect(clearStoredTokens).toHaveBeenCalledWith('universe-testing')
-    expect(clearAuthSession).toHaveBeenCalledOnce()
     expect(warn).toHaveBeenCalled()
     warn.mockRestore()
   })
 
-  it('forgets the sign-in cookies even without stored tokens', async () => {
+  it('requests nothing without stored tokens', async () => {
     vi.stubGlobal('fetch', fetchMock)
     vi.mocked(loadTokens).mockReturnValue(null)
     await logout('universe-testing')
 
+    expect(clearStoredTokens).toHaveBeenCalledWith('universe-testing')
     expect(fetchMock).not.toHaveBeenCalled()
-    expect(clearAuthSession).toHaveBeenCalledOnce()
   })
 })
