@@ -5,6 +5,7 @@ import type { ChangelogRelease } from '@shared/types/changelog'
 import {
   buildChangelogEntryRefs,
   formatDevBuild,
+  formatDevBuildShort,
   groupDevReleases,
   isReleased,
   resolveChangelogGroups,
@@ -197,6 +198,19 @@ describe('dev releases (ADR 0042)', () => {
     })
     expect(formatDevBuild('0.1.0-dev.202610141530', 'en')).toBe(shown)
     expect(formatDevBuild('0.1.0', 'en')).toBeNull()
+  })
+})
+
+describe('formatDevBuildShort', () => {
+  const time = new Date(Date.UTC(2026, 9, 14, 15, 30))
+  const clock = time.toLocaleTimeString('fr', { hour: 'numeric', minute: '2-digit' })
+
+  it('gives the date and time of a build, without "Build"', () => {
+    expect(formatDevBuildShort('0.1.0-dev.202610141530', 'fr')).toBe(`14/10/2026 · ${clock}`)
+  })
+
+  it('is null for a version without build time', () => {
+    expect(formatDevBuildShort('0.1.0', 'fr')).toBeNull()
   })
 })
 

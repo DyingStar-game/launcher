@@ -20,6 +20,8 @@ type ChangelogState = {
   select: (id: string) => void
   /** Marks an entry as read without changing selection (e.g. when it is displayed). */
   markViewed: (id: string, env: Env) => void
+  /** Marks every version of an environment as read, its unreleased sections included (ADR 0046). */
+  markAllViewed: (env: Env) => void
   syncSelectionForEnv: (env: Env) => void
   getEntries: (env: Env) => ChangelogEntryRef[]
   getCurrentId: (env: Env) => string | null
@@ -159,6 +161,19 @@ export const useChangelogStore = create<ChangelogState>()(
         if (!entry) return
 
         set((s) => viewedPatchForEntry(s, entry, env, id))
+      },
+
+      markAllViewed: (env) => {
+        set((s) =>
+          entriesForEnv(s.data, env).reduce(
+            (state, entry) => ({ ...state, ...viewedPatchForEntry(state, entry, env, entry.id) }),
+            {
+              data: s.data,
+              viewedIds: s.viewedIds,
+              unreleasedSeenFingerprint: s.unreleasedSeenFingerprint
+            }
+          )
+        )
       },
 
       isUnread: (id) => {

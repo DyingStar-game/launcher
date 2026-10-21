@@ -92,9 +92,20 @@ describe('ChangelogSidebar', () => {
       expect(older).toHaveAttribute('aria-expanded', 'false')
       // One of its two builds unread
       expect(older).toHaveTextContent('1')
-      expect(screen.getAllByRole('button', { name: /^Build / })).toHaveLength(1)
+      expect(screen.getAllByRole('button', { name: /^\d{2}\/\d{2}\/\d{4} · / })).toHaveLength(1)
       await userEvent.click(older)
-      expect(screen.getAllByRole('button', { name: /^Build / })).toHaveLength(3)
+      expect(screen.getAllByRole('button', { name: /^\d{2}\/\d{2}\/\d{4} · / })).toHaveLength(3)
+    })
+
+    it('names a build by its short date, a dot when unread (ADR 0046)', () => {
+      show('universe-testing', [
+        dev('0.1.0-dev.202610141530', '0.1.0'),
+        dev('0.1.0-dev.202610101200', '0.1.0')
+      ])
+      const builds = screen.getAllByRole('button', { name: /^\d{2}\/\d{2}\/\d{4} · / })
+      expect(builds[0]).toHaveAccessibleName(/New$/)
+      expect(builds[1]).not.toHaveAccessibleName(/New$/)
+      expect(builds[0]).not.toHaveTextContent('Build')
     })
 
     it('folds the builds of a release under it on Universe', () => {
@@ -108,6 +119,43 @@ describe('ChangelogSidebar', () => {
         'aria-expanded',
         'false'
       )
+    })
+  })
+
+  describe('mark all as read (ADR 0046)', () => {
+    const saved = { changelog: useChangelogStore.getState(), env: useEnvStore.getState() }
+    afterEach(() =>
+      act(() => {
+        useChangelogStore.setState(saved.changelog)
+        useEnvStore.setState(saved.env)
+      })
+    )
+
+    function show(unread: number): ReturnType<typeof vi.fn> {
+      const markAllViewed = vi.fn()
+      act(() => {
+        useEnvStore.setState({ activeEnv: 'universe-testing' })
+        useChangelogStore.setState({
+          loading: false,
+          getEntries: () => [],
+          unreadCount: () => unread,
+          markAllViewed,
+          syncSelectionForEnv: vi.fn()
+        })
+      })
+      render(<ChangelogSidebar />)
+      return markAllViewed
+    }
+
+    it('marks every version of the active universe as read', async () => {
+      const markAllViewed = show(3)
+      await userEvent.click(screen.getByRole('button', { name: 'Mark all as read' }))
+      expect(markAllViewed).toHaveBeenCalledWith('universe-testing')
+    })
+
+    it('is not offered when everything is read', () => {
+      show(0)
+      expect(screen.queryByRole('button', { name: 'Mark all as read' })).not.toBeInTheDocument()
     })
   })
 })

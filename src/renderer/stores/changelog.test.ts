@@ -40,4 +40,21 @@ describe('changelog store', () => {
     expect(unreadCount('universe')).toBe(1)
     expect(unreadCount('universe-testing')).toBe(1)
   })
+
+  it('marks every version of one universe as read, the other left as it is (ADR 0046)', () => {
+    const withNews = changelogFixture({
+      DyingStar: {
+        ...data.components.DyingStar!,
+        unreleased: { url: null, entries: { en: [item('Next')], fr: [] } }
+      }
+    })
+    useChangelogStore.setState({ data: withNews, viewedIds: [], unreleasedSeenFingerprint: {} })
+    expect(useChangelogStore.getState().unreadCount('universe-testing')).toBe(2)
+
+    useChangelogStore.getState().markAllViewed('universe-testing')
+    const { unreadCount, isUnread } = useChangelogStore.getState()
+    expect(unreadCount('universe-testing')).toBe(0)
+    expect(isUnread('universe-testing:DyingStar:unreleased')).toBe(false)
+    expect(unreadCount('universe')).toBe(1)
+  })
 })
