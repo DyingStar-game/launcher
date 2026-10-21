@@ -1,4 +1,5 @@
-import { shell } from 'electron'
+import { shell, type BrowserWindow } from 'electron'
+import { is } from '@electron-toolkit/utils'
 import { URL, URLSearchParams } from 'url'
 import {
   AUTH_CLIENT_ID,
@@ -21,6 +22,7 @@ import {
   refreshToken
 } from './keycloakClient'
 import { clearStoredTokens, loadTokens, storeTokens } from './tokenStorage'
+import { clearAuthSession, closeAuthWindow, openAuthWindow } from './authWindow'
 
 let pkceSession: PKCESession | null = null
 
@@ -51,27 +53,54 @@ function buildAuthorizationUrl(kcBase: string, challenge: string, state: string)
 }
 
 /**
- * Opens the Keycloak authorization URL (PKCE) in the system browser; the result arrives later
- * through `dyingstar://auth/callback`.
+ * Opens the Keycloak authorization URL (PKCE): in the system browser, the result arriving later
+ * through `dyingstar://auth/callback`; in development, in an in-app window (ADR 0044).
  */
-export async function startLogin(env: Env): Promise<void> {
+export async function startLogin(env: Env, parentWindow: BrowserWindow | null): Promise<void> {
   const kcBase = getKeycloakBase(env)
   if (!kcBase) throw new Error(`Auth unavailable for env: ${env}`)
 
   const { verifier, challenge } = generatePKCE()
   const state = generateState()
   pkceSession = { env, verifier, state }
+  const authUrl = buildAuthorizationUrl(kcBase, challenge, state)
+
+  if (is.dev) {
+    loginInAppWindow(env, parentWindow, authUrl)
+    return
+  }
 
   try {
-    await shell.openExternal(buildAuthorizationUrl(kcBase, challenge, state))
+    await shell.openExternal(authUrl)
   } catch (err) {
     if (pkceSession?.env === env) pkceSession = null
     throw err
   }
 }
 
-/** Drops the in-flight PKCE session: a callback arriving later is refused. */
+/**
+ * Development sign-in: the OS hands `dyingstar://` to the installed launcher (under WSL, the
+ * Windows one), never to `make dev`, so the redirect is caught in an in-app window instead.
+ */
+function loginInAppWindow(env: Env, parentWindow: BrowserWindow | null, authUrl: string): void {
+  openAuthWindow(parentWindow, authUrl, {
+    onCallback: (callbackUrl) => {
+      void handleOAuthCallback(callbackUrl)
+    },
+    onAbort: () => {
+      if (pkceSession?.env === env) pkceSession = null
+      eventSender?.send('auth:state-changed', { env, status: 'disconnected' })
+    },
+    onLoadFailed: (error) => {
+      if (pkceSession?.env === env) pkceSession = null
+      eventSender?.send('auth:state-changed', { env, status: 'error', error })
+    }
+  })
+}
+
+/** Drops the in-flight PKCE session (and closes the development window): a later callback is refused. */
 export function cancelLogin(env: Env): void {
+  closeAuthWindow()
   if (pkceSession?.env === env) pkceSession = null
 }
 
@@ -221,7 +250,10 @@ export async function loadUserProfile(env: Env): Promise<UserInfo | null> {
   return extractUser(merged)
 }
 
-/** Signs out without opening anything: clears local tokens and ends the Keycloak session in the background. */
+/**
+ * Signs out without opening anything: clears local tokens and ends the Keycloak session in the
+ * background; in development, also forgets the in-app window's cookies.
+ */
 export async function logout(env: Env): Promise<void> {
   const kcBase = getKeycloakBase(env)
   const tokens = loadTokens(env)
@@ -230,4 +262,5 @@ export async function logout(env: Env): Promise<void> {
   if (kcBase && tokens?.refresh_token && !(await endSession(kcBase, tokens.refresh_token))) {
     console.warn('[Auth] Keycloak did not confirm the end of the session')
   }
+  if (is.dev) await clearAuthSession()
 }

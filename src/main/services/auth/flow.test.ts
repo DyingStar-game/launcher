@@ -6,12 +6,20 @@ vi.mock('./tokenStorage', () => ({
   storeTokens: vi.fn()
 }))
 vi.mock('electron', () => ({ shell: { openExternal: vi.fn(() => Promise.resolve()) } }))
+vi.mock('@electron-toolkit/utils', () => ({ is: { dev: false } }))
+vi.mock('./authWindow', () => ({
+  clearAuthSession: vi.fn(() => Promise.resolve()),
+  closeAuthWindow: vi.fn(),
+  openAuthWindow: vi.fn()
+}))
 vi.mock('./keycloakClient', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./keycloakClient')>()),
   getKeycloakBase: vi.fn(() => 'https://kc.test/auth')
 }))
 
 import { shell } from 'electron'
+import { is } from '@electron-toolkit/utils'
+import { clearAuthSession, openAuthWindow } from './authWindow'
 import { APP_PROTOCOL } from '../../config/constants'
 import { clearStoredTokens, loadTokens, storeTokens } from './tokenStorage'
 import { cancelLogin, handleOAuthCallback, logout, setAuthEventSender, startLogin } from './flow'
@@ -26,20 +34,21 @@ const tokens = {
 const fetchMock = vi.fn<typeof fetch>()
 
 afterEach(() => {
+  is.dev = false
   vi.unstubAllGlobals()
   vi.clearAllMocks()
 })
 
 /** Opens the sign-in page and returns the `state` it was given. */
 async function startAndReadState(): Promise<string> {
-  await startLogin('universe-testing')
+  await startLogin('universe-testing', null)
   const url = new URL(vi.mocked(shell.openExternal).mock.calls[0][0])
   return url.searchParams.get('state') ?? ''
 }
 
 describe('startLogin', () => {
   it('opens the Keycloak authorize URL in the system browser, with PKCE and the Discord hint', async () => {
-    await startLogin('universe-testing')
+    await startLogin('universe-testing', null)
 
     expect(shell.openExternal).toHaveBeenCalledOnce()
     const url = new URL(vi.mocked(shell.openExternal).mock.calls[0][0])
@@ -91,14 +100,43 @@ describe('startLogin', () => {
     )
   })
 
+  it('signs in in an in-app window in development, where the OS cannot route the callback', async () => {
+    is.dev = true
+    const send = vi.fn()
+    setAuthEventSender({ send })
+    await startLogin('universe-testing', null)
+
+    expect(shell.openExternal).not.toHaveBeenCalled()
+    expect(openAuthWindow).toHaveBeenCalledOnce()
+    const [, url, handlers] = vi.mocked(openAuthWindow).mock.calls[0]
+    expect(new URL(url).searchParams.get('kc_idp_hint')).toBe('discord')
+
+    handlers.onAbort()
+    expect(send).toHaveBeenCalledWith('auth:state-changed', {
+      env: 'universe-testing',
+      status: 'disconnected'
+    })
+  })
+
   it('fails when the browser cannot be opened', async () => {
     vi.mocked(shell.openExternal).mockRejectedValueOnce(new Error('no browser'))
 
-    await expect(startLogin('universe-testing')).rejects.toThrow('no browser')
+    await expect(startLogin('universe-testing', null)).rejects.toThrow('no browser')
   })
 })
 
 describe('logout', () => {
+  it('forgets the in-app window cookies in development only', async () => {
+    vi.stubGlobal('fetch', fetchMock)
+    vi.mocked(loadTokens).mockReturnValue(null)
+    await logout('universe-testing')
+    expect(clearAuthSession).not.toHaveBeenCalled()
+
+    is.dev = true
+    await logout('universe-testing')
+    expect(clearAuthSession).toHaveBeenCalledOnce()
+  })
+
   it('ends the Keycloak session in the background', async () => {
     vi.stubGlobal('fetch', fetchMock.mockResolvedValue(new Response(null, { status: 204 })))
     vi.mocked(loadTokens).mockReturnValue(tokens)

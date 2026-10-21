@@ -24,11 +24,16 @@ better for them.
    manager, and sign-out no longer forgets the account.
 2. **Sign in in the system browser** (option 2 of ADR 0005): Keycloak's authorize URL opens in
    the player's browser, where Discord already knows them; Keycloak redirects to
-   `dyingstar://auth/callback`, which the OS hands back to the launcher.
+   `dyingstar://auth/callback`, which the OS hands back to the launcher. In development the OS
+   hands it to the installed launcher, not to `make dev` (under WSL, the browser and the protocol
+   are Windows ones), so the sign-in cannot be tested there.
+3. **Redirect to a loopback address** (`http://127.0.0.1:<port>/callback`, RFC 8252): works in
+   development too, but needs a change of the Keycloak clients and a local HTTP server.
 
 ## Decision
 
-We take option 2.
+We take option 2 for the packaged launcher, and keep the in-app window in development
+(`is.dev`), where the redirect is caught in the window and nothing depends on the OS.
 
 - `auth:login` opens the authorize URL (PKCE, `state`, `kc_idp_hint=discord`) with
   `shell.openExternal` and resolves at once; the account block shows "Signing in…" until the
@@ -36,9 +41,9 @@ We take option 2.
   dropped, a late callback is refused as `invalid_callback`).
 - The callback comes only through the custom protocol already registered (`open-url` on macOS,
   `second-instance` on Windows and Linux, which also brings the launcher to the front).
-- The in-app window (`authWindow.ts`, its `persist:auth` session, its Chrome user agent and its
-  `discord://` handling) is removed. Sign-out stays in the background (ADR 0005, v1.0.0): it ends
-  the Keycloak session with the refresh token and opens nothing.
+- The in-app window (`authWindow.ts`, its `persist:auth` session cleared on sign-out) is only
+  used in development. Sign-out stays in the background (ADR 0005, v1.0.0): it ends the Keycloak
+  session with the refresh token and opens nothing.
 
 ## Consequences
 
@@ -49,6 +54,8 @@ We take option 2.
   browser.
 - The browser asks to open the launcher on the redirect, and the Keycloak tab stays open
   afterwards.
+- Development does not exercise the browser sign-in: it is checked on a packaged build
+  (`make package`).
 - Sign-in depends on the OS routing `dyingstar://` to the launcher: an install that did not
   register it (Linux without `xdg-mime`, a portable copy) stays on "Signing in…" until the player
   cancels.
