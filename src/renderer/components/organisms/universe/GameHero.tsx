@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useEnvStore } from '@stores/env'
 import { useFilesStore } from '@stores/files'
-import { useVersionStore } from '@stores/version'
+import { useLatestGameVersion } from '@hooks/version/useLatestGameVersion'
 import { useChangelogStore } from '@stores/changelog'
 import { useNavigationStore } from '@stores/navigation'
 import { GAME_COMPONENT_ID } from '@lib/changelogEntries'
@@ -18,7 +18,7 @@ export default function GameHero(): React.JSX.Element {
   const { t } = useTranslation()
   const activeEnv = useEnvStore((s) => s.activeEnv)
   const { installed, version, releaseDate } = useFilesStore((s) => s.data[activeEnv])
-  const latestVersion = useVersionStore((s) => s.latestGameVersions[activeEnv].version)
+  const latestVersion = useLatestGameVersion(activeEnv).version
   const entries = useChangelogStore((s) => s.getEntries)(activeEnv)
   const selectChangelog = useChangelogStore((s) => s.select)
   const navigate = useNavigationStore((s) => s.navigate)

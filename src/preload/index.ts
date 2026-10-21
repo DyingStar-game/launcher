@@ -1,12 +1,14 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { Env } from '@shared/types/env'
+import type { GameVersionInfo, VersionCheckResult } from '@shared/types/version'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type { InstallOutcome, PendingDownload } from '@shared/types/install'
 import type { UserInfo } from '@shared/types/auth'
 import type { GameStatusResult } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
 import type {
+  Friend,
   FriendRequestOutcome,
   InviteOutcome,
   JoinOutcome,
@@ -131,19 +133,12 @@ const api = {
   /** Closes the main window. */
   closeWindow: (): Promise<void> => ipcRenderer.invoke('window:close'),
 
-  /** Compares launcher and game versions against remote sources. */
-  checkVersions: (): Promise<{
-    currentLauncherVersion: string
-    latestLauncherVersion: string | null
-    latestLauncherReleaseDate: string | null
-    launcherUpdateAvailable: boolean
-    latestGameVersions: Record<Env, { version: string | null; releaseDate: string | null }>
-  }> => ipcRenderer.invoke('version:check'),
+  /** Compares the launcher version with its latest release on GitHub. */
+  checkVersions: (): Promise<VersionCheckResult> => ipcRenderer.invoke('version:check'),
 
   /** Fetches the latest game version of each environment (ADR 0039). */
-  checkGameVersions: (): Promise<
-    Record<Env, { version: string | null; releaseDate: string | null }>
-  > => ipcRenderer.invoke('version:check-game'),
+  checkGameVersions: (): Promise<Record<Env, GameVersionInfo>> =>
+    ipcRenderer.invoke('version:check-game'),
 
   /** Opens the Keycloak Discord sign-in page in the system browser. */
   authLogin: (env: Env): Promise<void> => ipcRenderer.invoke('auth:login', env),
@@ -173,6 +168,10 @@ const api = {
   /** Loads friends, friend requests, memberships and organisation requests from `social`. */
   socialLoad: (env: Env): Promise<SocialResult<SocialSnapshot>> =>
     ipcRenderer.invoke('social:load', env),
+
+  /** Loads the friends alone, with their presence (ADR 0045). */
+  socialLoadFriends: (env: Env): Promise<SocialResult<Friend[]>> =>
+    ipcRenderer.invoke('social:load-friends', env),
 
   /** Finds organisations whose name or tag contains `query` (2 characters minimum). */
   socialSearchOrganisations: (

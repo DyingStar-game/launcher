@@ -14,6 +14,7 @@ import {
   transferOrganisation,
   updateOrganisation,
   updateRank,
+  loadFriends,
   loadSocial,
   searchOrganisations,
   updateProfile
@@ -44,6 +45,38 @@ function serve(bodies: Record<string, unknown>): void {
     return { ok: true, data: bodies[key] } as never
   })
 }
+
+describe('loadFriends', () => {
+  beforeEach(() => {
+    vi.mocked(socialRequest).mockReset()
+  })
+
+  it('reads the friends alone, with their presence', async () => {
+    serve({
+      '/friends': page([
+        {
+          playerId: 'p1',
+          displayName: 'Kira',
+          avatarUrl: null,
+          status: 'mission',
+          location: { system: 'Sol' }
+        }
+      ])
+    })
+    const result = await loadFriends('universe-testing')
+
+    expect(socialRequest).toHaveBeenCalledOnce()
+    expect(result).toEqual({
+      ok: true,
+      data: [expect.objectContaining({ id: 'p1', name: 'Kira', status: 'mission', system: 'Sol' })]
+    })
+  })
+
+  it('passes the error on', async () => {
+    vi.mocked(socialRequest).mockResolvedValue({ ok: false, error: 'unavailable' })
+    expect(await loadFriends('universe-testing')).toEqual({ ok: false, error: 'unavailable' })
+  })
+})
 
 describe('loadSocial', () => {
   beforeEach(() => {

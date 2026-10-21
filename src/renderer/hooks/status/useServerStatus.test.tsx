@@ -5,11 +5,13 @@ import { act, renderHook, waitFor, type RenderHookResult } from '@testing-librar
 import type { Env } from '@shared/types/env'
 import type { GameStatusResult, ServerStatusValue } from '@shared/types/game'
 import { createQueryClient } from '@lib/queryClient'
-import { statusKeys } from '@lib/statusQueries'
+import { statusKeys, statusRefetchMs } from '@lib/statusQueries'
 import { useAvailabilityStore } from '@stores/availability'
+import { useGameStore } from '@stores/game'
 import { useServerStatus, type ServerStatus } from './useServerStatus'
 
 const savedAvailability = useAvailabilityStore.getState()
+const savedGame = useGameStore.getState()
 let client: QueryClient
 
 /** Provides the test's query client. */
@@ -39,7 +41,10 @@ beforeEach(() => {
 
 afterEach(() => {
   client.clear()
-  act(() => useAvailabilityStore.setState(savedAvailability, true))
+  act(() => {
+    useAvailabilityStore.setState(savedAvailability, true)
+    useGameStore.setState(savedGame, true)
+  })
 })
 
 describe('useServerStatus', () => {
@@ -77,6 +82,24 @@ describe('useServerStatus', () => {
       expect(client.getQueryState(statusKeys.server('universe-testing'))?.status).toBe('error')
     )
     expect(result.current.status).toBe('online')
+  })
+
+  it('reads the status again at each poll, except while the game runs', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      vi.mocked(window.api.getServerStatus).mockResolvedValue(answer('online'))
+      renderStatus()
+      await waitFor(() => expect(window.api.getServerStatus).toHaveBeenCalledTimes(1))
+
+      await act(() => vi.advanceTimersByTimeAsync(statusRefetchMs()))
+      expect(window.api.getServerStatus).toHaveBeenCalledTimes(2)
+
+      act(() => useGameStore.setState({ gameRunning: true }))
+      await act(() => vi.advanceTimersByTimeAsync(statusRefetchMs() * 3))
+      expect(window.api.getServerStatus).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('reads nothing while the universe is unavailable', () => {

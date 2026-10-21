@@ -3,6 +3,7 @@ import { pollIntervalMinutes } from './env'
 
 /** Query keys of the status page answers (ADR 0025), one per environment. */
 export const statusKeys = {
+  all: ['status'] as const,
   server: (env: Env) => ['status', env, 'server'] as const,
   auth: (env: Env) => ['status', env, 'auth'] as const
 }

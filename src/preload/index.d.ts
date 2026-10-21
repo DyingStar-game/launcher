@@ -7,6 +7,7 @@ import type { GameStatusResult } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type {
+  Friend,
   FriendRequestOutcome,
   InviteOutcome,
   JoinOutcome,
@@ -72,6 +73,7 @@ declare global {
       authLoadUser: (env: Env) => Promise<UserInfo | null>
       onAuthStateChanged: (callback: (data: AuthStateChangedPayload) => void) => void
       socialLoad: (env: Env) => Promise<SocialResult<SocialSnapshot>>
+      socialLoadFriends: (env: Env) => Promise<SocialResult<Friend[]>>
       socialSearchOrganisations: (
         env: Env,
         query: string

@@ -108,14 +108,12 @@ async function fetchLatestGameVersions(): Promise<Record<Env, GameVersionInfo>> 
   return { universe: toInfo(payloads[0]), 'universe-testing': toInfo(payloads[1]) }
 }
 
-/** Registers the IPC handlers that check launcher and game versions. */
+/** Registers the IPC handlers that check the launcher version and the game versions. */
 export function registerVersionHandlers(): void {
   ipcMain.removeHandler('version:check')
   ipcMain.handle('version:check', async (): Promise<VersionCheckResult> => {
     const currentLauncherVersion = app.getVersion()
     const githubRepoUrl = (import.meta.env.VITE_LAUNCHER_GITHUB_REPO_URL ?? '').trim()
-
-    const latestGameVersions = await fetchLatestGameVersions()
 
     let latestLauncherVersion: string | null = null
     let latestLauncherReleaseDate: string | null = null
@@ -134,12 +132,12 @@ export function registerVersionHandlers(): void {
       currentLauncherVersion,
       latestLauncherVersion,
       latestLauncherReleaseDate,
-      launcherUpdateAvailable,
-      latestGameVersions
+      launcherUpdateAvailable
     }
   })
 
-  // Game only, polled while the launcher runs: GitHub limits unauthenticated requests (ADR 0039)
+  // Game only, a query polled while the launcher runs (ADR 0039, 0045): GitHub limits
+  // unauthenticated requests, so the launcher check above runs once
   ipcMain.removeHandler('version:check-game')
   ipcMain.handle('version:check-game', fetchLatestGameVersions)
 }

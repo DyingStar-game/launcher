@@ -16,10 +16,14 @@ export function isGameRunning(): boolean {
   return trackedGamePid !== null && isPidAlive(trackedGamePid)
 }
 
-/** Sends running state to the renderer. */
+/**
+ * Sends running state to the renderer; when the game exits (or crashes), brings back the launcher
+ * minimized at its launch (ADR 0045).
+ */
 function notifyGameRunning(running: boolean): void {
   if (!launcherWindow || launcherWindow.isDestroyed()) return
   launcherWindow.webContents.send('game:running-changed', { running })
+  if (!running && launcherWindow.isMinimized()) launcherWindow.restore()
 }
 
 /** Returns true if sending signal 0 to the pid does not throw (process exists). */

@@ -6,8 +6,6 @@ import { useAvailabilityStore } from '@stores/availability'
 import { useEnvStore } from '@stores/env'
 import { useFilesStore, type EnvFilesData, type InstallRunOutcome } from '@stores/files'
 import { useGameStore, type PlayOutcome } from '@stores/game'
-import { useVersionStore } from '@stores/version'
-import { pollIntervalMinutes } from '@lib/env'
 import type { ServerStatusValue } from '@shared/types/game'
 import { Toaster } from '@components/ui/sonner'
 import GameActionBar from './GameActionBar'
@@ -15,17 +13,21 @@ import GameActionBar from './GameActionBar'
 // The status queries have their own tests: here they answer what each test sets
 const status = vi.hoisted(() => ({
   server: { status: 'online' as ServerStatusValue, players: 2 },
-  authUp: true
+  authUp: true,
+  latest: { version: null as string | null, releaseDate: null as string | null }
 }))
 vi.mock('@hooks/status/useServerStatus', () => ({ useServerStatus: () => status.server }))
 vi.mock('@hooks/status/useAuthAvailability', () => ({ useAuthAvailability: () => status.authUp }))
+vi.mock('@hooks/version/useLatestGameVersion', () => ({
+  useLatestGameVersion: () => status.latest,
+  fetchLatestGameVersion: vi.fn(async () => status.latest.version)
+}))
 
 const saved = {
   account: useAccountStore.getState(),
   availability: useAvailabilityStore.getState(),
   files: useFilesStore.getState(),
-  game: useGameStore.getState(),
-  version: useVersionStore.getState()
+  game: useGameStore.getState()
 }
 const login = vi.fn(() => Promise.resolve())
 const install = vi.fn(() => Promise.resolve<InstallRunOutcome>('installed'))
@@ -56,14 +58,7 @@ function server(value: ServerStatusValue): void {
 
 /** The latest testing build online. */
 function latest(version: string): void {
-  act(() =>
-    useVersionStore.setState((s) => ({
-      latestGameVersions: {
-        ...s.latestGameVersions,
-        'universe-testing': { version, releaseDate: null }
-      }
-    }))
-  )
+  status.latest = { version, releaseDate: null }
 }
 
 beforeEach(() => {
@@ -89,7 +84,6 @@ afterEach(() => {
     useAvailabilityStore.setState(saved.availability, true)
     useFilesStore.setState(saved.files, true)
     useGameStore.setState(saved.game, true)
-    useVersionStore.setState(saved.version, true)
   })
   vi.clearAllMocks()
 })
@@ -305,25 +299,6 @@ describe('GameActionBar', () => {
     expect(update).toHaveBeenCalledOnce()
     expect(await screen.findByRole('button', { name: 'Play' })).toBeEnabled()
     expect(play).not.toHaveBeenCalled()
-  })
-
-  it('offers an update released during a maintenance once the poll sees it', () => {
-    vi.useFakeTimers()
-    try {
-      server('maintenance')
-      const refreshGameVersions = vi.fn(async () => {
-        latest('20261013000000')
-        server('online')
-      })
-      act(() => useVersionStore.setState({ refreshGameVersions }))
-      render(<GameActionBar />)
-      expect(refreshGameVersions).not.toHaveBeenCalled()
-      act(() => vi.advanceTimersByTime(pollIntervalMinutes() * 60 * 1000))
-      expect(refreshGameVersions).toHaveBeenCalledOnce()
-      expect(screen.getByText('Update required')).toBeInTheDocument()
-    } finally {
-      vi.useRealTimers()
-    }
   })
 
   it.each([

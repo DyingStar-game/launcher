@@ -3,7 +3,6 @@ import { persist } from 'zustand/middleware'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type { PendingDownload } from '@shared/types/install'
 import { useEnvStore, type Env } from './env'
-import { useVersionStore } from './version'
 import { useChangelogStore } from './changelog'
 import { addTransferSample, transferRate, type TransferSample } from '@lib/transferRate'
 
@@ -186,7 +185,6 @@ export const useFilesStore = create<FilesState>()(
             bytesPerSecond: null
           })
           await get().syncInstalledVersions()
-          void useVersionStore.getState().checkVersions()
           void useChangelogStore.getState().fetch()
           return 'installed'
         } catch (err) {

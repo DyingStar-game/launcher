@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { Env } from '@shared/types/env'
 import { useAccountStore } from '@stores/account'
 import { useAvailabilityStore } from '@stores/availability'
+import { useGameStore } from '@stores/game'
 import { STATUS_STALE_MS, StatusUnreadError, statusKeys, statusRefetchMs } from '@lib/statusQueries'
 
 /**
@@ -11,6 +12,7 @@ import { STATUS_STALE_MS, StatusUnreadError, statusKeys, statusRefetchMs } from 
  */
 export function useAuthAvailability(env: Env): boolean {
   const available = useAvailabilityStore((s) => s.available[env])
+  const gameRunning = useGameStore((s) => s.gameRunning)
   const { data } = useQuery({
     queryKey: statusKeys.auth(env),
     queryFn: async ({ client, queryKey }): Promise<boolean> => {
@@ -24,7 +26,8 @@ export function useAuthAvailability(env: Env): boolean {
     },
     enabled: available,
     staleTime: STATUS_STALE_MS,
-    refetchInterval: statusRefetchMs()
+    // Nobody looks at the launcher while playing (ADR 0045)
+    refetchInterval: gameRunning ? false : statusRefetchMs()
   })
   return data ?? true
 }
