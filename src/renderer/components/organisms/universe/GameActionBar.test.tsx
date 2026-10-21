@@ -244,6 +244,29 @@ describe('GameActionBar', () => {
     expect(screen.getByRole('button', { name: 'Resume' })).toBeInTheDocument()
   })
 
+  it('says the disk is full, with the sizes, the download kept to resume (ADR 0047)', async () => {
+    const pending = { downloaded: 512 * 1024 ** 2, total: 1024 ** 3, progress: 35 }
+    files({ installed: false, version: null, paused: pending })
+    vi.mocked(window.api.installGame).mockResolvedValue({
+      status: 'diskFull',
+      needed: 512 * 1024 ** 2,
+      available: 300 * 1024 ** 2
+    })
+    vi.mocked(window.api.pendingDownload).mockResolvedValue(pending)
+    render(
+      <>
+        <GameActionBar />
+        <Toaster />
+      </>
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Resume' }))
+    const message = await screen.findByText(
+      'Not enough disk space: 512.0 MB needed, 300.0 MB free on this disk. Free some space or choose another folder, then resume.'
+    )
+    expect(message.closest('[data-sonner-toast]')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Resume' })).toBeInTheDocument()
+  })
+
   it('tells the installation failed when nothing could be kept', async () => {
     install.mockResolvedValueOnce('failed')
     files({ installed: false, version: null })

@@ -8,8 +8,15 @@ import { downloadZip } from './zipFetch'
 import { extractZip } from './extract'
 import { resolveInstalledVersion } from './manifest'
 import { sendProgress } from './progress'
-import { deletePartialDownload } from './partial'
-import { listArchiveFiles, readGameFiles, removeGameFiles, writeGameFiles } from './gameFiles'
+import { deletePartialDownload, fileSize, partialZipPath, readDownloadMeta } from './partial'
+import {
+  gameFilesSize,
+  listArchiveFiles,
+  readGameFiles,
+  removeGameFiles,
+  writeGameFiles
+} from './gameFiles'
+import { DiskFullError, freeBytes, isNoSpace } from './disk'
 
 /** Why a download was stopped by the player (ADR 0036). */
 type StopReason = 'paused' | 'cancelled'
@@ -40,9 +47,23 @@ export function cancelInstall(env: Env, installPath: string): boolean {
   return true
 }
 
+type DiskFull = Extract<InstallOutcome, { status: 'diskFull' }>
+
+/** The lack of space a download failure means, or null when it is another failure (ADR 0047). */
+async function downloadDiskFull(err: unknown, installPath: string): Promise<DiskFull | null> {
+  if (err instanceof DiskFullError) {
+    return { status: 'diskFull', needed: err.needed, available: err.available }
+  }
+  if (!isNoSpace(err)) return null
+  const total = readDownloadMeta(installPath)?.total ?? 0
+  const missing = Math.max(0, total - fileSize(partialZipPath(installPath)))
+  return { status: 'diskFull', needed: missing, available: await freeBytes(installPath) }
+}
+
 /**
  * Downloads the game ZIP (resuming a partial one), extracts it, and returns the installed version
- * info, or how the player stopped it. The installed game is only replaced once the ZIP is complete.
+ * info, or how the player stopped it. The installed game is only replaced once the ZIP is complete
+ * and its files fit on the disk; a lack of space keeps the ZIP, to resume (ADR 0047).
  */
 export async function downloadAndInstall(
   env: Env,
@@ -62,7 +83,12 @@ export async function downloadAndInstall(
       zipFilePath = await downloadZip(env, installPath, win, install.controller.signal)
     } catch (err) {
       const { signal } = install.controller
-      if (!signal.aborted) throw err // Kept on disk: the download can be resumed
+      if (!signal.aborted) {
+        // Kept on disk: the download can be resumed
+        const diskFull = await downloadDiskFull(err, installPath)
+        if (diskFull) return diskFull
+        throw err
+      }
       if ((signal.reason as StopReason) === 'cancelled') {
         deletePartialDownload(installPath)
         return { status: 'cancelled' }
@@ -71,12 +97,21 @@ export async function downloadAndInstall(
     }
 
     install.extracting = true
+    const gameRoot = path.join(installPath, GAME_INSTALL_SUBDIR)
+    let archive: Awaited<ReturnType<typeof listArchiveFiles>> | null = null
+    let installedFiles: string[] = []
     try {
-      const gameRoot = path.join(installPath, GAME_INSTALL_SUBDIR)
       sendProgress(win, 68, { key: 'preparing' })
+      archive = await listArchiveFiles(zipFilePath)
+      const archiveFiles = archive.files
+      installedFiles = readGameFiles(gameRoot) ?? []
+      // The new files must fit once the previous ones are removed, checked before removing any:
+      // the installed game stays playable (ADR 0047)
+      const needed = archive.size - gameFilesSize(gameRoot, installedFiles)
+      const available = await freeBytes(installPath)
+      if (available < needed) return { status: 'diskFull', needed, available }
+
       // Only the files a previous archive installed go: the player's own stay (ADR 0038)
-      const archiveFiles = await listArchiveFiles(zipFilePath)
-      const installedFiles = readGameFiles(gameRoot) ?? []
       writeGameFiles(gameRoot, [...installedFiles, ...archiveFiles])
       removeGameFiles(gameRoot, installedFiles)
       fs.mkdirSync(gameRoot, { recursive: true })
@@ -92,6 +127,15 @@ export async function downloadAndInstall(
       sendProgress(win, 100, { key: 'completeInstall', version: manifest.version })
       return { status: 'installed', ...manifest }
     } catch (err) {
+      if (archive && isNoSpace(err)) {
+        // The ZIP stays: Resume removes what was extracted and extracts again
+        const toRemove = gameFilesSize(gameRoot, [...installedFiles, ...archive.files])
+        return {
+          status: 'diskFull',
+          needed: Math.max(0, archive.size - toRemove),
+          available: await freeBytes(installPath)
+        }
+      }
       deletePartialDownload(installPath)
       throw err
     }

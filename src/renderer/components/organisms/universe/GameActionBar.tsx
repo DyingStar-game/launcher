@@ -127,6 +127,15 @@ export default function GameActionBar(): React.JSX.Element {
 
   /** Tells the player an install or update stopped on an error (paused ones are on purpose). */
   const reportInstall = (outcome: InstallRunOutcome): void => {
+    if (typeof outcome === 'object') {
+      toast.error(
+        t('universe.action.installing.diskFull', {
+          needed: formatBytes(outcome.needed),
+          available: formatBytes(outcome.available)
+        })
+      )
+      return
+    }
     if (outcome === 'installed') void queryClient.invalidateQueries({ queryKey: versionKeys.game })
     if (outcome === 'interrupted') toast.error(t('universe.action.installing.interrupted'))
     if (outcome === 'failed') toast.error(t('universe.action.installing.failed'))

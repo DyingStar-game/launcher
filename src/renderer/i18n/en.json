@@ -428,7 +428,8 @@
         "etaUnderMinute": "< 1 min",
         "ctaPause": "Pause",
         "interrupted": "Download interrupted: the progress made is kept.",
-        "failed": "The installation failed."
+        "failed": "The installation failed.",
+        "diskFull": "Not enough disk space: {{needed}} needed, {{available}} free on this disk. Free some space or choose another folder, then resume."
       },
       "update": {
         "title": "Update required",

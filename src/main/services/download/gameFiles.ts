@@ -20,17 +20,24 @@ function readLists(): GameFileLists {
   }
 }
 
-/** Paths of the files an archive holds, relative to its root (folders left out). */
-export function listArchiveFiles(zipFilePath: string): Promise<string[]> {
+/** What an archive holds: its files' paths, relative to its root, and their size once extracted. */
+export type ArchiveContents = { files: string[]; size: number }
+
+/** The files an archive holds (folders left out), and their uncompressed size (ADR 0047). */
+export function listArchiveFiles(zipFilePath: string): Promise<ArchiveContents> {
   return new Promise((resolve, reject) => {
     yauzl.open(zipFilePath, { lazyEntries: true }, (openErr, zipFile) => {
       if (openErr) return reject(openErr)
       const files: string[] = []
+      let size = 0
       zipFile.on('entry', (entry: yauzl.Entry) => {
-        if (!entry.fileName.endsWith('/')) files.push(entry.fileName)
+        if (!entry.fileName.endsWith('/')) {
+          files.push(entry.fileName)
+          size += entry.uncompressedSize
+        }
         zipFile.readEntry()
       })
-      zipFile.on('end', () => resolve(files))
+      zipFile.on('end', () => resolve({ files, size }))
       zipFile.on('error', reject)
       zipFile.readEntry()
     })
@@ -58,6 +65,23 @@ function insideGameRoot(gameRoot: string, file: string): string | null {
   const relative = path.relative(gameRoot, target)
   if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) return null
   return target
+}
+
+/** Size on disk of the listed files of the game folder, those missing counted as 0 (ADR 0047). */
+export function gameFilesSize(gameRoot: string, files: string[]): number {
+  const root = path.resolve(gameRoot)
+  let size = 0
+  for (const file of new Set(files)) {
+    const target = insideGameRoot(root, file)
+    if (!target) continue
+    try {
+      const stats = fs.lstatSync(target)
+      if (stats.isFile()) size += stats.size
+    } catch {
+      // Not there
+    }
+  }
+  return size
 }
 
 /**

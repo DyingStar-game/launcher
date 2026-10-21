@@ -17,6 +17,36 @@ vi.mock('../../config/constants', async (importOriginal) => {
 const dataDir = vi.hoisted(() => ({ path: '' }))
 vi.mock('electron', () => ({ app: { getPath: () => dataDir.path } }))
 
+// Free disk space, one value per check: before downloading, then before extracting (ADR 0047)
+const disk = vi.hoisted(() => ({ free: [] as number[], writeFails: false, extractFails: false }))
+vi.mock('./disk', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./disk')>()
+  return { ...actual, freeBytes: vi.fn(async () => disk.free.shift() ?? Number.MAX_SAFE_INTEGER) }
+})
+/** The error the file system gives once the disk is full. */
+const noSpace = (): Error =>
+  Object.assign(new Error('ENOSPC: no space left on device'), { code: 'ENOSPC' })
+// The disk filling up while the archive is written…
+vi.mock('fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('fs')>()
+  const { Writable } = await import('stream')
+  const createWriteStream = ((...args: Parameters<typeof actual.createWriteStream>) =>
+    disk.writeFails
+      ? new Writable({ write: (_chunk, _encoding, done) => done(noSpace()) })
+      : actual.createWriteStream(...args)) as typeof actual.createWriteStream
+  return { ...actual, default: { ...actual, createWriteStream }, createWriteStream }
+})
+// …or while it is extracted
+vi.mock('./extract', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./extract')>()
+  return {
+    extractZip: vi.fn(async (...args: Parameters<typeof actual.extractZip>) => {
+      if (disk.extractFails) throw noSpace()
+      return actual.extractZip(...args)
+    })
+  }
+})
+
 import { getZipUrl } from './zipUrl'
 import { cancelInstall, downloadAndInstall, pauseInstall } from './install'
 import { findPendingDownload, writeDownloadMeta } from './partial'
@@ -85,6 +115,9 @@ const send = vi.fn()
 const win = { isDestroyed: () => false, webContents: { send } } as unknown as BrowserWindow
 
 beforeEach(async () => {
+  disk.free = []
+  disk.writeFails = false
+  disk.extractFails = false
   mode = 'normal'
   archive = ARCHIVE
   requests = []
@@ -273,6 +306,70 @@ describe('downloadAndInstall', () => {
 
     expect(fs.readdirSync(gameRoot).sort()).toEqual(['old.dll', 'version.json'])
     expect(readGameFiles(gameRoot)).toEqual(['version.json'])
+  })
+
+  describe('disk full (ADR 0047)', () => {
+    /** A game installed before, with a file of the player's beside it. */
+    function installedGame(): string {
+      const gameRoot = path.join(installPath, 'DyingStar')
+      fs.mkdirSync(gameRoot, { recursive: true })
+      fs.writeFileSync(path.join(gameRoot, 'version.json'), VERSION_JSON)
+      return gameRoot
+    }
+
+    it('downloads nothing when the archive does not fit', async () => {
+      disk.free = [100]
+      expect(await downloadAndInstall('universe', installPath, win)).toEqual({
+        status: 'diskFull',
+        needed: ARCHIVE.length,
+        available: 100
+      })
+      expect(findPendingDownload('universe', installPath)).toBeNull()
+    })
+
+    it('says the disk is full when it fills up while the archive is written', async () => {
+      disk.writeFails = true
+      disk.free = [Number.MAX_SAFE_INTEGER, 50]
+      const outcome = await downloadAndInstall('universe', installPath, win)
+      expect(outcome).toEqual({ status: 'diskFull', needed: ARCHIVE.length, available: 50 })
+      expect(requests).toHaveLength(1)
+    })
+
+    it('touches neither the game nor the archive when the new files do not fit', async () => {
+      const gameRoot = installedGame()
+      // Room for the archive, not for its files once extracted
+      disk.free = [Number.MAX_SAFE_INTEGER, 10]
+      expect(await downloadAndInstall('universe', installPath, win)).toMatchObject({
+        status: 'diskFull',
+        available: 10
+      })
+      expect(fs.readFileSync(path.join(gameRoot, 'version.json'), 'utf8')).toBe(VERSION_JSON)
+      expect(findPendingDownload('universe', installPath)).toMatchObject({
+        downloaded: ARCHIVE.length
+      })
+
+      // Space freed: Resume goes straight to extraction
+      expect(await downloadAndInstall('universe', installPath, win)).toMatchObject({
+        status: 'installed'
+      })
+      expect(requests).toHaveLength(1)
+    })
+
+    it('keeps the archive, to resume, when the disk fills up while extracting', async () => {
+      disk.extractFails = true
+      expect(await downloadAndInstall('universe', installPath, win)).toMatchObject({
+        status: 'diskFull'
+      })
+      expect(findPendingDownload('universe', installPath)).toMatchObject({
+        downloaded: ARCHIVE.length
+      })
+
+      disk.extractFails = false
+      expect(await downloadAndInstall('universe', installPath, win)).toMatchObject({
+        status: 'installed'
+      })
+      expect(filesLeft()).toEqual(['DyingStar'])
+    })
   })
 
   it('has nothing to pause once nothing runs', () => {

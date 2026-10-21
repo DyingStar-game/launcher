@@ -428,7 +428,8 @@
         "etaUnderMinute": "< 1 min",
         "ctaPause": "Pause",
         "interrupted": "Téléchargement interrompu : la progression est conservée.",
-        "failed": "L'installation a échoué."
+        "failed": "L'installation a échoué.",
+        "diskFull": "Espace disque insuffisant : {{needed}} nécessaires, {{available}} libres sur ce disque. Libérez de l'espace ou choisissez un autre dossier, puis reprenez."
       },
       "update": {
         "title": "Mise à jour requise",
