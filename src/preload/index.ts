@@ -4,7 +4,7 @@ import type { Env } from '@shared/types/env'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type { InstallOutcome, PendingDownload } from '@shared/types/install'
 import type { UserInfo } from '@shared/types/auth'
-import type { ServerStatusValue } from '@shared/types/game'
+import type { GameStatusResult } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
 import type {
   FriendRequestOutcome,
@@ -95,17 +95,18 @@ const api = {
   },
 
   /** Fetches server status and connected player count for an environment. */
-  getServerStatus: (
-    env: Env
-  ): Promise<{ status: ServerStatusValue; players: number; available: boolean }> =>
+  getServerStatus: (env: Env): Promise<GameStatusResult> =>
     ipcRenderer.invoke('game:get-server-status', env),
 
   /** Pings each env API `/version` to determine runtime availability at startup. */
   checkEnvAvailability: (): Promise<Record<Env, boolean>> =>
     ipcRenderer.invoke('env:check-availability'),
 
-  /** Whether the status page reports an environment's sign-in server up (ADR 0043). */
-  checkAuthAvailability: (env: Env): Promise<boolean> =>
+  /**
+   * Whether the status page reports an environment's sign-in server up (ADR 0043), null when it
+   * did not answer.
+   */
+  checkAuthAvailability: (env: Env): Promise<boolean | null> =>
     ipcRenderer.invoke('env:check-auth-availability', env),
 
   /** Quits the entire application. */

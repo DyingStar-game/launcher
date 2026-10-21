@@ -3,6 +3,7 @@ import { useSocialSnapshot } from '@hooks/social/useSocialSnapshot'
 import { useTranslation } from 'react-i18next'
 import { useAccountStore } from '@stores/account'
 import { useAvailabilityStore } from '@stores/availability'
+import { useAuthAvailability } from '@hooks/status/useAuthAvailability'
 import { useEnvStore } from '@stores/env'
 import { useNavigationStore } from '@stores/navigation'
 import { cn } from '@lib/cn'
@@ -102,15 +103,15 @@ function ProfileItem(): React.JSX.Element | null {
 /**
  * The player's account in the universe bar, for the active environment, always as the same block:
  * "Sign in / Required to play" with the Discord logo, "Sign-in unavailable / Server unreachable"
- * while the sign-in server does not answer, "Signing in… / Cancel" while the sign-in
- * window is open, or the player's avatar, name and "Signed in", opening My profile and Sign out.
+ * while the sign-in server is down, "Signing in… / Cancel" while the sign-in
+ * is under way, or the player's avatar, name and "Signed in", opening My profile and Sign out.
  */
 export default function AccountMenu(): React.JSX.Element {
   const { t } = useTranslation()
   const { activeEnv } = useEnvStore()
   const { data, login, logout, cancelLogin } = useAccountStore()
   const available = useAvailabilityStore((s) => s.available[activeEnv])
-  const authAvailable = useAvailabilityStore((s) => s.authAvailable[activeEnv])
+  const authAvailable = useAuthAvailability(activeEnv)
   const { status, username } = data[activeEnv]
 
   if (!available) {

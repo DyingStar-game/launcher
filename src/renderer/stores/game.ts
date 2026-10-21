@@ -1,28 +1,16 @@
 import { create } from 'zustand'
-import { useEnvStore, type Env } from './env'
+import { useEnvStore } from './env'
 import { useFilesStore } from './files'
 import { useVersionStore } from './version'
 import { isGameUpdateAvailable } from '@lib/isGameUpdateAvailable'
-import type { ServerStatusValue } from '@shared/types/game'
-
-export type { ServerStatusValue }
-
 /** How a click on Play ended: launched (or tried to), refused for an update, or ignored. */
 export type PlayOutcome = 'launched' | 'updateRequired' | 'ignored'
 
-type EnvGameData = {
-  status: ServerStatusValue
-  players: number
-}
-
 type GameState = {
-  data: Record<Env, EnvGameData>
   /** True while a game process launched by the launcher is running. */
   gameRunning: boolean
   /** True from play click until launch IPC settles (blocks double-clicks on slow machines). */
   isLaunching: boolean
-  /** Refreshes server status and player count for the active environment. */
-  fetchServerStatus: () => Promise<void>
   /** Syncs running state from the main process (e.g. after failed launch). */
   syncGameRunning: () => Promise<void>
   /**
@@ -32,10 +20,8 @@ type GameState = {
   play: () => Promise<PlayOutcome>
 }
 
-const defaultEnvData: EnvGameData = { status: 'unknown', players: 0 }
-
 /**
- * Server status, player count, and game launch state per environment.
+ * Game launch state; the server status is a query (`useServerStatus`, ADR 0025).
  */
 export const useGameStore = create<GameState>((set, get) => {
   window.api.onGameRunningChanged((running) => {
@@ -47,30 +33,8 @@ export const useGameStore = create<GameState>((set, get) => {
   })
 
   return {
-    data: {
-      universe: { ...defaultEnvData },
-      'universe-testing': { ...defaultEnvData }
-    },
     gameRunning: false,
     isLaunching: false,
-
-    fetchServerStatus: async () => {
-      const env = useEnvStore.getState().activeEnv
-
-      try {
-        const result = await window.api.getServerStatus(env)
-        set((s) => ({
-          data: {
-            ...s.data,
-            [env]: { status: result.status, players: result.players }
-          }
-        }))
-      } catch {
-        set((s) => ({
-          data: { ...s.data, [env]: { ...s.data[env], status: 'unknown', players: 0 } }
-        }))
-      }
-    },
 
     syncGameRunning: async () => {
       const running = await window.api.isGameRunning()

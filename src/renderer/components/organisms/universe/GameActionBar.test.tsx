@@ -12,6 +12,14 @@ import type { ServerStatusValue } from '@shared/types/game'
 import { Toaster } from '@components/ui/sonner'
 import GameActionBar from './GameActionBar'
 
+// The status queries have their own tests: here they answer what each test sets
+const status = vi.hoisted(() => ({
+  server: { status: 'online' as ServerStatusValue, players: 2 },
+  authUp: true
+}))
+vi.mock('@hooks/status/useServerStatus', () => ({ useServerStatus: () => status.server }))
+vi.mock('@hooks/status/useAuthAvailability', () => ({ useAuthAvailability: () => status.authUp }))
+
 const saved = {
   account: useAccountStore.getState(),
   availability: useAvailabilityStore.getState(),
@@ -20,7 +28,6 @@ const saved = {
   version: useVersionStore.getState()
 }
 const login = vi.fn(() => Promise.resolve())
-const checkAuthAvailability = vi.fn(() => Promise.resolve())
 const install = vi.fn(() => Promise.resolve<InstallRunOutcome>('installed'))
 const play = vi.fn(() => Promise.resolve<PlayOutcome>('launched'))
 
@@ -43,12 +50,8 @@ function account(status: 'connected' | 'disconnected' | 'loading', sessionExpire
 }
 
 /** The testing server's status. */
-function server(status: ServerStatusValue): void {
-  act(() =>
-    useGameStore.setState((s) => ({
-      data: { ...s.data, 'universe-testing': { status, players: 2 } }
-    }))
-  )
+function server(value: ServerStatusValue): void {
+  status.server = { status: value, players: 2 }
 }
 
 /** The latest testing build online. */
@@ -67,17 +70,16 @@ beforeEach(() => {
   act(() => {
     useEnvStore.setState({ activeEnv: 'universe-testing' })
     useAvailabilityStore.setState({
-      available: { universe: false, 'universe-testing': true },
-      authAvailable: { universe: true, 'universe-testing': true },
-      checkAuthAvailability
+      available: { universe: false, 'universe-testing': true }
     })
     useAccountStore.setState({ login })
     useFilesStore.setState({ install, syncInstalledVersions: vi.fn(() => Promise.resolve()) })
-    useGameStore.setState({ play, fetchServerStatus: vi.fn(() => Promise.resolve()) })
+    useGameStore.setState({ play })
   })
   files({ installed: true, installPath: '/games', version: '20261010203221' })
   latest('20261010203221')
   server('online')
+  status.authUp = true
   account('connected')
 })
 
@@ -318,7 +320,6 @@ describe('GameActionBar', () => {
       expect(refreshGameVersions).not.toHaveBeenCalled()
       act(() => vi.advanceTimersByTime(pollIntervalMinutes() * 60 * 1000))
       expect(refreshGameVersions).toHaveBeenCalledOnce()
-      expect(useGameStore.getState().fetchServerStatus).toHaveBeenCalledTimes(2)
       expect(screen.getByText('Update required')).toBeInTheDocument()
     } finally {
       vi.useRealTimers()
@@ -345,24 +346,15 @@ describe('GameActionBar', () => {
 
   it.each(['disconnected', 'connected'] as const)(
     'blocks sign-in and Play while the sign-in server is down (%s)',
-    (status) => {
-      account(status)
-      act(() =>
-        useAvailabilityStore.setState({
-          authAvailable: { universe: true, 'universe-testing': false }
-        })
-      )
+    (accountStatus) => {
+      account(accountStatus)
+      status.authUp = false
       render(<GameActionBar />)
       expect(screen.getByText('The sign-in server is not responding')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Sign-in unavailable' })).toBeDisabled()
       expect(screen.queryByRole('button', { name: 'Play' })).not.toBeInTheDocument()
     }
   )
-
-  it('checks the sign-in server with the status', () => {
-    render(<GameActionBar />)
-    expect(checkAuthAvailability).toHaveBeenCalledWith('universe-testing')
-  })
 
   it('asks to sign in again when the session has expired', () => {
     account('disconnected', true)

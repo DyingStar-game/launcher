@@ -8,6 +8,10 @@ import { useNavigationStore } from '@stores/navigation'
 import { seedSocial } from '../../../test/seedSocial'
 import AccountMenu from './AccountMenu'
 
+// The sign-in server status is a query with its own tests: here it answers what each test sets
+const auth = vi.hoisted(() => ({ up: true }))
+vi.mock('@hooks/status/useAuthAvailability', () => ({ useAuthAvailability: () => auth.up }))
+
 const saved = useAccountStore.getState()
 const login = vi.fn(() => Promise.resolve())
 const logout = vi.fn(() => Promise.resolve())
@@ -28,11 +32,9 @@ function account(status: 'connected' | 'disconnected' | 'loading', username?: st
 beforeEach(() => {
   act(() => {
     useEnvStore.setState({ activeEnv: 'universe' })
-    useAvailabilityStore.setState({
-      available: { universe: true, 'universe-testing': true },
-      authAvailable: { universe: true, 'universe-testing': true }
-    })
+    useAvailabilityStore.setState({ available: { universe: true, 'universe-testing': true } })
   })
+  auth.up = true
 })
 
 afterEach(() => {
@@ -88,11 +90,7 @@ describe('AccountMenu', () => {
   })
 
   it('says sign-in is unavailable while the sign-in server does not answer', () => {
-    act(() =>
-      useAvailabilityStore.setState({
-        authAvailable: { universe: false, 'universe-testing': true }
-      })
-    )
+    auth.up = false
     account('disconnected')
     render(<AccountMenu />)
     expect(
@@ -104,11 +102,7 @@ describe('AccountMenu', () => {
   })
 
   it('keeps the signed-in player menu while the sign-in server does not answer', () => {
-    act(() =>
-      useAvailabilityStore.setState({
-        authAvailable: { universe: false, 'universe-testing': true }
-      })
-    )
+    auth.up = false
     account('connected', 'Kira')
     render(<AccountMenu />)
     expect(screen.getByRole('button', { name: 'Account of Kira' })).toBeEnabled()

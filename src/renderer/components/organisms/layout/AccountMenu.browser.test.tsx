@@ -1,10 +1,14 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@i18n'
 import { act, render, screen } from '../../../test/render'
 import { useAccountStore } from '@stores/account'
 import { useAvailabilityStore } from '@stores/availability'
 import { useEnvStore } from '@stores/env'
 import AccountMenu from './AccountMenu'
+
+// The sign-in server status is a query with its own tests: here it answers what each test sets
+const auth = vi.hoisted(() => ({ up: true }))
+vi.mock('@hooks/status/useAuthAvailability', () => ({ useAuthAvailability: () => auth.up }))
 
 const saved = useAccountStore.getState()
 
@@ -15,6 +19,7 @@ afterEach(async () => {
     useAccountStore.setState(saved, true)
     useAvailabilityStore.setState(savedAvailability, true)
   })
+  auth.up = true
   await i18n.changeLanguage('en')
 })
 
@@ -42,11 +47,9 @@ describe('AccountMenu (rendering)', () => {
       await i18n.changeLanguage(lng)
       act(() => {
         useEnvStore.setState({ activeEnv: 'universe' })
-        useAvailabilityStore.setState({
-          available: { universe: true, 'universe-testing': true },
-          authAvailable: { universe: false, 'universe-testing': true }
-        })
+        useAvailabilityStore.setState({ available: { universe: true, 'universe-testing': true } })
       })
+      auth.up = false
       render(<AccountMenu />)
       const heading = screen.getByText(i18n.t('navbar.account.authDownShort'))
       expect(heading.scrollWidth).toBeLessThanOrEqual(heading.clientWidth)

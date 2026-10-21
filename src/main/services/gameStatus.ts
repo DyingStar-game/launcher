@@ -46,33 +46,36 @@ function parseCachetComponentStatus(json: unknown): { value: number | undefined;
   }
 }
 
-/** Fetches server operational status from the status API. */
+/**
+ * Fetches server operational status from the status API; `reached` is false when the status page
+ * did not answer (rate limit, error, timeout), so the renderer keeps the last status it read.
+ */
 async function fetchStatus(
   apiBase: string,
   componentId: number
-): Promise<{ status: ServerStatusValue; label: string }> {
+): Promise<{ status: ServerStatusValue; label: string; reached: boolean }> {
   try {
     const url = ENDPOINTS.status(apiBase, componentId)
     const res = await fetchWithTimeout(url)
-    if (!res.ok) return { status: 'unknown', label: `HTTP ${res.status}` }
+    if (!res.ok) return { status: 'unknown', label: `HTTP ${res.status}`, reached: false }
 
     const json: unknown = await res.json()
     const { value, label } = parseCachetComponentStatus(json)
 
     if (value === undefined) {
       console.warn('[GameStatus] Unreadable component status', { url, label })
-      return { status: 'unknown', label: label || 'parse_error' }
+      return { status: 'unknown', label: label || 'parse_error', reached: true }
     }
 
     const mapped = STATUS_MAP[value]
     if (!mapped) {
       console.warn('[GameStatus] Unknown status value', { url, value, label })
-      return { status: 'unknown', label }
+      return { status: 'unknown', label, reached: true }
     }
-    return { status: mapped, label }
+    return { status: mapped, label, reached: true }
   } catch (err) {
     console.warn('[GameStatus] Status fetch failed', err)
-    return { status: 'unknown', label: 'fetch_error' }
+    return { status: 'unknown', label: 'fetch_error', reached: false }
   }
 }
 
@@ -162,31 +165,41 @@ export function registerGameStatusHandlers(): void {
   })
 
   // The sign-in server has its own status component: down while the universe is up, sign-in is
-  // off; unknown (status page unreachable) does not block it (ADR 0043)
+  // off; null when the status page did not answer, which does not block it (ADR 0043)
   ipcMain.removeHandler('env:check-auth-availability')
-  ipcMain.handle('env:check-auth-availability', async (_event, env: Env): Promise<boolean> => {
-    const base = getApiBase(env)
-    if (!base) return false
-    const { status } = await fetchStatus(base, getAuthStatusComponentId(env))
-    return status !== 'offline' && status !== 'maintenance'
-  })
+  ipcMain.handle(
+    'env:check-auth-availability',
+    async (_event, env: Env): Promise<boolean | null> => {
+      const base = getApiBase(env)
+      if (!base) return false
+      const { status, reached } = await fetchStatus(base, getAuthStatusComponentId(env))
+      if (!reached) return null
+      return status !== 'offline' && status !== 'maintenance'
+    }
+  )
 
   ipcMain.removeHandler('game:get-server-status')
   ipcMain.handle('game:get-server-status', async (_event, env: Env): Promise<GameStatusResult> => {
     const base = getApiBase(env)
 
     if (!base) {
-      return { status: 'unavailable', statusLabel: 'not_configured', players: 0, available: false }
+      return {
+        status: 'unavailable',
+        statusLabel: 'not_configured',
+        players: 0,
+        available: false,
+        reached: true
+      }
     }
 
     const componentId = getStatusComponentId(env)
     const metricId = getStatusMetricId(env)
 
-    const [{ status, label }, players] = await Promise.all([
+    const [{ status, label, reached }, players] = await Promise.all([
       fetchStatus(base, componentId),
       fetchPlayers(base, metricId)
     ])
 
-    return { status, statusLabel: label, players, available: true }
+    return { status, statusLabel: label, players, available: true, reached }
   })
 }

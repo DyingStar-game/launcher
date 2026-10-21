@@ -9,6 +9,8 @@ import { useFilesStore, type EnvFilesData, type InstallRunOutcome } from '@store
 import { useVersionStore } from '@stores/version'
 import { useAvailabilityStore } from '@stores/availability'
 import { useAccountStore } from '@stores/account'
+import { useServerStatus } from '@hooks/status/useServerStatus'
+import { useAuthAvailability } from '@hooks/status/useAuthAvailability'
 import { UiSoundProfile } from '@shared/types/sounds'
 import { formatGameVersionDisplay } from '@shared/gameVersion'
 import { canStopInstall, gameAction, type GameAction } from '@lib/gameAction'
@@ -16,7 +18,8 @@ import { isGameUpdateAvailable } from '@lib/isGameUpdateAvailable'
 import { formatBytes, formatInstallProgress } from '@lib/formatInstallProgress'
 import { secondsLeft } from '@lib/transferRate'
 import { formatReleaseDateDisplay } from '@lib/formatReleaseDate'
-import { pollIntervalMinutes, statusPageUrlForEnv } from '@lib/env'
+import { statusPageUrlForEnv } from '@lib/env'
+import { statusRefetchMs } from '@lib/statusQueries'
 import Button from '@components/atoms/Button'
 import DiscordIcon from '@components/atoms/icons/DiscordIcon'
 import LabelTooltip from '@components/molecules/LabelTooltip'
@@ -78,7 +81,7 @@ function installDetail(t: TFunction, files: EnvFilesData): string {
 export default function GameActionBar(): React.JSX.Element {
   const { t } = useTranslation()
   const activeEnv = useEnvStore((s) => s.activeEnv)
-  const { data: gameData, fetchServerStatus, play, gameRunning, isLaunching } = useGameStore()
+  const { play, gameRunning, isLaunching } = useGameStore()
   const {
     data: filesData,
     install,
@@ -92,12 +95,11 @@ export default function GameActionBar(): React.JSX.Element {
   const refreshGameVersions = useVersionStore((s) => s.refreshGameVersions)
   const latestVersion = latest.version
   const available = useAvailabilityStore((s) => s.available[activeEnv])
-  const authAvailable = useAvailabilityStore((s) => s.authAvailable[activeEnv])
-  const checkAuthAvailability = useAvailabilityStore((s) => s.checkAuthAvailability)
+  const { status, players } = useServerStatus(activeEnv)
+  const authAvailable = useAuthAvailability(activeEnv)
   const account = useAccountStore((s) => s.data[activeEnv])
   const login = useAccountStore((s) => s.login)
 
-  const { status, players } = gameData[activeEnv]
   const files = filesData[activeEnv]
 
   // The files panel opens by itself while the game is not installed, until the player toggles it
@@ -108,23 +110,13 @@ export default function GameActionBar(): React.JSX.Element {
     void syncInstalledVersions()
   }, [activeEnv, syncInstalledVersions])
 
-  // The game version is polled with the status: an update released during a maintenance shows
-  // once it ends, without restarting the launcher (ADR 0039)
+  // The game version is polled like the status (`useServerStatus`): an update released during a
+  // maintenance shows once it ends, without restarting the launcher (ADR 0039)
   useEffect(() => {
     if (!available) return
-    void fetchServerStatus()
-    void checkAuthAvailability(activeEnv)
-    const id = window.setInterval(
-      () => {
-        void fetchServerStatus()
-        void refreshGameVersions()
-        // The sign-in server can go down or come back on its own (ADR 0043)
-        void checkAuthAvailability(activeEnv)
-      },
-      pollIntervalMinutes() * 60 * 1000
-    )
+    const id = window.setInterval(() => void refreshGameVersions(), statusRefetchMs())
     return () => window.clearInterval(id)
-  }, [activeEnv, available, fetchServerStatus, refreshGameVersions, checkAuthAvailability])
+  }, [available, refreshGameVersions])
 
   const action = gameAction({
     available,
