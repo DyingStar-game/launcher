@@ -69,7 +69,8 @@
       "authDownSubtitle": "Serveur injoignable",
       "authDown": "Le serveur de connexion ne répond pas. Réessayez plus tard."
     },
-    "universeSwitch": "Changer d'univers"
+    "universeSwitch": "Changer d'univers",
+    "launcherVersion": "v{{version}}"
   },
   "universeTesting": {
     "banner": "Environnement de test",
@@ -408,7 +409,17 @@
     },
     "launcherUpdate": {
       "title": "Nouvelle version du launcher disponible",
-      "download": "Télécharger"
+      "download": "Télécharger",
+      "downloading": "Téléchargement du nouveau launcher",
+      "percent": "{{percent}} %",
+      "ready": "Nouveau launcher prêt",
+      "installedOnQuit": "installé à la fermeture du launcher",
+      "restart": "Redémarrer pour mettre à jour",
+      "waitGame": "Disponible une fois le jeu fermé",
+      "waitInstall": "Disponible une fois l'installation du jeu terminée",
+      "failed": "La mise à jour du launcher a échoué : elle peut être téléchargée depuis sa page",
+      "downloadPackage": "Télécharger le .{{type}}",
+      "appImageUpdatesItself": "la version AppImage se met à jour toute seule"
     },
     "server": {
       "openStatus": "Voir le statut du serveur",

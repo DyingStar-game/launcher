@@ -3,6 +3,7 @@ import { act, render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { useEnvStore } from '@stores/env'
 import { useNavigationStore } from '@stores/navigation'
+import { useVersionStore } from '@stores/version'
 import Navbar from './Navbar'
 
 beforeEach(() => {
@@ -17,6 +18,15 @@ afterEach(() => {
 })
 
 describe('Navbar', () => {
+  it("shows the launcher's version beside the logo once known", () => {
+    const { rerender } = render(<Navbar />)
+    expect(screen.queryByText(/^v\d/)).not.toBeInTheDocument()
+    act(() => useVersionStore.setState({ currentLauncherVersion: '1.0.1' }))
+    rerender(<Navbar />)
+    expect(screen.getByText('v1.0.1')).toBeInTheDocument()
+    act(() => useVersionStore.setState({ currentLauncherVersion: '' }))
+  })
+
   it('keeps nav buttons on one line so the bar keeps its height', () => {
     render(<Navbar />)
     for (const name of ['Universe', 'Universe Testing']) {

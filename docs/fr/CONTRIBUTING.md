@@ -57,7 +57,7 @@ Sujets clairs à l’impératif, par ex. :
 
 ## Releases
 
-Les mainteneurs fusionnent `develop` → `main` et taguent. Voir le `README.md` racine pour les builds.
+Les mainteneurs fusionnent `develop` → `main` et taguent. Voir le `README.md` racine pour les builds. Le tag `vX.Y.Z` doit égaler la `version` de `package.json` (le job de release le vérifie) : les launchers installés se mettent à jour depuis les `latest.yml` / `latest-linux.yml` de la release (ADR 0050), donc tester un build (`make start`, les artefacts de la PR) avant de pousser le tag.
 
 ## Licence
 

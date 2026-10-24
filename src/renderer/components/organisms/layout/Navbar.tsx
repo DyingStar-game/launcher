@@ -2,6 +2,7 @@ import type React from 'react'
 import { useEffect, useId, useState } from 'react'
 import { useEnvStore } from '@stores/env'
 import { useNavigationStore } from '@stores/navigation'
+import { useVersionStore } from '@stores/version'
 import { useTranslation } from 'react-i18next'
 import { BookOpenIcon } from 'lucide-react'
 import Button from '@components/atoms/Button'
@@ -66,6 +67,7 @@ function HeartDonateIcon(): React.JSX.Element {
 export default function Navbar(): React.JSX.Element {
   const { activeEnv, setEnv } = useEnvStore()
   const navigate = useNavigationStore((s) => s.navigate)
+  const launcherVersion = useVersionStore((s) => s.currentLauncherVersion)
   const { t } = useTranslation()
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -92,8 +94,9 @@ export default function Navbar(): React.JSX.Element {
       aria-label={t('navbar.appNav')}
       className="app-drag border-b border-ds-border bg-ds-surface flex items-center gap-6 px-6 h-14 shrink-0"
     >
-      {/* The logo, the universe switch centred in the room left between it and the right side */}
-      <div className="app-no-drag flex shrink-0 items-center">
+      {/* The logo and the launcher's version, the universe switch centred in the room left between
+          it and the right side */}
+      <div className="app-no-drag flex shrink-0 items-center gap-2">
         <span className="font-bold text-ds-accent text-lg tracking-wider select-none">
           <svg
             width="160"
@@ -199,6 +202,11 @@ export default function Navbar(): React.JSX.Element {
             />
           </svg>
         </span>
+        {launcherVersion && (
+          <span className="text-xs text-ds-muted tabular-nums select-none">
+            {t('navbar.launcherVersion', { version: launcherVersion })}
+          </span>
+        )}
       </div>
 
       {/* Universe switch, framed like the bar's outline buttons (narrow → burger menu); the room

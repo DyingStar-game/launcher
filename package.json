@@ -18,6 +18,13 @@
     "directories": {
       "output": "release"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "DyingStar-game",
+        "repo": "launcher"
+      }
+    ],
     "files": [
       "out/**/*",
       "!**/*.map"
@@ -60,7 +67,8 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "linux": {
       "target": [
@@ -85,6 +93,9 @@
       ],
       "icon": "resources/icon.png",
       "category": "Game"
+    },
+    "appImage": {
+      "artifactName": "${productName}.${ext}"
     }
   },
   "scripts": {
@@ -130,6 +141,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.11",
     "i18next": "^26.5.6",
     "lucide-react": "^1.61.0",
     "node-stream-zip": "^1.16.0",

@@ -24,6 +24,11 @@ type StopReason = 'paused' | 'cancelled'
 /** Installs running, per environment: their download can be stopped until extraction starts. */
 const running = new Map<Env, { controller: AbortController; extracting: boolean }>()
 
+/** Whether a game install is running in any environment (the launcher update waits, ADR 0050). */
+export function isAnyInstallRunning(): boolean {
+  return running.size > 0
+}
+
 /** Pauses the environment's download, keeping what was received; false once extracting. */
 export function pauseInstall(env: Env): boolean {
   const install = running.get(env)

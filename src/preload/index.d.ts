@@ -5,6 +5,7 @@ import type { InstallOutcome, InstallResult, PendingDownload } from '@shared/typ
 import type { GameVersionInfo, VersionCheckResult } from '@shared/types/version'
 import type { GameStatusResult } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
+import type { LauncherUpdateState } from '@shared/types/launcherUpdate'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type {
   Friend,
@@ -56,6 +57,9 @@ declare global {
       launchGame: (env: Env, installPath: string) => Promise<void>
       isGameRunning: () => Promise<boolean>
       onGameRunningChanged: (callback: (running: boolean) => void) => void
+      getLauncherUpdateState: () => Promise<LauncherUpdateState>
+      onLauncherUpdateState: (callback: (state: LauncherUpdateState) => void) => void
+      installLauncherUpdate: () => Promise<boolean>
       getServerStatus: (env: Env) => Promise<GameStatusResult>
       checkEnvAvailability: () => Promise<Record<Env, boolean>>
       checkAuthAvailability: (env: Env) => Promise<boolean | null>

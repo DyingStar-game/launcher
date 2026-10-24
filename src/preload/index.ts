@@ -7,6 +7,7 @@ import type { InstallOutcome, PendingDownload } from '@shared/types/install'
 import type { UserInfo } from '@shared/types/auth'
 import type { GameStatusResult } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
+import type { LauncherUpdateState } from '@shared/types/launcherUpdate'
 import type {
   Friend,
   FriendRequestOutcome,
@@ -95,6 +96,24 @@ const api = {
       callback(payload.running)
     })
   },
+
+  /** Where the launcher's in-place update stands (ADR 0050). */
+  getLauncherUpdateState: (): Promise<LauncherUpdateState> =>
+    ipcRenderer.invoke('launcher:get-update-state'),
+
+  /** Subscribes to the launcher update state pushed by main (checking, downloading, ready…). */
+  onLauncherUpdateState: (callback: (state: LauncherUpdateState) => void): void => {
+    ipcRenderer.removeAllListeners('launcher:update-state')
+    ipcRenderer.on('launcher:update-state', (_event, state: LauncherUpdateState) => {
+      callback(state)
+    })
+  },
+
+  /**
+   * Quits and installs the downloaded launcher, which starts again; false while the game runs or
+   * installs.
+   */
+  installLauncherUpdate: (): Promise<boolean> => ipcRenderer.invoke('launcher:install-update'),
 
   /** Fetches server status and connected player count for an environment. */
   getServerStatus: (env: Env): Promise<GameStatusResult> =>
