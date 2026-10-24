@@ -91,10 +91,12 @@ describe('OrganisationLeadership', () => {
       data: undefined
     })
     render(<OrganisationLeadership subject={subject} organisation={organisation} selfId="me" />)
-    const transfer = screen.getByRole('button', { name: 'Hand over the leadership' })
-    expect(transfer).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Hand over the leadership' })).toBeDisabled()
+    // Disabled, it says why (ADR 0048)
+    await userEvent.hover(screen.getByRole('button', { name: 'Hand over the leadership' }))
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Choose a successor first')
     await userEvent.click(await screen.findByRole('radio', { name: /Kira/ }))
-    await userEvent.click(transfer)
+    await userEvent.click(screen.getByRole('button', { name: 'Hand over the leadership' }))
     await userEvent.click(
       within(await screen.findByRole('alertdialog')).getByRole('button', {
         name: 'Hand over the leadership'

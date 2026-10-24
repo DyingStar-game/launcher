@@ -1,14 +1,17 @@
 import { toast } from 'sonner'
 import { useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { DownloadIcon, PauseIcon, PlayIcon, RefreshCwIcon, XIcon } from 'lucide-react'
 import { useEnvStore } from '@stores/env'
 import { useGameStore } from '@stores/game'
 import { useFilesStore, type EnvFilesData, type InstallRunOutcome } from '@stores/files'
-import { useVersionStore } from '@stores/version'
 import { useAvailabilityStore } from '@stores/availability'
 import { useAccountStore } from '@stores/account'
+import { useServerStatus } from '@hooks/status/useServerStatus'
+import { useAuthAvailability } from '@hooks/status/useAuthAvailability'
+import { fetchLatestGameVersion, useLatestGameVersion } from '@hooks/version/useLatestGameVersion'
 import { UiSoundProfile } from '@shared/types/sounds'
 import { formatGameVersionDisplay } from '@shared/gameVersion'
 import { canStopInstall, gameAction, type GameAction } from '@lib/gameAction'
@@ -16,7 +19,8 @@ import { isGameUpdateAvailable } from '@lib/isGameUpdateAvailable'
 import { formatBytes, formatInstallProgress } from '@lib/formatInstallProgress'
 import { secondsLeft } from '@lib/transferRate'
 import { formatReleaseDateDisplay } from '@lib/formatReleaseDate'
-import { pollIntervalMinutes, statusPageUrlForEnv } from '@lib/env'
+import { statusPageUrlForEnv } from '@lib/env'
+import { versionKeys } from '@lib/versionQueries'
 import Button from '@components/atoms/Button'
 import DiscordIcon from '@components/atoms/icons/DiscordIcon'
 import LabelTooltip from '@components/molecules/LabelTooltip'
@@ -78,7 +82,7 @@ function installDetail(t: TFunction, files: EnvFilesData): string {
 export default function GameActionBar(): React.JSX.Element {
   const { t } = useTranslation()
   const activeEnv = useEnvStore((s) => s.activeEnv)
-  const { data: gameData, fetchServerStatus, play, gameRunning, isLaunching } = useGameStore()
+  const { play, gameRunning, isLaunching } = useGameStore()
   const {
     data: filesData,
     install,
@@ -88,14 +92,15 @@ export default function GameActionBar(): React.JSX.Element {
     cancel,
     syncInstalledVersions
   } = useFilesStore()
-  const latest = useVersionStore((s) => s.latestGameVersions[activeEnv])
-  const refreshGameVersions = useVersionStore((s) => s.refreshGameVersions)
+  const queryClient = useQueryClient()
+  const latest = useLatestGameVersion(activeEnv)
   const latestVersion = latest.version
   const available = useAvailabilityStore((s) => s.available[activeEnv])
+  const { status, players } = useServerStatus(activeEnv)
+  const authAvailable = useAuthAvailability(activeEnv)
   const account = useAccountStore((s) => s.data[activeEnv])
   const login = useAccountStore((s) => s.login)
 
-  const { status, players } = gameData[activeEnv]
   const files = filesData[activeEnv]
 
   // The files panel opens by itself while the game is not installed, until the player toggles it
@@ -106,21 +111,6 @@ export default function GameActionBar(): React.JSX.Element {
     void syncInstalledVersions()
   }, [activeEnv, syncInstalledVersions])
 
-  // The game version is polled with the status: an update released during a maintenance shows
-  // once it ends, without restarting the launcher (ADR 0039)
-  useEffect(() => {
-    if (!available) return
-    void fetchServerStatus()
-    const id = window.setInterval(
-      () => {
-        void fetchServerStatus()
-        void refreshGameVersions()
-      },
-      pollIntervalMinutes() * 60 * 1000
-    )
-    return () => window.clearInterval(id)
-  }, [activeEnv, available, fetchServerStatus, refreshGameVersions])
-
   const action = gameAction({
     available,
     installed: files.installed,
@@ -128,6 +118,7 @@ export default function GameActionBar(): React.JSX.Element {
     paused: files.paused !== null,
     updateAvailable: isGameUpdateAvailable(files.installed, files.version, latestVersion),
     serverStatus: status,
+    authAvailable,
     accountStatus: account.status,
     sessionExpired: account.sessionExpired ?? false,
     launching: isLaunching,
@@ -136,12 +127,24 @@ export default function GameActionBar(): React.JSX.Element {
 
   /** Tells the player an install or update stopped on an error (paused ones are on purpose). */
   const reportInstall = (outcome: InstallRunOutcome): void => {
+    if (typeof outcome === 'object') {
+      toast.error(
+        t('universe.action.installing.diskFull', {
+          needed: formatBytes(outcome.needed),
+          available: formatBytes(outcome.available)
+        })
+      )
+      return
+    }
+    if (outcome === 'installed') void queryClient.invalidateQueries({ queryKey: versionKeys.game })
     if (outcome === 'interrupted') toast.error(t('universe.action.installing.interrupted'))
     if (outcome === 'failed') toast.error(t('universe.action.installing.failed'))
   }
 
   const handlePlay = async (): Promise<void> => {
-    if ((await play()) === 'updateRequired') toast.warning(t('universe.action.update.beforePlay'))
+    const readLatest = (): Promise<string | null> => fetchLatestGameVersion(queryClient, activeEnv)
+    if ((await play(readLatest)) === 'updateRequired')
+      toast.warning(t('universe.action.update.beforePlay'))
   }
 
   const handleInstall = (): void => {
@@ -199,6 +202,10 @@ export default function GameActionBar(): React.JSX.Element {
         status === 'maintenance'
           ? t('universe.game.playDisabledMaintenance')
           : t('universe.action.serverDown.detail')
+    },
+    authDown: {
+      title: account.status === 'connected' ? ready : t('universe.action.signIn.title'),
+      detail: t('universe.action.authDown.detail')
     },
     checkingSession: { title: ready, detail: t('universe.game.playDisabledAuthLoading') },
     signIn: {
@@ -286,6 +293,7 @@ export default function GameActionBar(): React.JSX.Element {
     running: blocked(t('universe.action.running.cta')),
     launching: playButton,
     serverDown: blocked(t('universe.action.serverDown.cta')),
+    authDown: blocked(t('universe.action.authDown.cta')),
     checkingSession: playButton,
     signIn: (
       <Button

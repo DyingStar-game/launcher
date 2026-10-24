@@ -9,6 +9,7 @@ type ChangelogState = {
   loading: boolean
   fetched: boolean
   data: GlobalChangelog | null
+  /** Version shown per environment, for this launch only: the newest at start (ADR 0046). */
   currentByEnv: Record<Env, string | null>
   viewedIds: string[]
   /**
@@ -20,6 +21,8 @@ type ChangelogState = {
   select: (id: string) => void
   /** Marks an entry as read without changing selection (e.g. when it is displayed). */
   markViewed: (id: string, env: Env) => void
+  /** Marks every version of an environment as read, its unreleased sections included (ADR 0046). */
+  markAllViewed: (env: Env) => void
   syncSelectionForEnv: (env: Env) => void
   getEntries: (env: Env) => ChangelogEntryRef[]
   getCurrentId: (env: Env) => string | null
@@ -28,10 +31,10 @@ type ChangelogState = {
   unreadCount: (env: Env) => number
 }
 
+/** What is kept between launches: the read state, not the version shown (ADR 0046). */
 type PersistedChangelog = {
   viewedIds: string[]
   unreleasedSeenFingerprint: Record<string, string>
-  currentByEnv: Record<Env, string | null>
 }
 
 type PersistedChangelogV0 = {
@@ -41,19 +44,10 @@ type PersistedChangelogV0 = {
   currentByEnv?: Record<Env, string | null>
 }
 
-const defaultCurrentByEnv: Record<Env, string | null> = {
-  universe: null,
-  'universe-testing': null
-}
-
 function normalizePersistedChangelog(raw: PersistedChangelogV0): PersistedChangelog {
   return {
     viewedIds: raw.viewedIds ?? [],
-    unreleasedSeenFingerprint: raw.unreleasedSeenFingerprint ?? {},
-    currentByEnv: {
-      ...defaultCurrentByEnv,
-      ...raw.currentByEnv
-    }
+    unreleasedSeenFingerprint: raw.unreleasedSeenFingerprint ?? {}
   }
 }
 
@@ -161,6 +155,19 @@ export const useChangelogStore = create<ChangelogState>()(
         set((s) => viewedPatchForEntry(s, entry, env, id))
       },
 
+      markAllViewed: (env) => {
+        set((s) =>
+          entriesForEnv(s.data, env).reduce(
+            (state, entry) => ({ ...state, ...viewedPatchForEntry(state, entry, env, entry.id) }),
+            {
+              data: s.data,
+              viewedIds: s.viewedIds,
+              unreleasedSeenFingerprint: s.unreleasedSeenFingerprint
+            }
+          )
+        )
+      },
+
       isUnread: (id) => {
         const { data, viewedIds, unreleasedSeenFingerprint } = get()
         if (!data) return false
@@ -192,11 +199,12 @@ export const useChangelogStore = create<ChangelogState>()(
     }),
     {
       name: 'dyingstar-changelog',
-      version: 1,
-      partialize: (state) => ({
+      // Version 2: the version shown is no longer kept, the changelog opens on the newest at each
+      // launch (ADR 0046)
+      version: 2,
+      partialize: (state): PersistedChangelog => ({
         viewedIds: state.viewedIds,
-        unreleasedSeenFingerprint: state.unreleasedSeenFingerprint,
-        currentByEnv: state.currentByEnv
+        unreleasedSeenFingerprint: state.unreleasedSeenFingerprint
       }),
       migrate: (persisted, version): PersistedChangelog => {
         const state = (persisted ?? {}) as PersistedChangelogV0
@@ -205,7 +213,6 @@ export const useChangelogStore = create<ChangelogState>()(
           // Users may see unreleased badges once until they re-open those entries.
           return normalizePersistedChangelog({
             viewedIds: state.viewedIds,
-            currentByEnv: state.currentByEnv,
             unreleasedSeenFingerprint: state.unreleasedSeenFingerprint ?? {}
           })
         }

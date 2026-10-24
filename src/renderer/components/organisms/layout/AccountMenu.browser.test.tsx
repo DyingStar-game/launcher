@@ -1,14 +1,26 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import i18n from '@i18n'
 import { act, render, screen } from '../../../test/render'
 import { useAccountStore } from '@stores/account'
 import { useAvailabilityStore } from '@stores/availability'
 import { useEnvStore } from '@stores/env'
 import AccountMenu from './AccountMenu'
 
+// The sign-in server status is a query with its own tests: here it answers what each test sets
+const auth = vi.hoisted(() => ({ up: true }))
+vi.mock('@hooks/status/useAuthAvailability', () => ({ useAuthAvailability: () => auth.up }))
+
 const saved = useAccountStore.getState()
 
-afterEach(() => {
-  act(() => useAccountStore.setState(saved, true))
+const savedAvailability = useAvailabilityStore.getState()
+
+afterEach(async () => {
+  act(() => {
+    useAccountStore.setState(saved, true)
+    useAvailabilityStore.setState(savedAvailability, true)
+  })
+  auth.up = true
+  await i18n.changeLanguage('en')
 })
 
 describe('AccountMenu (rendering)', () => {
@@ -28,4 +40,19 @@ describe('AccountMenu (rendering)', () => {
     expect(Math.abs(x - ax)).toBeLessThan(0.5)
     expect(Math.abs(y - ay)).toBeLessThan(0.5)
   })
+
+  it.each(['en', 'fr'])(
+    'shows the whole "sign-in unavailable" heading, not truncated (%s)',
+    async (lng) => {
+      await i18n.changeLanguage(lng)
+      act(() => {
+        useEnvStore.setState({ activeEnv: 'universe' })
+        useAvailabilityStore.setState({ available: { universe: true, 'universe-testing': true } })
+      })
+      auth.up = false
+      render(<AccountMenu />)
+      const heading = screen.getByText(i18n.t('navbar.account.authDownShort'))
+      expect(heading.scrollWidth).toBeLessThanOrEqual(heading.clientWidth)
+    }
+  )
 })

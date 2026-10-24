@@ -17,6 +17,7 @@ import { useAvailabilityStore } from '@stores/availability'
 import { useChangelogStore } from '@stores/changelog'
 import { useBackgroundMusic } from '@hooks/useBackgroundMusic'
 import { useSocialAccountSync } from '@hooks/social/useSocialSnapshot'
+import { useRefreshAfterGame } from '@hooks/useRefreshAfterGame'
 
 /**
  * Runs one-time startup checks: API availability, version comparison, and changelog.
@@ -36,6 +37,7 @@ function useAppStartup(): void {
   }, [fetchChangelog])
 
   // Social data follows sign-in and sign-out in each environment (ADR 0025)
+  useRefreshAfterGame()
   useSocialAccountSync('universe')
   useSocialAccountSync('universe-testing')
 }

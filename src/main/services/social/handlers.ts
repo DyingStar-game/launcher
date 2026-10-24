@@ -21,6 +21,7 @@ import {
   getOrganisationMembers,
   getPlayer,
   joinOrganisation,
+  loadFriends,
   loadSocial,
   removeFriend,
   searchOrganisations,
@@ -32,6 +33,7 @@ import {
 /** Registers IPC handlers for the social page (ADR 0007); each resolves to a `SocialResult`. */
 export function registerSocialHandlers(): void {
   ipcMain.removeHandler('social:load')
+  ipcMain.removeHandler('social:load-friends')
   ipcMain.removeHandler('social:search-players')
   ipcMain.removeHandler('social:get-player')
   ipcMain.removeHandler('social:get-organisation')
@@ -59,6 +61,7 @@ export function registerSocialHandlers(): void {
   ipcMain.removeHandler('social:disband-organisation')
 
   ipcMain.handle('social:load', (_event, env: Env) => loadSocial(env))
+  ipcMain.handle('social:load-friends', (_event, env: Env) => loadFriends(env))
   ipcMain.handle('social:search-players', (_event, env: Env, query: string) =>
     searchPlayers(env, query)
   )

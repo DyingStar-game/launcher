@@ -40,6 +40,8 @@ export default function GameFilesPopover({
   const { data, setInstallPath, selectDirectory, verify, clearCache } = useFilesStore()
   const available = useAvailabilityStore((s) => s.available[activeEnv])
   const { installed, version, releaseDate, installing, installPath, paused } = data[activeEnv]
+  // Why the game's tools are off: they touch the folder the install is writing (ADR 0048)
+  const busy = installing ? t('universe.files.busyInstalling') : null
 
   const [verifying, setVerifying] = useState(false)
 
@@ -106,23 +108,27 @@ export default function GameFilesPopover({
         {installed && (
           // Side by side, sharing the panel's width
           <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="secondary"
-              className="w-full"
-              onClick={() => void handleVerify()}
-              disabled={installing}
-              loading={verifying}
-            >
-              {t('universe.files.verify')}
-            </Button>
-            <Button
-              variant="secondary"
-              className="w-full"
-              onClick={() => void handleClearCache()}
-              disabled={installing}
-            >
-              {t('universe.files.clearCache')}
-            </Button>
+            <LabelTooltip label={busy} disabled className="w-full">
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => void handleVerify()}
+                disabled={installing}
+                loading={verifying}
+              >
+                {t('universe.files.verify')}
+              </Button>
+            </LabelTooltip>
+            <LabelTooltip label={busy} disabled className="w-full">
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => void handleClearCache()}
+                disabled={installing}
+              >
+                {t('universe.files.clearCache')}
+              </Button>
+            </LabelTooltip>
           </div>
         )}
       </PopoverContent>

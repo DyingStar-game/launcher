@@ -54,9 +54,9 @@ describe('Navbar (rendering)', () => {
       const logo = screen.getByRole('navigation').querySelector('svg')!.getBoundingClientRect()
       const right = screen.getByRole('button', { name: 'Close' }).parentElement!.parentElement!
       const rightLeft = right.getBoundingClientRect().left
-      // The same room on each side, up to the bar's gap
+      // The same room on each side, up to the bar's gap (`+ 0`: a rounded -0.4 is -0, not 0)
       await expect
-        .poll(() => Math.round(frame.left - logo.right - (rightLeft - frame.right)))
+        .poll(() => Math.round(frame.left - logo.right - (rightLeft - frame.right)) + 0)
         .toBe(0)
       // Beside the switch: the switch's own column, which still drags the window
       const empty = document.elementFromPoint(frame.left - 10, frame.top + frame.height / 2)

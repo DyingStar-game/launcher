@@ -38,7 +38,7 @@ export type AuthWindowHandlers = {
   onLoadFailed: (message: string) => void
 }
 
-/** Opens an in-app browser window for the Keycloak / Discord OAuth flow. */
+/** Opens an in-app browser window for the Keycloak / Discord OAuth flow (development only, ADR 0044). */
 export function openAuthWindow(
   parent: BrowserWindow | null,
   authUrl: string,

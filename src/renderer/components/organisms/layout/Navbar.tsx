@@ -233,7 +233,10 @@ export default function Navbar(): React.JSX.Element {
         <GroupDivider className="hidden nav-full:block" />
 
         <div className="hidden nav-full:flex items-center gap-2">
-          <LabelTooltip label={t('navbar.openWebsite')}>
+          <LabelTooltip
+            label={navWebsite ? t('navbar.openWebsite') : t('navbar.websiteUnavailable')}
+            disabled={!navWebsite}
+          >
             <Button
               variant="outline"
               size="icon"
@@ -247,7 +250,10 @@ export default function Navbar(): React.JSX.Element {
             </Button>
           </LabelTooltip>
 
-          <LabelTooltip label={t('navbar.brandDiscord')}>
+          <LabelTooltip
+            label={navDiscord ? t('navbar.brandDiscord') : t('navbar.discordUnavailable')}
+            disabled={!navDiscord}
+          >
             <Button
               variant="outline"
               size="icon"
@@ -259,7 +265,10 @@ export default function Navbar(): React.JSX.Element {
             </Button>
           </LabelTooltip>
 
-          <LabelTooltip label={t('navbar.brandWiki')}>
+          <LabelTooltip
+            label={navWiki ? t('navbar.brandWiki') : t('navbar.wikiUnavailable')}
+            disabled={!navWiki}
+          >
             <Button
               variant="outline"
               size="icon"
@@ -288,19 +297,20 @@ export default function Navbar(): React.JSX.Element {
               {t('navbar.support')}
             </Button>
           ) : (
-            // A disabled button gets no pointer events: the tooltip sits on a focusable wrapper
-            <LabelTooltip label={t('navbar.donateUnavailable')}>
-              <span tabIndex={0} className="hidden nav-full:inline-flex rounded-lg">
-                <Button
-                  disabled
-                  variant="primary"
-                  size="sm"
-                  aria-label={t('navbar.donateUnavailable')}
-                >
-                  <HeartDonateIcon />
-                  {t('navbar.support')}
-                </Button>
-              </span>
+            <LabelTooltip
+              label={t('navbar.donateUnavailable')}
+              disabled
+              className="hidden nav-full:inline-flex"
+            >
+              <Button
+                disabled
+                variant="primary"
+                size="sm"
+                aria-label={t('navbar.donateUnavailable')}
+              >
+                <HeartDonateIcon />
+                {t('navbar.support')}
+              </Button>
             </LabelTooltip>
           )}
 

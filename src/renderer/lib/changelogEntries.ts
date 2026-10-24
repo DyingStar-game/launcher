@@ -45,11 +45,28 @@ export function isReleased(data: GlobalChangelog, componentId: string, version: 
  * version carries no build time (ADR 0042).
  */
 export function formatDevBuild(version: string, locale: string): string | null {
+  const time = devBuildTime(version)
+  return time && time.toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' })
+}
+
+/**
+ * Build time of a dev release for the sidebar ("01/06/2026 · 1:59"), without "Build" (ADR 0046);
+ * null when the version carries no build time.
+ */
+export function formatDevBuildShort(version: string, locale: string): string | null {
+  const time = devBuildTime(version)
+  if (!time) return null
+  const day = time.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const clock = time.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' })
+  return `${day} · ${clock}`
+}
+
+/** Build time of a dev release, read from its version (UTC). */
+function devBuildTime(version: string): Date | null {
   const m = DEV_STAMP_RE.exec(version)
   if (!m) return null
   const [, year, month, day, hour, minute] = m.map(Number)
-  const time = new Date(Date.UTC(year, month - 1, day, hour, minute))
-  return time.toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' })
+  return new Date(Date.UTC(year, month - 1, day, hour, minute))
 }
 
 /**

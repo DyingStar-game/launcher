@@ -8,4 +8,6 @@ export interface GameStatusResult {
   statusLabel: string
   players: number
   available: boolean
+  /** False when the status page did not answer (rate limit, error, timeout): the status is not known. */
+  reached: boolean
 }
