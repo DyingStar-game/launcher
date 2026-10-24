@@ -5,6 +5,10 @@ type VersionState = {
   latestLauncherVersion: string | null
   latestLauncherReleaseDate: string | null
   launcherUpdateAvailable: boolean
+  /** The new deb or rpm to download, for a launcher installed from one (ADR 0050). */
+  latestLauncherDownloadUrl: string | null
+  /** The package the launcher was installed from (`deb`, `rpm`), null for the others. */
+  launcherPackageType: string | null
   checking: boolean
   checked: boolean
   /** Compares the launcher with its latest release (GitHub), once at startup. */
@@ -20,6 +24,8 @@ export const useVersionStore = create<VersionState>((set) => ({
   latestLauncherVersion: null,
   latestLauncherReleaseDate: null,
   launcherUpdateAvailable: false,
+  latestLauncherDownloadUrl: null,
+  launcherPackageType: null,
 
   checking: false,
   checked: false,
@@ -33,6 +39,8 @@ export const useVersionStore = create<VersionState>((set) => ({
         latestLauncherVersion: result.latestLauncherVersion,
         latestLauncherReleaseDate: result.latestLauncherReleaseDate,
         launcherUpdateAvailable: result.launcherUpdateAvailable,
+        latestLauncherDownloadUrl: result.latestLauncherDownloadUrl,
+        launcherPackageType: result.launcherPackageType,
         checking: false,
         checked: true
       })

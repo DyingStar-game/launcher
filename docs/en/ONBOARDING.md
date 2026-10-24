@@ -9,7 +9,7 @@ A desktop **Electron** launcher for the game _Dying Star_. It handles:
 - Discord / Keycloak authentication (per environment)
 - Game download (pause, resume, cancel), install, and updates (ZIP from configurable URLs)
 - Server status and player count
-- Launcher update checks (GitHub Releases)
+- Launcher updates (GitHub Releases): in place for the Windows installer and the AppImage, a download link otherwise
 - A **social UI** (friends, requests, organisations) on the `social` game service
 
 ## Repository layout

@@ -57,7 +57,7 @@ Use clear, imperative subjects, e.g.:
 
 ## Releases
 
-Maintainers merge `develop` → `main` and tag releases. Built artifacts are published via GitHub Releases (see root `README.md` build scripts).
+Maintainers merge `develop` → `main` and tag releases. Built artifacts are published via GitHub Releases (see root `README.md` build scripts). The tag `vX.Y.Z` must equal `package.json`'s `version` (the release job checks it): installed launchers update themselves from the release's `latest.yml` / `latest-linux.yml` (ADR 0050), so test a build (`make start`, the PR artifacts) before pushing the tag.
 
 ## License
 

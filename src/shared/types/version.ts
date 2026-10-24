@@ -10,4 +10,8 @@ export interface VersionCheckResult {
   latestLauncherVersion: string | null
   latestLauncherReleaseDate: string | null
   launcherUpdateAvailable: boolean
+  /** The new deb or rpm to download, for a launcher installed from one (ADR 0050). */
+  latestLauncherDownloadUrl: string | null
+  /** The package the launcher was installed from (`deb`, `rpm`), null for the others. */
+  launcherPackageType: string | null
 }

@@ -4,6 +4,7 @@ import { HTTP_TIMEOUT_MS } from '../config/constants'
 import { normalizeGameVersion } from '@shared/gameVersion'
 import type { Env } from '@shared/types/env'
 import type { GameVersionInfo, VersionCheckResult } from '@shared/types/version'
+import { packageDownloadUrl, readPackageType, type ReleaseAsset } from './launcherUpdate/support'
 
 interface RemoteVersionPayload {
   version: string
@@ -13,11 +14,13 @@ interface RemoteVersionPayload {
 interface GitHubLatestReleasePayload {
   tag_name: string
   published_at?: string
+  assets?: ReleaseAsset[]
 }
 
 interface LauncherReleaseInfo {
   version: string
   releaseDate: string | null
+  assets: ReleaseAsset[]
 }
 
 /** Returns true when the remote launcher semver is newer than the local one. */
@@ -89,7 +92,7 @@ async function fetchLatestLauncherReleaseFromGithub(
     const version = rawTag.startsWith('v') || rawTag.startsWith('V') ? rawTag.slice(1) : rawTag
     const releaseDate = data.published_at?.match(/^(\d{4}-\d{2}-\d{2})/)?.[1] ?? null
 
-    return { version, releaseDate }
+    return { version, releaseDate, assets: data.assets ?? [] }
   } catch {
     return null
   }
@@ -118,6 +121,8 @@ export function registerVersionHandlers(): void {
     let latestLauncherVersion: string | null = null
     let latestLauncherReleaseDate: string | null = null
     let launcherUpdateAvailable = false
+    let latestLauncherDownloadUrl: string | null = null
+    const launcherPackageType = app.isPackaged ? readPackageType(process.resourcesPath) : null
 
     if (githubRepoUrl) {
       const gh = await fetchLatestLauncherReleaseFromGithub(githubRepoUrl)
@@ -125,6 +130,7 @@ export function registerVersionHandlers(): void {
         latestLauncherVersion = gh.version
         latestLauncherReleaseDate = gh.releaseDate
         launcherUpdateAvailable = isNewerLauncherVersion(gh.version, currentLauncherVersion)
+        latestLauncherDownloadUrl = packageDownloadUrl(gh.assets, launcherPackageType)
       }
     }
 
@@ -132,7 +138,9 @@ export function registerVersionHandlers(): void {
       currentLauncherVersion,
       latestLauncherVersion,
       latestLauncherReleaseDate,
-      launcherUpdateAvailable
+      launcherUpdateAvailable,
+      latestLauncherDownloadUrl,
+      launcherPackageType
     }
   })
 

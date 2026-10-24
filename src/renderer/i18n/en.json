@@ -69,7 +69,8 @@
       "authDownSubtitle": "Server unreachable",
       "authDown": "The sign-in server is not responding. Try again later."
     },
-    "universeSwitch": "Switch universe"
+    "universeSwitch": "Switch universe",
+    "launcherVersion": "v{{version}}"
   },
   "universeTesting": {
     "banner": "Testing environment",
@@ -408,7 +409,17 @@
     },
     "launcherUpdate": {
       "title": "New launcher version available",
-      "download": "Download"
+      "download": "Download",
+      "downloading": "Downloading the new launcher",
+      "percent": "{{percent}}%",
+      "ready": "New launcher ready",
+      "installedOnQuit": "installed when the launcher closes",
+      "restart": "Restart to update",
+      "waitGame": "Available once the game is closed",
+      "waitInstall": "Available once the game install is over",
+      "failed": "The launcher update failed: it can be downloaded from its page",
+      "downloadPackage": "Download the .{{type}}",
+      "appImageUpdatesItself": "the AppImage version updates itself"
     },
     "server": {
       "openStatus": "View the server status",

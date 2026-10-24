@@ -10,6 +10,7 @@ import { registerGameStatusHandlers } from './services/gameStatus'
 import { registerAuthHandlers, handleOAuthCallback } from './services/auth'
 import { registerWindowHandlers } from './services/window'
 import { registerSocialHandlers } from './services/social'
+import { registerLauncherUpdateHandlers } from './services/launcherUpdate'
 import { openExternalLink } from './services/externalLinks'
 import { WINDOW_BOUNDS } from './config/window'
 import { APP_PROTOCOL } from './config/constants'
@@ -77,6 +78,7 @@ function createWindow(): void {
   registerWindowHandlers(() => mainWindow)
   registerFilesHandlers(mainWindow)
   registerAuthHandlers(mainWindow)
+  registerLauncherUpdateHandlers(mainWindow)
 
   /**
    * Wayland does not paint a hidden window, so `ready-to-show` (first paint) never fires
