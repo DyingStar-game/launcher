@@ -203,7 +203,9 @@ export default function Navbar(): React.JSX.Element {
           </svg>
         </span>
         {launcherVersion && (
-          <span className="text-xs text-ds-muted tabular-nums select-none">
+          // Its digits sit high in their line (room below for descenders they lack): moved down
+          // to centre them on the wordmark's letters
+          <span className="translate-y-0.25 text-xs text-ds-muted tabular-nums select-none">
             {t('navbar.launcherVersion', { version: launcherVersion })}
           </span>
         )}
