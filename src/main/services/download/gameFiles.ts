@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { app } from 'electron'
-import yauzl from 'yauzl'
+import StreamZip from 'node-stream-zip'
 import { GAME_FILES_LIST_NAME } from '../../config/constants'
 
 /** The files the launcher installed, per game folder (absolute path). */
@@ -24,24 +24,17 @@ function readLists(): GameFileLists {
 export type ArchiveContents = { files: string[]; size: number }
 
 /** The files an archive holds (folders left out), and their uncompressed size (ADR 0047). */
-export function listArchiveFiles(zipFilePath: string): Promise<ArchiveContents> {
-  return new Promise((resolve, reject) => {
-    yauzl.open(zipFilePath, { lazyEntries: true }, (openErr, zipFile) => {
-      if (openErr) return reject(openErr)
-      const files: string[] = []
-      let size = 0
-      zipFile.on('entry', (entry: yauzl.Entry) => {
-        if (!entry.fileName.endsWith('/')) {
-          files.push(entry.fileName)
-          size += entry.uncompressedSize
-        }
-        zipFile.readEntry()
-      })
-      zipFile.on('end', () => resolve({ files, size }))
-      zipFile.on('error', reject)
-      zipFile.readEntry()
-    })
-  })
+export async function listArchiveFiles(zipFilePath: string): Promise<ArchiveContents> {
+  const zip = new StreamZip.async({ file: zipFilePath })
+  try {
+    const entries = Object.values(await zip.entries()).filter((entry) => entry.isFile)
+    return {
+      files: entries.map((entry) => entry.name),
+      size: entries.reduce((size, entry) => size + entry.size, 0)
+    }
+  } finally {
+    await zip.close()
+  }
 }
 
 /** The files the launcher installed in a game folder, null when it never recorded them. */
