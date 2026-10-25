@@ -2,30 +2,21 @@ import { create } from 'zustand'
 import type { Env } from './env'
 
 type AvailabilityState = {
-  /** Whether each env API responded successfully to `/version` at startup. */
+  /** Whether each env API last responded successfully to `/version`. */
   available: Record<Env, boolean>
-  checked: boolean
-  /** Pings remote APIs and updates availability flags. */
-  checkAvailability: () => Promise<void>
+  /** Records the last answer of the availability check (`useEnvAvailability`). */
+  setAvailable: (available: Record<Env, boolean>) => void
 }
 
 /**
- * Runtime availability of prod vs testing API bases (determined at app startup).
+ * Runtime availability of prod vs testing API bases, read by `useEnvAvailability` and checked
+ * again until every environment answers.
  */
 export const useAvailabilityStore = create<AvailabilityState>((set) => ({
   available: {
     universe: false,
     'universe-testing': false
   },
-  checked: false,
 
-  checkAvailability: async () => {
-    try {
-      const result = await window.api.checkEnvAvailability()
-      set({ available: result, checked: true })
-    } catch {
-      // On failure, leave all envs as unavailable
-      set({ checked: true })
-    }
-  }
+  setAvailable: (available) => set({ available })
 }))

@@ -4,6 +4,7 @@ import { pollIntervalMinutes } from './env'
 /** Query keys of the status page answers (ADR 0025), one per environment. */
 export const statusKeys = {
   all: ['status'] as const,
+  availability: ['status', 'availability'] as const,
   server: (env: Env) => ['status', env, 'server'] as const,
   auth: (env: Env) => ['status', env, 'auth'] as const
 }
@@ -13,6 +14,12 @@ export const statusKeys = {
  * page's rate limit (60 requests a minute), whose refusals showed the server as down.
  */
 export const STATUS_STALE_MS = 30_000
+
+/**
+ * How often the environments' availability is checked again while one of them does not answer
+ * (no network at startup, API down), so the launcher recovers without a restart.
+ */
+export const AVAILABILITY_RETRY_MS = 30_000
 
 /** How often the status shown is read again (`VITE_SERVER_STATUS_POLL_MINUTES`). */
 export function statusRefetchMs(): number {
