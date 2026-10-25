@@ -1,8 +1,11 @@
 import { EventEmitter } from 'events'
 import type { ChildProcess } from 'child_process'
 import type { BrowserWindow } from 'electron'
+import log from 'electron-log'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { setLauncherWindow, watchGameProcess } from './processWatch'
+
+vi.mock('electron-log', () => ({ default: { info: vi.fn(), error: vi.fn() } }))
 
 /** A launcher window, minimized or not. */
 function launcher(minimized: boolean): BrowserWindow {
@@ -45,5 +48,15 @@ describe('watchGameProcess', () => {
 
     child.emit('exit', 0)
     expect(win.restore).not.toHaveBeenCalled()
+  })
+
+  it('writes how the game ended in the launcher log', () => {
+    vi.useFakeTimers()
+    setLauncherWindow(launcher(false))
+    const child = game()
+    watchGameProcess(child)
+
+    child.emit('exit', null, 'SIGABRT')
+    expect(log.info).toHaveBeenCalledWith('[Game] Exited with code null (signal SIGABRT)')
   })
 })
