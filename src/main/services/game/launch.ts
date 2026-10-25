@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import { loadFreshGameToken } from '../auth'
 import { getExecutablePath, getGameRoot } from './paths'
 import { isGameRunning, watchGameProcess } from './processWatch'
+import { gameSpawnEnv } from './spawnEnv'
 
 /** Spawns the game executable with a fresh JWT (`--token=<jwt>`). */
 export async function launchGame(
@@ -30,7 +31,8 @@ export async function launchGame(
   const child = spawn(exePath, [`--token=${token}`], {
     detached: true,
     stdio: 'ignore',
-    cwd
+    cwd,
+    env: gameSpawnEnv(process.env)
   })
   watchGameProcess(child)
   child.unref()
