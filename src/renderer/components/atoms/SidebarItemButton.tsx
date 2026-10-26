@@ -6,14 +6,14 @@ import { cn } from '@lib/cn'
 
 const sidebarItemVariants = cva(
   'text-left px-3 py-2.5 rounded-xl text-sm border transition-colors cursor-pointer ' +
-    'disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none',
+    'disabled:opacity-40 disabled:cursor-not-allowed',
   {
     variants: {
       active: {
         true: 'bg-ds-surface text-ds-text border-ds-accent/40',
         false:
-          'text-ds-muted border-transparent hover:border-ds-border ' +
-          'hover:bg-ds-surface-hover hover:text-ds-text'
+          'text-ds-muted border-transparent not-disabled:hover:border-ds-border ' +
+          'not-disabled:hover:bg-ds-surface-hover not-disabled:hover:text-ds-text'
       }
     },
     defaultVariants: { active: false }

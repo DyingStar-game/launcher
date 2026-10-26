@@ -1,8 +1,12 @@
 import { spawn } from 'child_process'
 import * as fs from 'fs'
+import * as path from 'path'
+import log from 'electron-log'
 import { loadFreshGameToken } from '../auth'
+import { openGameLog } from './gameLog'
 import { getExecutablePath, getGameRoot } from './paths'
 import { isGameRunning, watchGameProcess } from './processWatch'
+import { gameSpawnEnv } from './spawnEnv'
 
 /** Spawns the game executable with a fresh JWT (`--token=<jwt>`). */
 export async function launchGame(
@@ -27,11 +31,28 @@ export async function launchGame(
   const gameRoot = getGameRoot(installPath)
   const cwd = fs.existsSync(gameRoot) ? gameRoot : installPath
 
-  const child = spawn(exePath, [`--token=${token}`], {
-    detached: true,
-    stdio: 'ignore',
-    cwd
-  })
-  watchGameProcess(child)
-  child.unref()
+  const logFd = openGameLogOrNull(exePath)
+  try {
+    const child = spawn(exePath, [`--token=${token}`], {
+      detached: true,
+      stdio: logFd === null ? 'ignore' : ['ignore', logFd, logFd],
+      cwd,
+      env: gameSpawnEnv(process.env)
+    })
+    watchGameProcess(child)
+    child.unref()
+  } finally {
+    // The game holds its own copy of the descriptor.
+    if (logFd !== null) fs.closeSync(logFd)
+  }
+}
+
+/** Opens the game log beside the launcher's `main.log`; null when it cannot be written. */
+function openGameLogOrNull(exePath: string): number | null {
+  try {
+    return openGameLog(path.dirname(log.transports.file.getFile().path), exePath)
+  } catch (err) {
+    log.warn('[Game] Game log not written:', err)
+    return null
+  }
 }

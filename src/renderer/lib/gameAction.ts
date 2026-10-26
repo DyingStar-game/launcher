@@ -11,6 +11,7 @@ export type GameAction =
   | 'running'
   | 'launching'
   | 'serverDown'
+  | 'authDown'
   | 'checkingSession'
   | 'signIn'
   | 'play'
@@ -25,6 +26,8 @@ export type GameActionState = {
   paused: boolean
   updateAvailable: boolean
   serverStatus: ServerStatusValue
+  /** The sign-in server answers: needed to sign in and to launch (a fresh token, ADR 0043). */
+  authAvailable: boolean
   accountStatus: 'connected' | 'disconnected' | 'loading'
   sessionExpired: boolean
   launching: boolean
@@ -41,6 +44,7 @@ export function gameAction(state: GameActionState): GameAction {
   if (state.running) return 'running'
   if (state.launching) return 'launching'
   if (state.serverStatus !== 'online') return 'serverDown'
+  if (!state.authAvailable) return 'authDown'
   if (state.accountStatus === 'loading') return 'checkingSession'
   if (state.accountStatus === 'disconnected' || state.sessionExpired) return 'signIn'
   return 'play'

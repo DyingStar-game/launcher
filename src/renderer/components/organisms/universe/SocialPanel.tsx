@@ -10,7 +10,7 @@ import { sortByName } from '@lib/sortByName'
 
 /** Compact social preview in the home page's side column (friends + request badge). */
 export default function SocialPanel(): React.JSX.Element {
-  const { data, status } = useSocialSnapshot()
+  const { data, status } = useSocialSnapshot({ livePresence: true })
   const { navigate, openPlayer } = useNavigationStore()
   const { t, i18n } = useTranslation()
 

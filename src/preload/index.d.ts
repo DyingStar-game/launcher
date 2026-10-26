@@ -3,10 +3,12 @@ import type { Env } from '@shared/types/env'
 import type { UserInfo } from '@shared/types/auth'
 import type { InstallOutcome, InstallResult, PendingDownload } from '@shared/types/install'
 import type { GameVersionInfo, VersionCheckResult } from '@shared/types/version'
-import type { ServerStatusValue } from '@shared/types/game'
+import type { GameStatusResult } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
+import type { LauncherUpdateState } from '@shared/types/launcherUpdate'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type {
+  Friend,
   FriendRequestOutcome,
   InviteOutcome,
   JoinOutcome,
@@ -26,13 +28,6 @@ import type {
   ProfilePatch,
   RankInput
 } from '@shared/schemas/social'
-
-/** Server status payload returned by `getServerStatus`. */
-interface ServerStatusResult {
-  status: ServerStatusValue
-  players: number
-  available: boolean
-}
 
 /** Auth event pushed from main after OAuth callback or error. */
 type AuthStateChangedPayload =
@@ -62,8 +57,12 @@ declare global {
       launchGame: (env: Env, installPath: string) => Promise<void>
       isGameRunning: () => Promise<boolean>
       onGameRunningChanged: (callback: (running: boolean) => void) => void
-      getServerStatus: (env: Env) => Promise<ServerStatusResult>
+      getLauncherUpdateState: () => Promise<LauncherUpdateState>
+      onLauncherUpdateState: (callback: (state: LauncherUpdateState) => void) => void
+      installLauncherUpdate: () => Promise<boolean>
+      getServerStatus: (env: Env) => Promise<GameStatusResult>
       checkEnvAvailability: () => Promise<Record<Env, boolean>>
+      checkAuthAvailability: (env: Env) => Promise<boolean | null>
       quitApp: () => Promise<void>
       minimizeWindow: () => Promise<void>
       toggleFullscreen: () => Promise<boolean>
@@ -78,6 +77,7 @@ declare global {
       authLoadUser: (env: Env) => Promise<UserInfo | null>
       onAuthStateChanged: (callback: (data: AuthStateChangedPayload) => void) => void
       socialLoad: (env: Env) => Promise<SocialResult<SocialSnapshot>>
+      socialLoadFriends: (env: Env) => Promise<SocialResult<Friend[]>>
       socialSearchOrganisations: (
         env: Env,
         query: string

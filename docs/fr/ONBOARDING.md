@@ -9,7 +9,7 @@ Un **launcher Electron** pour le jeu _Dying Star_. Il gère notamment :
 - Authentification Discord / Keycloak (par environnement)
 - Téléchargement (pause, reprise, annulation), installation et mises à jour du jeu (ZIP via URLs configurables)
 - Statut serveur et nombre de joueurs
-- Vérification des mises à jour du launcher (GitHub Releases)
+- Mises à jour du launcher (GitHub Releases) : sur place pour l'installeur Windows et l'AppImage, un lien de téléchargement sinon
 - Une **UI social** (amis, demandes, organisations) sur le service de jeu `social`
 
 ## Arborescence

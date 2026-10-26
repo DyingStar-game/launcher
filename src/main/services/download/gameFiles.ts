@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { app } from 'electron'
-import yauzl from 'yauzl'
+import StreamZip from 'node-stream-zip'
 import { GAME_FILES_LIST_NAME } from '../../config/constants'
 
 /** The files the launcher installed, per game folder (absolute path). */
@@ -20,21 +20,21 @@ function readLists(): GameFileLists {
   }
 }
 
-/** Paths of the files an archive holds, relative to its root (folders left out). */
-export function listArchiveFiles(zipFilePath: string): Promise<string[]> {
-  return new Promise((resolve, reject) => {
-    yauzl.open(zipFilePath, { lazyEntries: true }, (openErr, zipFile) => {
-      if (openErr) return reject(openErr)
-      const files: string[] = []
-      zipFile.on('entry', (entry: yauzl.Entry) => {
-        if (!entry.fileName.endsWith('/')) files.push(entry.fileName)
-        zipFile.readEntry()
-      })
-      zipFile.on('end', () => resolve(files))
-      zipFile.on('error', reject)
-      zipFile.readEntry()
-    })
-  })
+/** What an archive holds: its files' paths, relative to its root, and their size once extracted. */
+export type ArchiveContents = { files: string[]; size: number }
+
+/** The files an archive holds (folders left out), and their uncompressed size (ADR 0047). */
+export async function listArchiveFiles(zipFilePath: string): Promise<ArchiveContents> {
+  const zip = new StreamZip.async({ file: zipFilePath })
+  try {
+    const entries = Object.values(await zip.entries()).filter((entry) => entry.isFile)
+    return {
+      files: entries.map((entry) => entry.name),
+      size: entries.reduce((size, entry) => size + entry.size, 0)
+    }
+  } finally {
+    await zip.close()
+  }
 }
 
 /** The files the launcher installed in a game folder, null when it never recorded them. */
@@ -58,6 +58,23 @@ function insideGameRoot(gameRoot: string, file: string): string | null {
   const relative = path.relative(gameRoot, target)
   if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) return null
   return target
+}
+
+/** Size on disk of the listed files of the game folder, those missing counted as 0 (ADR 0047). */
+export function gameFilesSize(gameRoot: string, files: string[]): number {
+  const root = path.resolve(gameRoot)
+  let size = 0
+  for (const file of new Set(files)) {
+    const target = insideGameRoot(root, file)
+    if (!target) continue
+    try {
+      const stats = fs.lstatSync(target)
+      if (stats.isFile()) size += stats.size
+    } catch {
+      // Not there
+    }
+  }
+  return size
 }
 
 /**

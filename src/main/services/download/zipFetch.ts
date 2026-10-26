@@ -11,6 +11,7 @@ import {
 import type { Env } from '@shared/types/env'
 import { getZipUrl } from './zipUrl'
 import { sendProgress } from './progress'
+import { DiskFullError, freeBytes } from './disk'
 import {
   deletePartialDownload,
   downloadProgress,
@@ -100,7 +101,8 @@ type ConnectionOutcome = 'complete' | 'reconnect'
  * Streams the game ZIP to disk and reports progress to the renderer. A partial download of the
  * same archive left in the folder is resumed with an HTTP range (ADR 0036); a connection that
  * stalls or turns slow is replaced by a new one, resuming where it is (ADR 0039); `signal` stops
- * the download, leaving what was received on disk.
+ * the download, leaving what was received on disk. A disk too full for the rest of the archive
+ * throws a `DiskFullError` before writing (ADR 0047).
  */
 export async function downloadZip(
   env: Env,
@@ -206,6 +208,16 @@ async function downloadOnce(
     const lastModified = header('last-modified')
     canResume = (etag ?? lastModified) !== null
     writeDownloadMeta(destPath, { env, url, etag, lastModified, total })
+  }
+
+  // What is left to download must fit on the disk (ADR 0047)
+  if (total > 0) {
+    const missing = total - downloaded
+    const available = await freeBytes(destPath)
+    if (available < missing) {
+      response.data.destroy()
+      throw new DiskFullError(missing, available)
+    }
   }
 
   const writer = fs.createWriteStream(zipFilePath, { flags: append ? 'a' : 'w' })

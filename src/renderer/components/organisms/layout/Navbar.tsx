@@ -2,6 +2,7 @@ import type React from 'react'
 import { useEffect, useId, useState } from 'react'
 import { useEnvStore } from '@stores/env'
 import { useNavigationStore } from '@stores/navigation'
+import { useVersionStore } from '@stores/version'
 import { useTranslation } from 'react-i18next'
 import { BookOpenIcon } from 'lucide-react'
 import Button from '@components/atoms/Button'
@@ -66,6 +67,7 @@ function HeartDonateIcon(): React.JSX.Element {
 export default function Navbar(): React.JSX.Element {
   const { activeEnv, setEnv } = useEnvStore()
   const navigate = useNavigationStore((s) => s.navigate)
+  const launcherVersion = useVersionStore((s) => s.currentLauncherVersion)
   const { t } = useTranslation()
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -92,8 +94,9 @@ export default function Navbar(): React.JSX.Element {
       aria-label={t('navbar.appNav')}
       className="app-drag border-b border-ds-border bg-ds-surface flex items-center gap-6 px-6 h-14 shrink-0"
     >
-      {/* The logo, the universe switch centred in the room left between it and the right side */}
-      <div className="app-no-drag flex shrink-0 items-center">
+      {/* The logo and the launcher's version, the universe switch centred in the room left between
+          it and the right side */}
+      <div className="app-no-drag flex shrink-0 items-center gap-2">
         <span className="font-bold text-ds-accent text-lg tracking-wider select-none">
           <svg
             width="160"
@@ -199,6 +202,13 @@ export default function Navbar(): React.JSX.Element {
             />
           </svg>
         </span>
+        {launcherVersion && (
+          // Its digits sit high in their line (room below for descenders they lack): moved down
+          // to centre them on the wordmark's letters
+          <span className="translate-y-0.25 text-xs text-ds-muted tabular-nums select-none">
+            {t('navbar.launcherVersion', { version: launcherVersion })}
+          </span>
+        )}
       </div>
 
       {/* Universe switch, framed like the bar's outline buttons (narrow → burger menu); the room
@@ -233,7 +243,10 @@ export default function Navbar(): React.JSX.Element {
         <GroupDivider className="hidden nav-full:block" />
 
         <div className="hidden nav-full:flex items-center gap-2">
-          <LabelTooltip label={t('navbar.openWebsite')}>
+          <LabelTooltip
+            label={navWebsite ? t('navbar.openWebsite') : t('navbar.websiteUnavailable')}
+            disabled={!navWebsite}
+          >
             <Button
               variant="outline"
               size="icon"
@@ -247,7 +260,10 @@ export default function Navbar(): React.JSX.Element {
             </Button>
           </LabelTooltip>
 
-          <LabelTooltip label={t('navbar.brandDiscord')}>
+          <LabelTooltip
+            label={navDiscord ? t('navbar.brandDiscord') : t('navbar.discordUnavailable')}
+            disabled={!navDiscord}
+          >
             <Button
               variant="outline"
               size="icon"
@@ -259,7 +275,10 @@ export default function Navbar(): React.JSX.Element {
             </Button>
           </LabelTooltip>
 
-          <LabelTooltip label={t('navbar.brandWiki')}>
+          <LabelTooltip
+            label={navWiki ? t('navbar.brandWiki') : t('navbar.wikiUnavailable')}
+            disabled={!navWiki}
+          >
             <Button
               variant="outline"
               size="icon"
@@ -288,19 +307,20 @@ export default function Navbar(): React.JSX.Element {
               {t('navbar.support')}
             </Button>
           ) : (
-            // A disabled button gets no pointer events: the tooltip sits on a focusable wrapper
-            <LabelTooltip label={t('navbar.donateUnavailable')}>
-              <span tabIndex={0} className="hidden nav-full:inline-flex rounded-lg">
-                <Button
-                  disabled
-                  variant="primary"
-                  size="sm"
-                  aria-label={t('navbar.donateUnavailable')}
-                >
-                  <HeartDonateIcon />
-                  {t('navbar.support')}
-                </Button>
-              </span>
+            <LabelTooltip
+              label={t('navbar.donateUnavailable')}
+              disabled
+              className="hidden nav-full:inline-flex"
+            >
+              <Button
+                disabled
+                variant="primary"
+                size="sm"
+                aria-label={t('navbar.donateUnavailable')}
+              >
+                <HeartDonateIcon />
+                {t('navbar.support')}
+              </Button>
             </LabelTooltip>
           )}
 

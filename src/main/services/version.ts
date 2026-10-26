@@ -4,6 +4,7 @@ import { HTTP_TIMEOUT_MS } from '../config/constants'
 import { normalizeGameVersion } from '@shared/gameVersion'
 import type { Env } from '@shared/types/env'
 import type { GameVersionInfo, VersionCheckResult } from '@shared/types/version'
+import { packageDownloadUrl, readPackageType, type ReleaseAsset } from './launcherUpdate/support'
 
 interface RemoteVersionPayload {
   version: string
@@ -13,11 +14,13 @@ interface RemoteVersionPayload {
 interface GitHubLatestReleasePayload {
   tag_name: string
   published_at?: string
+  assets?: ReleaseAsset[]
 }
 
 interface LauncherReleaseInfo {
   version: string
   releaseDate: string | null
+  assets: ReleaseAsset[]
 }
 
 /** Returns true when the remote launcher semver is newer than the local one. */
@@ -89,7 +92,7 @@ async function fetchLatestLauncherReleaseFromGithub(
     const version = rawTag.startsWith('v') || rawTag.startsWith('V') ? rawTag.slice(1) : rawTag
     const releaseDate = data.published_at?.match(/^(\d{4}-\d{2}-\d{2})/)?.[1] ?? null
 
-    return { version, releaseDate }
+    return { version, releaseDate, assets: data.assets ?? [] }
   } catch {
     return null
   }
@@ -108,18 +111,18 @@ async function fetchLatestGameVersions(): Promise<Record<Env, GameVersionInfo>> 
   return { universe: toInfo(payloads[0]), 'universe-testing': toInfo(payloads[1]) }
 }
 
-/** Registers the IPC handlers that check launcher and game versions. */
+/** Registers the IPC handlers that check the launcher version and the game versions. */
 export function registerVersionHandlers(): void {
   ipcMain.removeHandler('version:check')
   ipcMain.handle('version:check', async (): Promise<VersionCheckResult> => {
     const currentLauncherVersion = app.getVersion()
     const githubRepoUrl = (import.meta.env.VITE_LAUNCHER_GITHUB_REPO_URL ?? '').trim()
 
-    const latestGameVersions = await fetchLatestGameVersions()
-
     let latestLauncherVersion: string | null = null
     let latestLauncherReleaseDate: string | null = null
     let launcherUpdateAvailable = false
+    let latestLauncherDownloadUrl: string | null = null
+    const launcherPackageType = app.isPackaged ? readPackageType(process.resourcesPath) : null
 
     if (githubRepoUrl) {
       const gh = await fetchLatestLauncherReleaseFromGithub(githubRepoUrl)
@@ -127,6 +130,7 @@ export function registerVersionHandlers(): void {
         latestLauncherVersion = gh.version
         latestLauncherReleaseDate = gh.releaseDate
         launcherUpdateAvailable = isNewerLauncherVersion(gh.version, currentLauncherVersion)
+        latestLauncherDownloadUrl = packageDownloadUrl(gh.assets, launcherPackageType)
       }
     }
 
@@ -135,11 +139,13 @@ export function registerVersionHandlers(): void {
       latestLauncherVersion,
       latestLauncherReleaseDate,
       launcherUpdateAvailable,
-      latestGameVersions
+      latestLauncherDownloadUrl,
+      launcherPackageType
     }
   })
 
-  // Game only, polled while the launcher runs: GitHub limits unauthenticated requests (ADR 0039)
+  // Game only, a query polled while the launcher runs (ADR 0039, 0045): GitHub limits
+  // unauthenticated requests, so the launcher check above runs once
   ipcMain.removeHandler('version:check-game')
   ipcMain.handle('version:check-game', fetchLatestGameVersions)
 }

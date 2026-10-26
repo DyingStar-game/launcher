@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Env } from '@shared/types/env'
 import type { SocialErrorCode, SocialSnapshot } from '@shared/types/social'
 import { useAccountStore } from '@stores/account'
 import { useEnvStore } from '@stores/env'
+import { useGameStore } from '@stores/game'
 import {
   emptySnapshot,
   errorCode,
@@ -24,18 +25,50 @@ export type SocialSnapshotState = {
   reload: () => void
 }
 
+/** A page change within this delay reuses the snapshot (ADR 0045). */
+const SNAPSHOT_STALE_MS = 30_000
+
+/** The game servers send presence about once a minute: reading it more often shows nothing new. */
+const PRESENCE_REFETCH_MS = 60_000
+
+/** Options of `useSocialSnapshot`. */
+export type SocialSnapshotOptions = {
+  /** Reads the friends' presence again every minute, while the game is not running (ADR 0045). */
+  livePresence?: boolean
+}
+
 /**
  * Friends, requests and memberships of the active environment (ADR 0007, 0025). A failed
- * refresh keeps the data on screen.
+ * refresh keeps the data on screen. The friends come from whichever was read last: the snapshot
+ * or the friends alone, which the components showing presence read every minute (ADR 0045).
  */
-export function useSocialSnapshot(): SocialSnapshotState {
+export function useSocialSnapshot({
+  livePresence = false
+}: SocialSnapshotOptions = {}): SocialSnapshotState {
   const env = useEnvStore((s) => s.activeEnv)
+  const gameRunning = useGameStore((s) => s.gameRunning)
   const query = useQuery({
     queryKey: socialKeys.snapshot(env),
-    queryFn: async () => unwrap(await window.api.socialLoad(env))
+    queryFn: async () => unwrap(await window.api.socialLoad(env)),
+    staleTime: SNAPSHOT_STALE_MS
   })
+  const friends = useQuery({
+    queryKey: socialKeys.friends(env),
+    queryFn: async () => unwrap(await window.api.socialLoadFriends(env)),
+    // Read only once the snapshot is: signed in, and not before the snapshot's own friends
+    enabled: livePresence && query.isSuccess,
+    staleTime: SNAPSHOT_STALE_MS,
+    refetchInterval: livePresence && !gameRunning ? PRESENCE_REFETCH_MS : false
+  })
+  const snapshot = query.data
+  const newerFriends =
+    friends.data && friends.dataUpdatedAt > query.dataUpdatedAt ? friends.data : undefined
+  const data = useMemo(
+    () => (snapshot && newerFriends ? { ...snapshot, friends: newerFriends } : snapshot),
+    [snapshot, newerFriends]
+  )
 
-  if (query.data) return { data: query.data, status: 'ready', reload: () => void query.refetch() }
+  if (data) return { data, status: 'ready', reload: () => void query.refetch() }
   if (query.isError) {
     const error = errorCode(query.error)
     return {

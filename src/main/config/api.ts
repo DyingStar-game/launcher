@@ -103,6 +103,15 @@ export function getStatusComponentId(env: Env): number {
   return parseStatusNumericId(raw, 3)
 }
 
+/** Cachet component id of the sign-in server (Keycloak), ADR 0043. */
+export function getAuthStatusComponentId(env: Env): number {
+  const raw =
+    env === 'universe'
+      ? import.meta.env.VITE_STATUS_AUTH_COMPONENT_ID_UNIVERSE
+      : import.meta.env.VITE_STATUS_AUTH_COMPONENT_ID_TESTING
+  return parseStatusNumericId(raw, 4)
+}
+
 /** Cachet metric id for player count (`/api/metrics/:id/points`). */
 export function getStatusMetricId(env: Env): number {
   const raw =

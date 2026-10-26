@@ -1,42 +1,31 @@
 import { create } from 'zustand'
-import type { Env } from './env'
-import type { GameVersionInfo } from '@shared/types/version'
-
-export type { GameVersionInfo } from '@shared/types/version'
 
 type VersionState = {
   currentLauncherVersion: string
   latestLauncherVersion: string | null
   latestLauncherReleaseDate: string | null
   launcherUpdateAvailable: boolean
-  /** Latest remote game version per environment (from API `/version`). */
-  latestGameVersions: Record<Env, GameVersionInfo>
+  /** The new deb or rpm to download, for a launcher installed from one (ADR 0050). */
+  latestLauncherDownloadUrl: string | null
+  /** The package the launcher was installed from (`deb`, `rpm`), null for the others. */
+  launcherPackageType: string | null
   checking: boolean
   checked: boolean
-  /** Fetches launcher (GitHub) and game (API) version info from the main process. */
+  /** Compares the launcher with its latest release (GitHub), once at startup. */
   checkVersions: () => Promise<void>
-  /**
-   * Refreshes the latest game versions only, while the launcher runs (ADR 0039); an environment
-   * whose API does not answer keeps the version known.
-   */
-  refreshGameVersions: () => Promise<void>
 }
 
-const defaultGameVersionInfo: GameVersionInfo = { version: null, releaseDate: null }
-
 /**
- * Launcher and per-env game version state for update banners.
+ * Launcher version state for the update banner; the game versions are a query
+ * (`useLatestGameVersion`, ADR 0025, 0045).
  */
-export const useVersionStore = create<VersionState>((set, get) => ({
+export const useVersionStore = create<VersionState>((set) => ({
   currentLauncherVersion: '',
   latestLauncherVersion: null,
   latestLauncherReleaseDate: null,
   launcherUpdateAvailable: false,
-
-  latestGameVersions: {
-    universe: { ...defaultGameVersionInfo },
-    'universe-testing': { ...defaultGameVersionInfo }
-  },
+  latestLauncherDownloadUrl: null,
+  launcherPackageType: null,
 
   checking: false,
   checked: false,
@@ -50,30 +39,14 @@ export const useVersionStore = create<VersionState>((set, get) => ({
         latestLauncherVersion: result.latestLauncherVersion,
         latestLauncherReleaseDate: result.latestLauncherReleaseDate,
         launcherUpdateAvailable: result.launcherUpdateAvailable,
-        latestGameVersions: result.latestGameVersions,
+        latestLauncherDownloadUrl: result.latestLauncherDownloadUrl,
+        launcherPackageType: result.launcherPackageType,
         checking: false,
         checked: true
       })
     } catch (err) {
       console.error('[VersionStore] Version check failed:', err)
       set({ checking: false, checked: true })
-    }
-  },
-
-  refreshGameVersions: async () => {
-    try {
-      const latest = await window.api.checkGameVersions()
-      const known = get().latestGameVersions
-      set({
-        latestGameVersions: {
-          universe: latest.universe.version ? latest.universe : known.universe,
-          'universe-testing': latest['universe-testing'].version
-            ? latest['universe-testing']
-            : known['universe-testing']
-        }
-      })
-    } catch (err) {
-      console.warn('[VersionStore] Game version refresh failed:', err)
     }
   }
 }))

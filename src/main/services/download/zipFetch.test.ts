@@ -64,17 +64,18 @@ beforeEach(async () => {
     if (delivery === 'fast') {
       res.end(body)
     } else if (delivery === 'slow') {
-      // About 10 KB/s, under the slowness threshold
+      // About 10 KB/s, under the slowness threshold, in small parts: a measuring window sees
+      // about ten, so a busy machine does not make one connection look twice as fast as another
       let offset = 0
       const timer = setInterval(() => {
         if (res.destroyed) return clearInterval(timer)
-        res.write(body.subarray(offset, offset + 512))
-        offset += 512
+        res.write(body.subarray(offset, offset + 128))
+        offset += 128
         if (offset >= body.length) {
           clearInterval(timer)
           res.end()
         }
-      }, 50)
+      }, 12)
     } else if (delivery === 'stall') {
       res.write(body.subarray(0, 2048))
     } else if (delivery === 'drop') {

@@ -4,11 +4,15 @@ import { act, render, screen } from '../../../test/render'
 import { useAvailabilityStore } from '@stores/availability'
 import { useEnvStore } from '@stores/env'
 import { useFilesStore } from '@stores/files'
-import { useGameStore } from '@stores/game'
 import GameActionBar from './GameActionBar'
 
+// The status queries have their own tests: an online server, an available sign-in
+vi.mock('@hooks/status/useServerStatus', () => ({
+  useServerStatus: () => ({ status: 'online', players: 0 })
+}))
+vi.mock('@hooks/status/useAuthAvailability', () => ({ useAuthAvailability: () => true }))
+
 const savedFiles = useFilesStore.getState()
-const savedGame = useGameStore.getState()
 const box = (el: Element): DOMRect => el.getBoundingClientRect()
 
 beforeEach(async () => {
@@ -16,7 +20,6 @@ beforeEach(async () => {
   act(() => {
     useEnvStore.setState({ activeEnv: 'universe-testing' })
     useAvailabilityStore.setState({ available: { universe: false, 'universe-testing': true } })
-    useGameStore.setState({ fetchServerStatus: vi.fn(() => Promise.resolve()) })
     useFilesStore.setState((s) => ({
       syncInstalledVersions: vi.fn(() => Promise.resolve()),
       data: {
@@ -34,7 +37,6 @@ beforeEach(async () => {
 afterEach(async () => {
   act(() => {
     useFilesStore.setState(savedFiles, true)
-    useGameStore.setState(savedGame, true)
   })
   await page.viewport(1400, 900)
 })

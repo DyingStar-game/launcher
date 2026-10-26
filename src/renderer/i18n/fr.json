@@ -34,6 +34,9 @@
     "openDiscord": "Ouvrir Discord",
     "openWiki": "Ouvrir le wiki",
     "donateUnavailable": "Lien de soutien non configuré",
+    "websiteUnavailable": "Lien du site non configuré",
+    "discordUnavailable": "Lien Discord non configuré",
+    "wikiUnavailable": "Lien du wiki non configuré",
     "minimize": "Réduire",
     "fullscreen": "Plein écran",
     "exitFullscreen": "Quitter le plein écran",
@@ -61,9 +64,13 @@
       "profile": "Mon profil",
       "signOut": "Se déconnecter",
       "menu": "Compte de {{name}}",
-      "unavailable": "La connexion n'est pas disponible pour cet environnement."
+      "unavailable": "La connexion n'est pas disponible pour cet environnement.",
+      "authDownShort": "Connexion indisponible",
+      "authDownSubtitle": "Serveur injoignable",
+      "authDown": "Le serveur de connexion ne répond pas. Réessayez plus tard."
     },
-    "universeSwitch": "Changer d'univers"
+    "universeSwitch": "Changer d'univers",
+    "launcherVersion": "v{{version}}"
   },
   "universeTesting": {
     "banner": "Environnement de test",
@@ -82,6 +89,8 @@
     "unreadCount_one": "{{count}} nouvelle version",
     "unreadCount_other": "{{count}} nouvelles versions",
     "new": "Nouveau",
+    "markAllRead": "Tout marquer comme lu",
+    "allRead": "Tout est déjà lu",
     "unreleased": "Nouveautés",
     "versionLabel": "v{{version}}",
     "pageTitleUnreleased": "{{component}} — Nouveautés sur Universe Testing",
@@ -89,7 +98,6 @@
     "devBuilds_one": "{{count}} build de développement",
     "devBuilds_other": "{{count}} builds de développement",
     "devGroupInProgress": "v{{version}} · en cours",
-    "devBuildLabel": "Build du {{time}}",
     "pageTitleDevBuild": "{{component}} — Build du {{time}}",
     "includesDevBuilds_one": "Regroupe {{count}} build de développement.",
     "includesDevBuilds_other": "Regroupe {{count}} builds de développement.",
@@ -133,6 +141,7 @@
       "title": "Fichiers du jeu",
       "verify": "Détecter l'installation",
       "clearCache": "Vider le cache",
+      "busyInstalling": "Indisponible pendant l'installation",
       "clearCacheToastOk": "Cache vidé.",
       "clearCacheToastPartial": "Cache partiellement vidé (certains dossiers n'ont pas pu être supprimés).",
       "clearCacheToastError": "Impossible de vider le cache.",
@@ -375,6 +384,7 @@
         },
         "leadership": {
           "transfer": "Transmettre la direction",
+          "chooseHeirFirst": "Choisissez d'abord un successeur",
           "heir": "Nouveau CEO",
           "onlyHeir": "{{name}} est le seul membre pouvant reprendre la direction.",
           "noMember": "Aucun autre membre à qui transmettre la direction.",
@@ -399,7 +409,17 @@
     },
     "launcherUpdate": {
       "title": "Nouvelle version du launcher disponible",
-      "download": "Télécharger"
+      "download": "Télécharger",
+      "downloading": "Téléchargement du nouveau launcher",
+      "percent": "{{percent}} %",
+      "ready": "Nouveau launcher prêt",
+      "installedOnQuit": "installé à la fermeture du launcher",
+      "restart": "Redémarrer pour mettre à jour",
+      "waitGame": "Disponible une fois le jeu fermé",
+      "waitInstall": "Disponible une fois l'installation du jeu terminée",
+      "failed": "La mise à jour du launcher a échoué : elle peut être téléchargée depuis sa page",
+      "downloadPackage": "Télécharger le .{{type}}",
+      "appImageUpdatesItself": "la version AppImage se met à jour toute seule"
     },
     "server": {
       "openStatus": "Voir le statut du serveur",
@@ -425,7 +445,8 @@
         "etaUnderMinute": "< 1 min",
         "ctaPause": "Pause",
         "interrupted": "Téléchargement interrompu : la progression est conservée.",
-        "failed": "L'installation a échoué."
+        "failed": "L'installation a échoué.",
+        "diskFull": "Espace disque insuffisant : {{needed}} nécessaires, {{available}} libres sur ce disque. Libérez de l'espace ou choisissez un autre dossier, puis reprenez."
       },
       "update": {
         "title": "Mise à jour requise",
@@ -443,6 +464,10 @@
       "serverDown": {
         "detail": "Le serveur est actuellement indisponible",
         "cta": "Serveur indisponible"
+      },
+      "authDown": {
+        "detail": "Le serveur de connexion ne répond pas",
+        "cta": "Connexion indisponible"
       },
       "signIn": {
         "title": "Connexion requise"

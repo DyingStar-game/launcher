@@ -11,7 +11,8 @@ import { useEnvStore } from '@stores/env'
 
 /**
  * Makes `env` (default `universe-testing`) the active environment and `window.api.socialLoad`
- * answer with this social data (ADR 0025): components load it through their queries.
+ * answer with this social data (ADR 0025), `socialLoadFriends` with its friends (ADR 0045):
+ * components load it through their queries.
  */
 export function seedSocial(snapshot: Partial<SocialSnapshot>, env: Env = 'universe-testing'): void {
   const full: SocialSnapshot = {
@@ -26,6 +27,7 @@ export function seedSocial(snapshot: Partial<SocialSnapshot>, env: Env = 'univer
     ...snapshot
   }
   vi.mocked(window.api.socialLoad).mockResolvedValue({ ok: true, data: full })
+  vi.mocked(window.api.socialLoadFriends).mockResolvedValue({ ok: true, data: full.friends })
   act(() => useEnvStore.setState({ activeEnv: env }))
 }
 
