@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import path from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -10,6 +10,8 @@ import { registerGameStatusHandlers } from './services/gameStatus'
 import { registerAuthHandlers, handleOAuthCallback } from './services/auth'
 import { registerWindowHandlers } from './services/window'
 import { registerSocialHandlers } from './services/social'
+import { registerLauncherUpdateHandlers } from './services/launcherUpdate'
+import { openExternalLink } from './services/externalLinks'
 import { WINDOW_BOUNDS } from './config/window'
 import { APP_PROTOCOL } from './config/constants'
 import { registerLinuxProtocolHandler } from './protocol/linuxDesktop'
@@ -76,6 +78,7 @@ function createWindow(): void {
   registerWindowHandlers(() => mainWindow)
   registerFilesHandlers(mainWindow)
   registerAuthHandlers(mainWindow)
+  registerLauncherUpdateHandlers(mainWindow)
 
   /**
    * Wayland does not paint a hidden window, so `ready-to-show` (first paint) never fires
@@ -94,7 +97,7 @@ function createWindow(): void {
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    void openExternalLink(details.url)
     return { action: 'deny' }
   })
 

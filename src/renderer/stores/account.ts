@@ -13,12 +13,14 @@ type EnvAccountData = {
 
 type AccountState = {
   data: Record<Env, EnvAccountData>
-  /** Opens OAuth login in an in-app window for the active environment. */
+  /** Opens OAuth login in the system browser for the active environment. */
   login: () => Promise<void>
   /** Logs out and clears local session for the active environment. */
   logout: () => Promise<void>
   /** Cancels an in-progress login attempt (resets loading state). */
   cancelLogin: () => void
+  /** Restores the session kept on disk for an environment (startup, sign-in server back). */
+  restoreSession: (env: Env) => Promise<void>
 }
 
 const defaultEnvData: EnvAccountData = {
@@ -72,10 +74,10 @@ export const useAccountStore = create<AccountState>((set) => {
     }
   })
 
-  // Restore persisted sessions on startup (one request per env)
-  const envs: Env[] = ['universe', 'universe-testing']
-  envs.forEach((env) => {
-    window.api.authLoadUser(env).then((user) => {
+  /** Restores the session kept on disk, if the sign-in server accepts it. */
+  const restoreSession = async (env: Env): Promise<void> => {
+    try {
+      const user = await window.api.authLoadUser(env)
       if (user) {
         patchEnv(set, env, {
           status: 'connected',
@@ -84,11 +86,20 @@ export const useAccountStore = create<AccountState>((set) => {
           sessionExpired: false
         })
       }
-    })
-  })
+    } catch (err) {
+      // Sign-in server unreachable: the tokens stay on disk until it answers again (ADR 0043)
+      console.warn('[AccountStore] Session not restored:', err)
+    }
+  }
+
+  // Restore persisted sessions on startup (one request per env)
+  const envs: Env[] = ['universe', 'universe-testing']
+  envs.forEach((env) => void restoreSession(env))
 
   return {
     data: defaultData,
+
+    restoreSession,
 
     login: async () => {
       const env = useEnvStore.getState().activeEnv

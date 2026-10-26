@@ -8,6 +8,10 @@ import { useNavigationStore } from '@stores/navigation'
 import { seedSocial } from '../../../test/seedSocial'
 import AccountMenu from './AccountMenu'
 
+// The sign-in server status is a query with its own tests: here it answers what each test sets
+const auth = vi.hoisted(() => ({ up: true }))
+vi.mock('@hooks/status/useAuthAvailability', () => ({ useAuthAvailability: () => auth.up }))
+
 const saved = useAccountStore.getState()
 const login = vi.fn(() => Promise.resolve())
 const logout = vi.fn(() => Promise.resolve())
@@ -30,6 +34,7 @@ beforeEach(() => {
     useEnvStore.setState({ activeEnv: 'universe' })
     useAvailabilityStore.setState({ available: { universe: true, 'universe-testing': true } })
   })
+  auth.up = true
 })
 
 afterEach(() => {
@@ -45,7 +50,7 @@ describe('AccountMenu', () => {
     expect(login).toHaveBeenCalledOnce()
   })
 
-  it('cancels while the sign-in window is open', async () => {
+  it('cancels while waiting for the sign-in in the browser', async () => {
     account('loading')
     render(<AccountMenu />)
     await userEvent.click(screen.getByRole('button', { name: 'Cancel sign-in' }))
@@ -82,5 +87,24 @@ describe('AccountMenu', () => {
     expect(
       screen.getByRole('button', { name: 'Sign-in is not available for this environment.' })
     ).toBeDisabled()
+  })
+
+  it('says sign-in is unavailable while the sign-in server does not answer', () => {
+    auth.up = false
+    account('disconnected')
+    render(<AccountMenu />)
+    expect(
+      screen.getByRole('button', {
+        name: 'The sign-in server is not responding. Try again later.'
+      })
+    ).toBeDisabled()
+    expect(screen.getByText('Sign-in unavailable')).toBeInTheDocument()
+  })
+
+  it('keeps the signed-in player menu while the sign-in server does not answer', () => {
+    auth.up = false
+    account('connected', 'Kira')
+    render(<AccountMenu />)
+    expect(screen.getByRole('button', { name: 'Account of Kira' })).toBeEnabled()
   })
 })

@@ -1,5 +1,6 @@
 import type { BrowserWindow } from 'electron'
 import type { ChildProcess } from 'child_process'
+import log from 'electron-log'
 import { GAME_PROCESS_POLL_MS } from '../../config/constants'
 
 let launcherWindow: BrowserWindow | null = null
@@ -16,10 +17,14 @@ export function isGameRunning(): boolean {
   return trackedGamePid !== null && isPidAlive(trackedGamePid)
 }
 
-/** Sends running state to the renderer. */
+/**
+ * Sends running state to the renderer; when the game exits (or crashes), brings back the launcher
+ * minimized at its launch (ADR 0045).
+ */
 function notifyGameRunning(running: boolean): void {
   if (!launcherWindow || launcherWindow.isDestroyed()) return
   launcherWindow.webContents.send('game:running-changed', { running })
+  if (!running && launcherWindow.isMinimized()) launcherWindow.restore()
 }
 
 /** Returns true if sending signal 0 to the pid does not throw (process exists). */
@@ -65,7 +70,13 @@ export function watchGameProcess(child: ChildProcess): void {
     notifyGameRunning(false)
   }
 
-  child.once('exit', onDone)
-  child.once('error', onDone)
+  child.once('exit', (code, signal) => {
+    log.info(`[Game] Exited with code ${code} (signal ${signal ?? 'none'})`)
+    onDone()
+  })
+  child.once('error', (err) => {
+    log.error('[Game] Process error:', err)
+    onDone()
+  })
   gamePollTimer = setInterval(stopGameWatchIfExited, GAME_PROCESS_POLL_MS)
 }

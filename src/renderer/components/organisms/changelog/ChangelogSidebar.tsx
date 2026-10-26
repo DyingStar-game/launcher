@@ -1,18 +1,20 @@
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react'
+import { CheckCheckIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-react'
 import type { ChangelogEntryRef, ChangelogSidebarBlock } from '@shared/types/changelog'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
+import Button from '@components/atoms/Button'
 import SidebarItemButton from '@components/atoms/SidebarItemButton'
 import PageSidebar from '@components/atoms/PageSidebar'
+import LabelTooltip from '@components/molecules/LabelTooltip'
 import PendingCount from '@components/molecules/PendingCount'
-import { Badge } from '@components/ui/badge'
+import UnreadDot from '@components/molecules/UnreadDot'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@components/ui/collapsible'
 import { Skeleton } from '@components/ui/skeleton'
 import { useDelayedFlag } from '@hooks/useDelayedFlag'
-import { formatDevBuild, groupDevReleases, isReleased } from '@lib/changelogEntries'
+import { formatDevBuildShort, groupDevReleases, isReleased } from '@lib/changelogEntries'
 
 function blockComponent(block: ChangelogSidebarBlock): string {
   return block.kind === 'entry' ? block.entry.componentId : block.componentId
@@ -51,9 +53,19 @@ function DevGroup({ label, unread, defaultOpen, children }: DevGroupProps): Reac
 export default function ChangelogSidebar(): React.JSX.Element {
   const { t, i18n } = useTranslation()
   const { activeEnv } = useEnvStore()
-  const { data, loading, getEntries, getCurrentId, select, isUnread, syncSelectionForEnv } =
-    useChangelogStore()
+  const {
+    data,
+    loading,
+    getEntries,
+    getCurrentId,
+    select,
+    isUnread,
+    unreadCount,
+    markAllViewed,
+    syncSelectionForEnv
+  } = useChangelogStore()
   const waiting = loading && !data
+  const allRead = unreadCount(activeEnv) === 0
   const showSkeleton = useDelayedFlag(waiting)
 
   const entries = getEntries(activeEnv)
@@ -65,14 +77,15 @@ export default function ChangelogSidebar(): React.JSX.Element {
   }, [activeEnv, data, syncSelectionForEnv])
 
   const renderEntry = (entry: ChangelogEntryRef): React.JSX.Element => {
+    // A build is named by its short date alone: its group already says what it is (ADR 0046)
     const build =
-      entry.devOf !== null && entry.version ? formatDevBuild(entry.version, i18n.language) : null
+      entry.devOf !== null && entry.version
+        ? formatDevBuildShort(entry.version, i18n.language)
+        : null
     const label =
       entry.kind === 'unreleased'
         ? t('changelog.unreleased')
-        : build
-          ? t('changelog.devBuildLabel', { time: build })
-          : t('changelog.versionLabel', { version: entry.version })
+        : (build ?? t('changelog.versionLabel', { version: entry.version }))
 
     return (
       <SidebarItemButton
@@ -82,12 +95,12 @@ export default function ChangelogSidebar(): React.JSX.Element {
         className="flex w-full items-center justify-between gap-2"
       >
         <span className="flex min-w-0 flex-col gap-0.5">
-          <span>{label}</span>
+          <span className="whitespace-nowrap tabular-nums">{label}</span>
           {entry.date && !build && (
             <span className="text-2xs text-ds-muted tabular-nums">{entry.date}</span>
           )}
         </span>
-        {isUnread(entry.id) && currentId !== entry.id && <Badge>{t('changelog.new')}</Badge>}
+        {isUnread(entry.id) && currentId !== entry.id && <UnreadDot />}
       </SidebarItemButton>
     )
   }
@@ -112,6 +125,20 @@ export default function ChangelogSidebar(): React.JSX.Element {
             ? t('changelog.sidebarSubtitleTesting')
             : t('changelog.sidebarSubtitle')}
         </p>
+        {/* Always there, disabled once everything is read: the sidebar does not move on click */}
+        <div className="mt-2 flex">
+          <LabelTooltip label={allRead ? t('changelog.allRead') : null} disabled className="w-full">
+            <Button
+              variant="outline"
+              disabled={allRead}
+              onClick={() => markAllViewed(activeEnv)}
+              className="w-full"
+            >
+              <CheckCheckIcon aria-hidden="true" />
+              {t('changelog.markAllRead')}
+            </Button>
+          </LabelTooltip>
+        </div>
       </div>
 
       {/* Versions skeleton while the changelog loads (ADR 0018); "empty" only once it answered */}

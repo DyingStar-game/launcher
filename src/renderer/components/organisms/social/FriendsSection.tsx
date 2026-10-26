@@ -29,7 +29,7 @@ export default function FriendsSection({
 }: FriendsSectionProps): React.JSX.Element {
   const { t } = useTranslation()
   const { activeEnv } = useEnvStore()
-  const { data, status } = useSocialSnapshot()
+  const { data, status } = useSocialSnapshot({ livePresence: true })
   const acceptRequest = useAcceptFriendRequest().mutateAsync
   const declineRequest = useDeclineFriendRequest().mutateAsync
   const openPlayer = useNavigationStore((s) => s.openPlayer)

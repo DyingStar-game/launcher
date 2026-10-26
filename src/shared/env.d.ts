@@ -26,6 +26,8 @@ interface ImportMetaEnv {
   readonly VITE_STATUS_COMPONENT_ID_TESTING: string
   readonly VITE_STATUS_METRIC_ID_UNIVERSE: string
   readonly VITE_STATUS_METRIC_ID_TESTING: string
+  readonly VITE_STATUS_AUTH_COMPONENT_ID_UNIVERSE: string
+  readonly VITE_STATUS_AUTH_COMPONENT_ID_TESTING: string
   readonly VITE_STATUS_PAGE_UNIVERSE: string
   readonly VITE_STATUS_PAGE_TESTING: string
   readonly VITE_SERVER_STATUS_POLL_MINUTES: string

@@ -8,6 +8,7 @@ import { useDisbandOrganisation, useTransferOrganisation } from '@hooks/social/u
 import Button from '@components/atoms/Button'
 import ConfirmDialog from '@components/molecules/ConfirmDialog'
 import InputField from '@components/molecules/InputField'
+import LabelTooltip from '@components/molecules/LabelTooltip'
 import SheetSection from '@components/molecules/SheetSection'
 import { Field, FieldLabel } from '@components/ui/field'
 import { RadioGroup, RadioGroupItem } from '@components/ui/radio-group'
@@ -69,17 +70,29 @@ export default function OrganisationLeadership({
           </Field>
         )}
         <div>
-          <ConfirmDialog
-            trigger={
-              <Button variant="outline" disabled={!heirId}>
+          {heirId ? (
+            <ConfirmDialog
+              trigger={
+                <Button variant="outline">
+                  {t('universe.socialPage.manage.leadership.transfer')}
+                </Button>
+              }
+              title={t('universe.socialPage.manage.leadership.transferTitle', { name: heirName })}
+              description={t('universe.socialPage.manage.leadership.transferDescription')}
+              confirmLabel={t('universe.socialPage.manage.leadership.transfer')}
+              onConfirm={() => transfer.mutateAsync(heirId)}
+            />
+          ) : (
+            // Nothing to confirm yet: the button says what is missing (ADR 0048)
+            <LabelTooltip
+              label={t('universe.socialPage.manage.leadership.chooseHeirFirst')}
+              disabled
+            >
+              <Button variant="outline" disabled>
                 {t('universe.socialPage.manage.leadership.transfer')}
               </Button>
-            }
-            title={t('universe.socialPage.manage.leadership.transferTitle', { name: heirName })}
-            description={t('universe.socialPage.manage.leadership.transferDescription')}
-            confirmLabel={t('universe.socialPage.manage.leadership.transfer')}
-            onConfirm={() => transfer.mutateAsync(heirId)}
-          />
+            </LabelTooltip>
+          )}
         </div>
       </SheetSection>
 

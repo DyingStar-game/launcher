@@ -1,17 +1,23 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { useEnvStore } from '@stores/env'
 import { useFilesStore } from '@stores/files'
-import { useVersionStore } from '@stores/version'
 import { useChangelogStore } from '@stores/changelog'
 import { useNavigationStore } from '@stores/navigation'
 import { changelogFixture, item } from '../../../test/changelogFixture'
 import GameHero from './GameHero'
 
+// The latest version is a query with its own tests: here it answers what each test sets
+const versions = vi.hoisted(() => ({
+  latest: { version: null as string | null, releaseDate: null as string | null }
+}))
+vi.mock('@hooks/version/useLatestGameVersion', () => ({
+  useLatestGameVersion: () => versions.latest
+}))
+
 const saved = {
   files: useFilesStore.getState(),
-  version: useVersionStore.getState(),
   changelog: useChangelogStore.getState()
 }
 
@@ -26,12 +32,7 @@ function seed(version: string, latest: string): void {
         universe: { ...data.universe, installed: true, version, releaseDate: '2026-10-01' }
       }
     })
-    useVersionStore.setState((s) => ({
-      latestGameVersions: {
-        ...s.latestGameVersions,
-        universe: { version: latest, releaseDate: null }
-      }
-    }))
+    versions.latest = { version: latest, releaseDate: null }
     const fixture = changelogFixture()
     useChangelogStore.setState({
       data: changelogFixture({
@@ -57,7 +58,6 @@ beforeEach(() => act(() => useNavigationStore.setState({ currentView: 'universe'
 afterEach(() =>
   act(() => {
     useFilesStore.setState(saved.files, true)
-    useVersionStore.setState(saved.version, true)
     useChangelogStore.setState(saved.changelog, true)
   })
 )

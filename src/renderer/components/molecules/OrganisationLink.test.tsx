@@ -27,7 +27,7 @@ describe('OrganisationLink', () => {
     )
     expect(screen.getByRole('button', { name: 'Open the organization Nova Corp' })).toHaveClass(
       'font-medium',
-      'hover:underline'
+      'not-disabled:hover:underline'
     )
   })
 })

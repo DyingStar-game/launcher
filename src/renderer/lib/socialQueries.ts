@@ -12,6 +12,7 @@ export type SocialStatus = 'idle' | 'loading' | 'ready' | 'unavailable' | 'notSi
 export const socialKeys = {
   env: (env: Env) => ['social', env] as const,
   snapshot: (env: Env) => ['social', env, 'snapshot'] as const,
+  friends: (env: Env) => ['social', env, 'friends'] as const,
   player: (env: Env, id: string) => ['social', env, 'player', id] as const,
   organisation: (env: Env, id: string) => ['social', env, 'organisation', id] as const,
   members: (env: Env, id: string) => ['social', env, 'members', id] as const,

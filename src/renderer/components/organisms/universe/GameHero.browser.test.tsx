@@ -1,16 +1,22 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen } from '../../../test/render'
 import { useEnvStore } from '@stores/env'
 import { useFilesStore } from '@stores/files'
-import { useVersionStore } from '@stores/version'
 import GameHero from './GameHero'
 
-const saved = { files: useFilesStore.getState(), version: useVersionStore.getState() }
+// The latest version is a query with its own tests: here it answers what each test sets
+const versions = vi.hoisted(() => ({
+  latest: { version: null as string | null, releaseDate: null as string | null }
+}))
+vi.mock('@hooks/version/useLatestGameVersion', () => ({
+  useLatestGameVersion: () => versions.latest
+}))
+
+const saved = { files: useFilesStore.getState() }
 
 afterEach(() =>
   act(() => {
     useFilesStore.setState(saved.files, true)
-    useVersionStore.setState(saved.version, true)
   })
 )
 
@@ -35,12 +41,7 @@ function seed(latest: string): void {
         universe: { ...s.data.universe, installed: true, version: '20261001000000' }
       }
     }))
-    useVersionStore.setState((s) => ({
-      latestGameVersions: {
-        ...s.latestGameVersions,
-        universe: { version: latest, releaseDate: '2026-10-12' }
-      }
-    }))
+    versions.latest = { version: latest, releaseDate: '2026-10-12' }
   })
 }
 

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { act, render, screen } from '../../../test/render'
 import i18n from '@i18n'
+import { useVersionStore } from '@stores/version'
 import Navbar from './Navbar'
 
 const style = (el: Element): CSSStyleDeclaration => getComputedStyle(el)
@@ -54,9 +55,9 @@ describe('Navbar (rendering)', () => {
       const logo = screen.getByRole('navigation').querySelector('svg')!.getBoundingClientRect()
       const right = screen.getByRole('button', { name: 'Close' }).parentElement!.parentElement!
       const rightLeft = right.getBoundingClientRect().left
-      // The same room on each side, up to the bar's gap
+      // The same room on each side, up to the bar's gap (`+ 0`: a rounded -0.4 is -0, not 0)
       await expect
-        .poll(() => Math.round(frame.left - logo.right - (rightLeft - frame.right)))
+        .poll(() => Math.round(frame.left - logo.right - (rightLeft - frame.right)) + 0)
         .toBe(0)
       // Beside the switch: the switch's own column, which still drags the window
       const empty = document.elementFromPoint(frame.left - 10, frame.top + frame.height / 2)
@@ -96,5 +97,25 @@ describe('Navbar (rendering)', () => {
     expect(right.getBoundingClientRect().right).toBeLessThanOrEqual(
       document.documentElement.clientWidth
     )
+  })
+
+  it("centres the launcher's version on the wordmark's letters", () => {
+    act(() => useVersionStore.setState({ currentLauncherVersion: '1.0.1' }))
+    render(<Navbar />)
+    const version = screen.getByText('v1.0.1')
+    // The letters' paths (all as high as one another), not the icon's parts
+    const letters = [...version.parentElement!.querySelectorAll('svg path')]
+      .map((p) => p.getBoundingClientRect())
+      .filter((r) => r.height > 15 && r.height < 20)
+    const lettersMiddle =
+      (Math.min(...letters.map((r) => r.top)) + Math.max(...letters.map((r) => r.bottom))) / 2
+    // The digits stand on the baseline, about 0.7 em high
+    const baseline = document.createElement('span')
+    baseline.style.cssText = 'display:inline-block;width:0;height:0'
+    version.appendChild(baseline)
+    const fontSize = parseFloat(style(version).fontSize)
+    const digitsMiddle = baseline.getBoundingClientRect().bottom - 0.35 * fontSize
+    expect(Math.abs(digitsMiddle - lettersMiddle)).toBeLessThan(0.5)
+    act(() => useVersionStore.setState({ currentLauncherVersion: '' }))
   })
 })

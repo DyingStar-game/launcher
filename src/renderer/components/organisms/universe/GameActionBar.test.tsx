@@ -6,17 +6,28 @@ import { useAvailabilityStore } from '@stores/availability'
 import { useEnvStore } from '@stores/env'
 import { useFilesStore, type EnvFilesData, type InstallRunOutcome } from '@stores/files'
 import { useGameStore, type PlayOutcome } from '@stores/game'
-import { useVersionStore } from '@stores/version'
-import { pollIntervalMinutes } from '@lib/env'
 import type { ServerStatusValue } from '@shared/types/game'
 import { Toaster } from '@components/ui/sonner'
 import GameActionBar from './GameActionBar'
 
+// The status queries have their own tests: here they answer what each test sets
+const status = vi.hoisted(() => ({
+  server: { status: 'online' as ServerStatusValue, players: 2 },
+  authUp: true,
+  latest: { version: null as string | null, releaseDate: null as string | null }
+}))
+vi.mock('@hooks/status/useServerStatus', () => ({ useServerStatus: () => status.server }))
+vi.mock('@hooks/status/useAuthAvailability', () => ({ useAuthAvailability: () => status.authUp }))
+vi.mock('@hooks/version/useLatestGameVersion', () => ({
+  useLatestGameVersion: () => status.latest,
+  fetchLatestGameVersion: vi.fn(async () => status.latest.version)
+}))
+
 const saved = {
   account: useAccountStore.getState(),
+  availability: useAvailabilityStore.getState(),
   files: useFilesStore.getState(),
-  game: useGameStore.getState(),
-  version: useVersionStore.getState()
+  game: useGameStore.getState()
 }
 const login = vi.fn(() => Promise.resolve())
 const install = vi.fn(() => Promise.resolve<InstallRunOutcome>('installed'))
@@ -41,46 +52,38 @@ function account(status: 'connected' | 'disconnected' | 'loading', sessionExpire
 }
 
 /** The testing server's status. */
-function server(status: ServerStatusValue): void {
-  act(() =>
-    useGameStore.setState((s) => ({
-      data: { ...s.data, 'universe-testing': { status, players: 2 } }
-    }))
-  )
+function server(value: ServerStatusValue): void {
+  status.server = { status: value, players: 2 }
 }
 
 /** The latest testing build online. */
 function latest(version: string): void {
-  act(() =>
-    useVersionStore.setState((s) => ({
-      latestGameVersions: {
-        ...s.latestGameVersions,
-        'universe-testing': { version, releaseDate: null }
-      }
-    }))
-  )
+  status.latest = { version, releaseDate: null }
 }
 
 beforeEach(() => {
   act(() => {
     useEnvStore.setState({ activeEnv: 'universe-testing' })
-    useAvailabilityStore.setState({ available: { universe: false, 'universe-testing': true } })
+    useAvailabilityStore.setState({
+      available: { universe: false, 'universe-testing': true }
+    })
     useAccountStore.setState({ login })
     useFilesStore.setState({ install, syncInstalledVersions: vi.fn(() => Promise.resolve()) })
-    useGameStore.setState({ play, fetchServerStatus: vi.fn(() => Promise.resolve()) })
+    useGameStore.setState({ play })
   })
   files({ installed: true, installPath: '/games', version: '20261010203221' })
   latest('20261010203221')
   server('online')
+  status.authUp = true
   account('connected')
 })
 
 afterEach(() => {
   act(() => {
     useAccountStore.setState(saved.account, true)
+    useAvailabilityStore.setState(saved.availability, true)
     useFilesStore.setState(saved.files, true)
     useGameStore.setState(saved.game, true)
-    useVersionStore.setState(saved.version, true)
   })
   vi.clearAllMocks()
 })
@@ -241,6 +244,29 @@ describe('GameActionBar', () => {
     expect(screen.getByRole('button', { name: 'Resume' })).toBeInTheDocument()
   })
 
+  it('says the disk is full, with the sizes, the download kept to resume (ADR 0047)', async () => {
+    const pending = { downloaded: 512 * 1024 ** 2, total: 1024 ** 3, progress: 35 }
+    files({ installed: false, version: null, paused: pending })
+    vi.mocked(window.api.installGame).mockResolvedValue({
+      status: 'diskFull',
+      needed: 512 * 1024 ** 2,
+      available: 300 * 1024 ** 2
+    })
+    vi.mocked(window.api.pendingDownload).mockResolvedValue(pending)
+    render(
+      <>
+        <GameActionBar />
+        <Toaster />
+      </>
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Resume' }))
+    const message = await screen.findByText(
+      'Not enough disk space: 512.0 MB needed, 300.0 MB free on this disk. Free some space or choose another folder, then resume.'
+    )
+    expect(message.closest('[data-sonner-toast]')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Resume' })).toBeInTheDocument()
+  })
+
   it('tells the installation failed when nothing could be kept', async () => {
     install.mockResolvedValueOnce('failed')
     files({ installed: false, version: null })
@@ -298,26 +324,6 @@ describe('GameActionBar', () => {
     expect(play).not.toHaveBeenCalled()
   })
 
-  it('offers an update released during a maintenance once the poll sees it', () => {
-    vi.useFakeTimers()
-    try {
-      server('maintenance')
-      const refreshGameVersions = vi.fn(async () => {
-        latest('20261013000000')
-        server('online')
-      })
-      act(() => useVersionStore.setState({ refreshGameVersions }))
-      render(<GameActionBar />)
-      expect(refreshGameVersions).not.toHaveBeenCalled()
-      act(() => vi.advanceTimersByTime(pollIntervalMinutes() * 60 * 1000))
-      expect(refreshGameVersions).toHaveBeenCalledOnce()
-      expect(useGameStore.getState().fetchServerStatus).toHaveBeenCalledTimes(2)
-      expect(screen.getByText('Update required')).toBeInTheDocument()
-    } finally {
-      vi.useRealTimers()
-    }
-  })
-
   it.each([
     ['offline', 'The server is currently unavailable'],
     ['maintenance', 'The server is under maintenance — launching the game is disabled.']
@@ -335,6 +341,18 @@ describe('GameActionBar', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
     expect(login).toHaveBeenCalledOnce()
   })
+
+  it.each(['disconnected', 'connected'] as const)(
+    'blocks sign-in and Play while the sign-in server is down (%s)',
+    (accountStatus) => {
+      account(accountStatus)
+      status.authUp = false
+      render(<GameActionBar />)
+      expect(screen.getByText('The sign-in server is not responding')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Sign-in unavailable' })).toBeDisabled()
+      expect(screen.queryByRole('button', { name: 'Play' })).not.toBeInTheDocument()
+    }
+  )
 
   it('asks to sign in again when the session has expired', () => {
     account('disconnected', true)

@@ -12,6 +12,7 @@ import type {
   ApiProfile,
   ApiPublicProfile,
   ApiRank,
+  Friend,
   FriendRequestOutcome,
   InviteOutcome,
   JoinOutcome,
@@ -105,6 +106,13 @@ export async function loadSocial(env: Env): Promise<SocialResult<SocialSnapshot>
 }
 
 /** Pending applications of each organisation whose rank lets the player recruit (ADR 0024). */
+/** Loads the friends alone, with their presence: refreshed every minute (ADR 0045). */
+export async function loadFriends(env: Env): Promise<SocialResult<Friend[]>> {
+  const friends = await socialRequest<ApiPage<ApiFriend>>(env, 'load', 'GET', `/friends?${PAGE}`)
+  if (!friends.ok) return friends
+  return { ok: true, data: friends.data.items.map(toFriend) }
+}
+
 async function loadReceivedApplications(
   env: Env,
   memberships: ApiMyCorporation[]

@@ -74,6 +74,8 @@ export function registerFilesHandlers(win: BrowserWindow): void {
 
   ipcMain.handle('game:launch', async (_event, env: Env, installPath: string) => {
     await launchGame(installPath, env)
+    // Out of the game's way; hidden, it stops polling too (ADR 0045)
+    win.minimize()
   })
 
   ipcMain.handle('game:is-running', () => isGameRunning())

@@ -1,9 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
-import type { PendingDownload } from '@shared/types/install'
+import type { InstallOutcome, PendingDownload } from '@shared/types/install'
 import { useEnvStore, type Env } from './env'
-import { useVersionStore } from './version'
 import { useChangelogStore } from './changelog'
 import { addTransferSample, transferRate, type TransferSample } from '@lib/transferRate'
 
@@ -26,12 +25,16 @@ export type EnvFilesData = {
   stopping: 'pause' | 'cancel' | null
 }
 
+/** Not enough disk space for the install, with the bytes needed and free (ADR 0047). */
+export type DiskFullOutcome = Extract<InstallOutcome, { status: 'diskFull' }>
+
 /**
  * How an install or update ended: done, stopped by the player, stopped by an error with the
- * download kept on disk (interrupted) or not (failed), or not started.
+ * download kept on disk (interrupted) or not (failed), stopped for lack of disk space, or not
+ * started.
  */
 export type InstallRunOutcome =
-  'installed' | 'paused' | 'cancelled' | 'interrupted' | 'failed' | 'ignored'
+  'installed' | 'paused' | 'cancelled' | 'interrupted' | 'failed' | 'ignored' | DiskFullOutcome
 
 /** Outcome of clearing Godot shader/chunk caches. */
 export type ClearGodotCacheOutcome = 'success' | 'partial' | 'error'
@@ -159,6 +162,12 @@ export const useFilesStore = create<FilesState>()(
             patchEnv(set, env, { ...stopped, paused: await findPending(env) })
             return 'paused'
           }
+          if (outcome.status === 'diskFull') {
+            // What was downloaded stays, to resume once space is freed (ADR 0047)
+            const pending = await findPending(env)
+            patchEnv(set, env, { ...stopped, paused: pending, progress: pending?.progress ?? 0 })
+            return outcome
+          }
           if (outcome.status === 'cancelled') {
             patchEnv(set, env, { ...stopped, progress: 0, paused: null })
             return 'cancelled'
@@ -186,7 +195,6 @@ export const useFilesStore = create<FilesState>()(
             bytesPerSecond: null
           })
           await get().syncInstalledVersions()
-          void useVersionStore.getState().checkVersions()
           void useChangelogStore.getState().fetch()
           return 'installed'
         } catch (err) {

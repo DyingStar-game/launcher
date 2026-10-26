@@ -1,12 +1,15 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { Env } from '@shared/types/env'
+import type { GameVersionInfo, VersionCheckResult } from '@shared/types/version'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type { InstallOutcome, PendingDownload } from '@shared/types/install'
 import type { UserInfo } from '@shared/types/auth'
-import type { ServerStatusValue } from '@shared/types/game'
+import type { GameStatusResult } from '@shared/types/game'
 import type { GlobalChangelog } from '@shared/types/changelog'
+import type { LauncherUpdateState } from '@shared/types/launcherUpdate'
 import type {
+  Friend,
   FriendRequestOutcome,
   InviteOutcome,
   JoinOutcome,
@@ -94,15 +97,38 @@ const api = {
     })
   },
 
+  /** Where the launcher's in-place update stands (ADR 0050). */
+  getLauncherUpdateState: (): Promise<LauncherUpdateState> =>
+    ipcRenderer.invoke('launcher:get-update-state'),
+
+  /** Subscribes to the launcher update state pushed by main (checking, downloading, ready…). */
+  onLauncherUpdateState: (callback: (state: LauncherUpdateState) => void): void => {
+    ipcRenderer.removeAllListeners('launcher:update-state')
+    ipcRenderer.on('launcher:update-state', (_event, state: LauncherUpdateState) => {
+      callback(state)
+    })
+  },
+
+  /**
+   * Quits and installs the downloaded launcher, which starts again; false while the game runs or
+   * installs.
+   */
+  installLauncherUpdate: (): Promise<boolean> => ipcRenderer.invoke('launcher:install-update'),
+
   /** Fetches server status and connected player count for an environment. */
-  getServerStatus: (
-    env: Env
-  ): Promise<{ status: ServerStatusValue; players: number; available: boolean }> =>
+  getServerStatus: (env: Env): Promise<GameStatusResult> =>
     ipcRenderer.invoke('game:get-server-status', env),
 
   /** Pings each env API `/version` to determine runtime availability at startup. */
   checkEnvAvailability: (): Promise<Record<Env, boolean>> =>
     ipcRenderer.invoke('env:check-availability'),
+
+  /**
+   * Whether the status page reports an environment's sign-in server up (ADR 0043), null when it
+   * did not answer.
+   */
+  checkAuthAvailability: (env: Env): Promise<boolean | null> =>
+    ipcRenderer.invoke('env:check-auth-availability', env),
 
   /** Quits the entire application. */
   quitApp: (): Promise<void> => ipcRenderer.invoke('app:quit'),
@@ -126,27 +152,20 @@ const api = {
   /** Closes the main window. */
   closeWindow: (): Promise<void> => ipcRenderer.invoke('window:close'),
 
-  /** Compares launcher and game versions against remote sources. */
-  checkVersions: (): Promise<{
-    currentLauncherVersion: string
-    latestLauncherVersion: string | null
-    latestLauncherReleaseDate: string | null
-    launcherUpdateAvailable: boolean
-    latestGameVersions: Record<Env, { version: string | null; releaseDate: string | null }>
-  }> => ipcRenderer.invoke('version:check'),
+  /** Compares the launcher version with its latest release on GitHub. */
+  checkVersions: (): Promise<VersionCheckResult> => ipcRenderer.invoke('version:check'),
 
   /** Fetches the latest game version of each environment (ADR 0039). */
-  checkGameVersions: (): Promise<
-    Record<Env, { version: string | null; releaseDate: string | null }>
-  > => ipcRenderer.invoke('version:check-game'),
+  checkGameVersions: (): Promise<Record<Env, GameVersionInfo>> =>
+    ipcRenderer.invoke('version:check-game'),
 
-  /** Opens the in-app OAuth window on the Keycloak Discord login page. */
+  /** Opens the Keycloak Discord sign-in page in the system browser. */
   authLogin: (env: Env): Promise<void> => ipcRenderer.invoke('auth:login', env),
 
-  /** Closes the OAuth window and cancels an in-flight login attempt. */
+  /** Cancels an in-flight sign-in: a callback arriving later is refused. */
   authCancelLogin: (env: Env): Promise<void> => ipcRenderer.invoke('auth:cancel-login', env),
 
-  /** Signs out: clears stored tokens, ends the Keycloak session and forgets the sign-in cookies, in the background. */
+  /** Signs out: clears stored tokens and ends the Keycloak session, in the background. */
   authLogout: (env: Env): Promise<void> => ipcRenderer.invoke('auth:logout', env),
 
   /** Refreshes the session and returns the user profile, or null if logged out. */
@@ -168,6 +187,10 @@ const api = {
   /** Loads friends, friend requests, memberships and organisation requests from `social`. */
   socialLoad: (env: Env): Promise<SocialResult<SocialSnapshot>> =>
     ipcRenderer.invoke('social:load', env),
+
+  /** Loads the friends alone, with their presence (ADR 0045). */
+  socialLoadFriends: (env: Env): Promise<SocialResult<Friend[]>> =>
+    ipcRenderer.invoke('social:load-friends', env),
 
   /** Finds organisations whose name or tag contains `query` (2 characters minimum). */
   socialSearchOrganisations: (
