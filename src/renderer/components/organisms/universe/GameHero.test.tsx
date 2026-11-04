@@ -3,9 +3,7 @@ import { act, render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { useEnvStore } from '@stores/env'
 import { useFilesStore } from '@stores/files'
-import { useChangelogStore } from '@stores/changelog'
 import { useNavigationStore } from '@stores/navigation'
-import { changelogFixture, item } from '../../../test/changelogFixture'
 import GameHero from './GameHero'
 
 // The latest version is a query with its own tests: here it answers what each test sets
@@ -17,8 +15,7 @@ vi.mock('@hooks/version/useLatestGameVersion', () => ({
 }))
 
 const saved = {
-  files: useFilesStore.getState(),
-  changelog: useChangelogStore.getState()
+  files: useFilesStore.getState()
 }
 
 /** The Universe game, installed at `version`, with `latest` online. */
@@ -33,23 +30,6 @@ function seed(version: string, latest: string): void {
       }
     })
     versions.latest = { version: latest, releaseDate: null }
-    const fixture = changelogFixture()
-    useChangelogStore.setState({
-      data: changelogFixture({
-        DyingStar: {
-          ...fixture.components.DyingStar,
-          releases: [
-            {
-              version: '0.4.3',
-              date: '2026-10-10',
-              yanked: false,
-              url: null,
-              entries: { en: [item('New ships', 'added', 'vehicles')], fr: [] }
-            }
-          ]
-        }
-      })
-    })
   })
 }
 
@@ -58,7 +38,6 @@ beforeEach(() => act(() => useNavigationStore.setState({ currentView: 'universe'
 afterEach(() =>
   act(() => {
     useFilesStore.setState(saved.files, true)
-    useChangelogStore.setState(saved.changelog, true)
   })
 )
 
@@ -82,12 +61,11 @@ describe('GameHero', () => {
     expect(screen.getByText('Public test server · progress is not kept')).toBeInTheDocument()
   })
 
-  it('tells a new version is out, and opens its changelog entry', async () => {
+  it('tells a new version is out, and opens the changelog', async () => {
     seed('20261001000000', '20261010000000')
     render(<GameHero />)
     expect(screen.getByRole('heading', { name: 'New game version available' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'See the full changelog' }))
     expect(useNavigationStore.getState().currentView).toBe('changelog')
-    expect(useChangelogStore.getState().currentByEnv.universe).toBe('universe:DyingStar:0.4.3')
   })
 })

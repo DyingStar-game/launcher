@@ -2,7 +2,7 @@ import type React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useEnvStore } from '@stores/env'
 import { navSection, useNavigationStore, type TopView } from '@stores/navigation'
-import { useChangelogStore } from '@stores/changelog'
+import { useChangelogUnreadCount } from '@hooks/changelog/useChangelog'
 import { ChevronDownIcon } from 'lucide-react'
 import MenuItemButton from '@components/atoms/MenuItemButton'
 import TabButton from '@components/atoms/TabButton'
@@ -30,7 +30,7 @@ export default function UniverseBar(): React.JSX.Element {
   const { t } = useTranslation()
   const activeEnv = useEnvStore((s) => s.activeEnv)
   const { currentView, navigate } = useNavigationStore()
-  const unreadChangelog = useChangelogStore((s) => s.unreadCount(activeEnv))
+  const unreadChangelog = useChangelogUnreadCount(activeEnv)
   // Friend requests and organisation requests the player can answer, as in the social sidebar
   const pending = pendingCounts(useSocialSnapshot().data)
   const pendingSocial = pending.friends + pending.organisations

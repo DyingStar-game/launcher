@@ -7,7 +7,7 @@ export type PendingCountProps = {
   label?: string
 }
 
-/** A number waiting for the player (requests, ADR 0023; unread versions): a pill, read as a sentence. Nothing at 0. */
+/** A number waiting for the player (requests, ADR 0023; new changelog entries): a pill, read as a sentence. Nothing at 0. */
 export default function PendingCount({
   count,
   label

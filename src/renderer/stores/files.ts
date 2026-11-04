@@ -3,7 +3,6 @@ import { persist } from 'zustand/middleware'
 import type { InstallProgressLabel } from '@shared/types/installProgress'
 import type { InstallOutcome, PendingDownload } from '@shared/types/install'
 import { useEnvStore, type Env } from './env'
-import { useChangelogStore } from './changelog'
 import { addTransferSample, transferRate, type TransferSample } from '@lib/transferRate'
 
 export type EnvFilesData = {
@@ -195,7 +194,6 @@ export const useFilesStore = create<FilesState>()(
             bytesPerSecond: null
           })
           await get().syncInstalledVersions()
-          void useChangelogStore.getState().fetch()
           return 'installed'
         } catch (err) {
           console.error(`[FilesStore] ${kind} failed:`, err)

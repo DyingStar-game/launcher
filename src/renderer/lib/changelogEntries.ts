@@ -1,24 +1,27 @@
 import type {
   ChangelogComponent,
-  ChangelogEntryRef,
+  ChangelogFeed,
+  ChangelogFeedBuild,
+  ChangelogFeedItem,
+  ChangelogFeedSection,
   ChangelogGroup,
+  ChangelogNewMark,
   ChangelogLocaleEntries,
   ChangelogRelease,
-  ChangelogSidebarBlock,
   GlobalChangelog
 } from '@shared/types/changelog'
 import type { Env } from '@shared/types/env'
 
-export const GAME_COMPONENT_ID = 'DyingStar'
-export const LAUNCHER_COMPONENT_ID = 'launcher'
-
-export type ChangelogModuleKind = 'game' | 'service' | 'launcher'
+const GAME_COMPONENT_ID = 'DyingStar'
+const LAUNCHER_COMPONENT_ID = 'launcher'
 
 /** Build time of a dev release, in its version: `0.1.0-dev.<UTC yyyymmddhhmm>` (ADR 0042). */
 const DEV_STAMP_RE = /-dev\.(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(?:\D|$)/
 
-function hasEntries(entries: ChangelogLocaleEntries): boolean {
-  return entries.en.length > 0 || entries.fr.length > 0
+type Lang = 'en' | 'fr'
+
+function readerLang(locale: string): Lang {
+  return locale.startsWith('fr') ? 'fr' : 'en'
 }
 
 /** The version a release leads to: itself without its pre-release part (`0.1.0-dev.…` → `0.1.0`). */
@@ -26,219 +29,267 @@ export function versionCore(version: string): string {
   return version.split(/[-+]/)[0] ?? version
 }
 
-/** Dev releases of a component leading to `version`, with entries, newest build first. */
-function devReleasesOf(component: ChangelogComponent, version: string): ChangelogRelease[] {
-  return component.releases
-    .filter((r) => r.dev && versionCore(r.version) === version && hasEntries(r.entries))
-    .sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }))
+/** A date without a time (`2026-11-03`), at midnight in the reader's time zone; 0 when invalid. */
+function dateToMs(date: string): number {
+  const time = new Date(`${date}T00:00:00`).getTime()
+  return Number.isNaN(time) ? 0 : time
 }
 
-/** Whether a component has released `version` (a stable release of that exact version). */
-export function isReleased(data: GlobalChangelog, componentId: string, version: string): boolean {
-  return (
-    data.components[componentId]?.releases.some((r) => !r.dev && r.version === version) ?? false
-  )
-}
-
-/**
- * Build time of a dev release, from its version (UTC), in the reader's locale; null when the
- * version carries no build time (ADR 0042).
- */
-export function formatDevBuild(version: string, locale: string): string | null {
-  const time = devBuildTime(version)
-  return time && time.toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' })
-}
-
-/**
- * Build time of a dev release for the sidebar ("01/06/2026 · 1:59"), without "Build" (ADR 0046);
- * null when the version carries no build time.
- */
-export function formatDevBuildShort(version: string, locale: string): string | null {
-  const time = devBuildTime(version)
-  if (!time) return null
-  const day = time.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
-  const clock = time.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' })
-  return `${day} · ${clock}`
-}
-
-/** Build time of a dev release, read from its version (UTC). */
-function devBuildTime(version: string): Date | null {
-  const m = DEV_STAMP_RE.exec(version)
-  if (!m) return null
+/** When a dev release came out: its build time (UTC, ADR 0042), or its date without one. */
+function devPublishedAt(release: ChangelogRelease): number {
+  const m = DEV_STAMP_RE.exec(release.version)
+  if (!m) return dateToMs(release.date)
   const [, year, month, day, hour, minute] = m.map(Number)
-  return new Date(Date.UTC(year, month - 1, day, hour, minute))
+  return Date.UTC(year, month - 1, day, hour, minute)
 }
 
-/**
- * Stable fingerprint of an unreleased section.
- * Used so unread badges only reappear when that component's content actually changes,
- * not when the global changelog JSON is regenerated (new `generated_at`).
- */
-export function unreleasedFingerprint(entries: ChangelogLocaleEntries): string {
-  return JSON.stringify({ en: entries.en, fr: entries.fr })
+/** A day of the feed, in the reader's time zone. */
+function dayKey(time: number): string {
+  const date = new Date(time)
+  const pad = (value: number): string => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-/** Classifies a JSON component key as game client, launcher, or backend service module. */
-export function getModuleKind(componentId: string): ChangelogModuleKind {
-  if (componentId === LAUNCHER_COMPONENT_ID) return 'launcher'
-  if (componentId === GAME_COMPONENT_ID) return 'game'
-  return 'service'
+/** Title of a day of the feed ("Mardi 3 novembre"), with its year when not the current one. */
+export function formatFeedDay(time: number, locale: string, now = Date.now()): string {
+  const date = new Date(time)
+  const sameYear = date.getFullYear() === new Date(now).getFullYear()
+  const label = date.toLocaleDateString(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    ...(sameYear ? {} : { year: 'numeric' })
+  })
+  return label.charAt(0).toLocaleUpperCase(locale) + label.slice(1)
+}
+
+/** Date of a stable release in the feed ("3 novembre 2026"). */
+export function formatFeedDate(time: number, locale: string): string {
+  return new Date(time).toLocaleDateString(locale, { dateStyle: 'long' })
 }
 
 function moduleSortKey(componentId: string): number {
-  const kind = getModuleKind(componentId)
-  if (kind === 'game') return 0
-  if (kind === 'service') return 1
-  return 2
+  if (componentId === GAME_COMPONENT_ID) return 0
+  return componentId === LAUNCHER_COMPONENT_ID ? 2 : 1
 }
 
 function sortComponentIds(ids: string[]): string[] {
-  return [...ids].sort((a, b) => {
-    const keyDiff = moduleSortKey(a) - moduleSortKey(b)
-    if (keyDiff !== 0) return keyDiff
-    return a.localeCompare(b)
+  return [...ids].sort((a, b) => moduleSortKey(a) - moduleSortKey(b) || a.localeCompare(b))
+}
+
+/** The entries of a block as feed items; English when there are none in the reader's language. */
+function feedItems(
+  componentId: string,
+  component: ChangelogComponent,
+  entries: ChangelogLocaleEntries,
+  lang: Lang,
+  publishedAt: number,
+  build: string | null
+): ChangelogFeedItem[] {
+  const items = entries[lang].length > 0 ? entries[lang] : entries.en
+  return items
+    .filter((item) => item.text.trim())
+    .map((item) => ({
+      componentId,
+      type: item.type,
+      area: item.area === null ? null : (component.areas[item.area]?.[lang] ?? item.area),
+      text: item.text,
+      publishedAt,
+      build
+    }))
+}
+
+/** Days of the builds of every module but the launcher, newest first (ADR 0051). */
+function testingSections(data: GlobalChangelog, ids: string[], lang: Lang): ChangelogFeedSection[] {
+  const days = new Map<string, Extract<ChangelogFeedSection, { kind: 'day' }>>()
+
+  for (const componentId of ids) {
+    const component = data.components[componentId]
+    if (!component || componentId === LAUNCHER_COMPONENT_ID) continue
+
+    const builds = component.releases
+      .filter((release) => release.dev)
+      .map((release) => ({ release, publishedAt: devPublishedAt(release) }))
+      .sort((a, b) => b.publishedAt - a.publishedAt)
+
+    for (const { release, publishedAt } of builds) {
+      const items = feedItems(
+        componentId,
+        component,
+        release.entries,
+        lang,
+        publishedAt,
+        release.version
+      )
+      if (items.length === 0) continue
+
+      const key = dayKey(publishedAt)
+      const day = days.get(key) ?? { id: key, kind: 'day', publishedAt, items: [], builds: [] }
+      days.set(key, day)
+      day.publishedAt = Math.max(day.publishedAt, publishedAt)
+      day.items.push(...items)
+      day.builds.push({ componentId, version: release.version, yanked: release.yanked })
+    }
+  }
+
+  return [...days.values()]
+}
+
+/** Stable releases of every module, each with the entries of its dev releases (ADR 0042, 0051). */
+function universeSections(
+  data: GlobalChangelog,
+  ids: string[],
+  lang: Lang
+): ChangelogFeedSection[] {
+  return ids.flatMap((componentId) => {
+    const component = data.components[componentId]
+    if (!component) return []
+
+    return component.releases
+      .filter((release) => !release.dev)
+      .flatMap((release): ChangelogFeedSection[] => {
+        const publishedAt = dateToMs(release.date)
+        const items = [
+          ...feedItems(componentId, component, release.entries, lang, publishedAt, null),
+          ...component.releases
+            .filter((dev) => dev.dev && versionCore(dev.version) === release.version)
+            .sort((a, b) => devPublishedAt(b) - devPublishedAt(a))
+            .flatMap((dev) =>
+              feedItems(componentId, component, dev.entries, lang, publishedAt, dev.version)
+            )
+        ]
+        if (items.length === 0) return []
+        return [
+          {
+            id: `${componentId}:${release.version}`,
+            kind: 'release',
+            componentId,
+            version: release.version,
+            yanked: release.yanked,
+            publishedAt,
+            items
+          }
+        ]
+      })
   })
 }
 
-function entryId(env: Env, componentId: string, suffix: string): string {
-  return `${env}:${componentId}:${suffix}`
+/** Builds the feed of a universe in the reader's language (ADR 0051). */
+export function buildChangelogFeed(data: GlobalChangelog, env: Env, locale: string): ChangelogFeed {
+  const lang = readerLang(locale)
+  const ids = sortComponentIds(Object.keys(data.components))
+  const sections =
+    env === 'universe-testing'
+      ? testingSections(data, ids, lang)
+      : universeSections(data, ids, lang)
+
+  const upcoming =
+    env === 'universe-testing'
+      ? ids
+          .filter((id) => id !== LAUNCHER_COMPONENT_ID)
+          .flatMap((id) => {
+            const component = data.components[id]
+            return component
+              ? feedItems(id, component, component.unreleased.entries, lang, 0, null)
+              : []
+          })
+      : []
+
+  return { upcoming, sections: sections.sort((a, b) => b.publishedAt - a.publishedAt) }
 }
 
-/**
- * Builds sidebar entry refs filtered by active environment (ADR 0042): on Universe Testing the
- * unreleased section then the dev releases by version; on Universe the stable releases, each
- * followed by its dev releases.
- */
-export function buildChangelogEntryRefs(data: GlobalChangelog, env: Env): ChangelogEntryRef[] {
-  const refs: ChangelogEntryRef[] = []
-  const componentIds = sortComponentIds(Object.keys(data.components))
+/** The feed restricted to one module; a section left without entries goes away. */
+export function filterChangelogFeed(
+  feed: ChangelogFeed,
+  componentId: string | null
+): ChangelogFeed {
+  if (componentId === null) return feed
+  const keep = (item: ChangelogFeedItem): boolean => item.componentId === componentId
+  const keepBuild = (build: ChangelogFeedBuild): boolean => build.componentId === componentId
 
-  for (const componentId of componentIds) {
-    const component = data.components[componentId]
-    if (!component) continue
-
-    const moduleKind = getModuleKind(componentId)
-    const releaseRef = (
-      release: ChangelogRelease,
-      devOf: string | null,
-      devCount: number
-    ): ChangelogEntryRef => ({
-      id: entryId(env, componentId, release.version),
-      env,
-      componentId,
-      moduleKind,
-      kind: 'release',
-      version: release.version,
-      date: release.date,
-      yanked: release.yanked,
-      devOf,
-      devCount
-    })
-
-    if (env === 'universe-testing') {
-      if (moduleKind === 'launcher') continue
-      if (hasEntries(component.unreleased.entries)) {
-        refs.push({
-          id: entryId(env, componentId, 'unreleased'),
-          env,
-          componentId,
-          moduleKind,
-          kind: 'unreleased',
-          version: null,
-          date: null,
-          yanked: false,
-          devOf: null,
-          devCount: 0
-        })
-      }
-      // Versions in the order of their newest build
-      const targets = new Set(
-        component.releases.filter((r) => r.dev).map((r) => versionCore(r.version))
+  return {
+    upcoming: feed.upcoming.filter(keep),
+    sections: feed.sections
+      .map((section) =>
+        section.kind === 'day'
+          ? {
+              ...section,
+              items: section.items.filter(keep),
+              builds: section.builds.filter(keepBuild)
+            }
+          : { ...section, items: section.items.filter(keep) }
       )
-      for (const target of targets) {
-        for (const release of devReleasesOf(component, target)) {
-          refs.push(releaseRef(release, target, 0))
-        }
-      }
-      continue
-    }
-
-    const releases = component.releases
-      .filter((r) => !r.dev)
-      .sort((a, b) => b.date.localeCompare(a.date))
-    for (const release of releases) {
-      const devs = devReleasesOf(component, release.version)
-      if (!hasEntries(release.entries) && devs.length === 0) continue
-      refs.push(releaseRef(release, null, devs.length))
-      for (const dev of devs) refs.push(releaseRef(dev, release.version, 0))
-    }
+      .filter((section) => section.items.length > 0)
   }
-
-  return refs
 }
 
-/** Folds the consecutive dev releases of a version into one sidebar block (ADR 0042). */
-export function groupDevReleases(refs: ChangelogEntryRef[]): ChangelogSidebarBlock[] {
-  const blocks: ChangelogSidebarBlock[] = []
-  for (const entry of refs) {
-    const last = blocks.at(-1)
-    if (entry.devOf === null) {
-      blocks.push({ kind: 'entry', entry })
-    } else if (
-      last?.kind === 'dev' &&
-      last.componentId === entry.componentId &&
-      last.version === entry.devOf
-    ) {
-      last.entries.push(entry)
-    } else {
-      blocks.push({
-        kind: 'dev',
-        componentId: entry.componentId,
-        version: entry.devOf,
-        entries: [entry]
-      })
-    }
-  }
-  return blocks
+/** The modules with something to show in a feed, the game first. */
+export function changelogFeedModules(feed: ChangelogFeed): string[] {
+  const ids = [...feed.upcoming, ...feed.sections.flatMap((section) => section.items)].map(
+    (item) => item.componentId
+  )
+  return sortComponentIds([...new Set(ids)])
+}
+
+/** Nothing is new under this mark. */
+export const NOTHING_NEW: ChangelogNewMark = { since: Infinity, seen: [] }
+
+/** How many entries of the sections are new under a mark (what comes next is never counted). */
+export function countNewItems(sections: ChangelogFeedSection[], mark: ChangelogNewMark): number {
+  const seen = new Set(mark.seen)
+  return sections.reduce(
+    (count, section) =>
+      count +
+      section.items.filter((item) => item.publishedAt > mark.since && !seen.has(item.publishedAt))
+        .length,
+    0
+  )
+}
+
+/** Publication times of a feed, newest first, each once. */
+export function publicationTimes(feed: ChangelogFeed): number[] {
+  const times = feed.sections.flatMap((section) => section.items.map((item) => item.publishedAt))
+  return [...new Set(times)].sort((a, b) => b - a)
+}
+
+/** Newest publication of a feed; null when it has none. */
+export function newestPublication(feed: ChangelogFeed): number | null {
+  return publicationTimes(feed)[0] ?? null
 }
 
 /**
- * Resolves the entries of a sidebar ref for display (ADR 0040): grouped by type in the JSON's
- * `types` order, entries without a type (written before types existed) last; each area as its
- * label in the reader's language. English entries when there are none in the reader's language.
- * A stable release also gathers the entries of its dev releases (ADR 0042).
+ * Starting point of a player with no reading state: just before the newest publication, which alone
+ * counts as new (ADR 0051); null when the feed has none.
  */
-export function resolveChangelogGroups(
+export function initialLastSeen(feed: ChangelogFeed): number | null {
+  const [newest, previous] = publicationTimes(feed)
+  if (newest === undefined) return null
+  return previous ?? newest - 1
+}
+
+/** The labels of the most frequent areas of a section, and how many others there are. */
+export function topAreas(items: ChangelogFeedItem[], max = 3): { names: string[]; others: number } {
+  const counts = new Map<string, number>()
+  for (const { area } of items) {
+    if (area !== null) counts.set(area, (counts.get(area) ?? 0) + 1)
+  }
+  const names = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name)
+  return { names: names.slice(0, max), others: Math.max(names.length - max, 0) }
+}
+
+/**
+ * Groups feed items by type (ADR 0040): in the JSON's `types` order, entries without a type (written
+ * before types existed) last.
+ */
+export function groupChangelogItems(
   data: GlobalChangelog,
-  ref: ChangelogEntryRef,
+  items: ChangelogFeedItem[],
   locale: string
 ): ChangelogGroup[] {
-  const component = data.components[ref.componentId]
-  if (!component) return []
-
-  const release = component.releases.find((r) => r.version === ref.version)
-  const sources =
-    ref.kind === 'unreleased'
-      ? [component.unreleased.entries]
-      : release && !release.dev
-        ? [release.entries, ...devReleasesOf(component, release.version).map((r) => r.entries)]
-        : release
-          ? [release.entries]
-          : []
-  if (sources.length === 0) return []
-
-  const lang = locale.startsWith('fr') ? 'fr' : 'en'
-  const items = sources.flatMap((entries) =>
-    entries[lang].length > 0 ? entries[lang] : entries.en
-  )
+  const lang = readerLang(locale)
 
   return [...Object.keys(data.types), null].flatMap((type): ChangelogGroup[] => {
-    const entries = items
-      .filter((item) => item.type === type && item.text.trim())
-      .map((item) => ({
-        area: item.area === null ? null : (component.areas[item.area]?.[lang] ?? item.area),
-        text: item.text
-      }))
+    const entries = items.filter((item) => item.type === type)
     if (entries.length === 0) return []
     const label = type === null ? null : (data.types[type]?.[lang] ?? type)
     return [{ type, label, entries }]

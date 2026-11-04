@@ -21,24 +21,15 @@ export type ChangelogEntryItemProps = {
   text: string
 }
 
-/** Renders one changelog bullet with markdown and indented continuation lines. */
+/** Renders one changelog bullet with markdown; its line breaks are soft wraps (ADR 0051). */
 export default function ChangelogEntryItem({ text }: ChangelogEntryItemProps): React.JSX.Element {
-  const lines = text.replace(/\\n/g, '\n').split('\n')
-
   return (
-    // Inline: the first line sits next to the list bullet
-    <span className="inline text-left">
-      {lines.map((line, index) => (
-        <span key={index} className={index > 0 ? 'block pl-4 text-ds-muted' : 'block'}>
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeSanitize]}
-            components={components}
-          >
-            {line}
-          </ReactMarkdown>
-        </span>
-      ))}
-    </span>
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      rehypePlugins={[rehypeSanitize]}
+      components={components}
+    >
+      {text.replace(/\\n|\s*\n\s*/g, ' ')}
+    </ReactMarkdown>
   )
 }

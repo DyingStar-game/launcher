@@ -1,5 +1,5 @@
 // shadcn/ui (radix-nova, shadcn 4.21.4), owned code (ADR 0016, 0027): `cn` from @lib/cn, and
-// `ring-3` instead of `ring-[3px]` (ADR 0026).
+// `ring-3` instead of `ring-[3px]` (ADR 0026), a `subtle` variant (ADR 0051).
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@lib/cn'
@@ -15,6 +15,8 @@ const badgeVariants = cva(
         destructive:
           'bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20',
         outline: 'border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground',
+        // Launcher: a discreet tag next to amber text, which `outline` would blend with (ADR 0051)
+        subtle: 'border-border text-ds-subtle',
         ghost: 'hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50',
         link: 'text-primary underline-offset-4 hover:underline'
       }

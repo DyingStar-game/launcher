@@ -9,6 +9,29 @@ export function item(
   return { type, area, text }
 }
 
+/** A changelog whose only build, on Universe Testing, holds `count` entries. */
+export function changelogWithEntries(count: number): GlobalChangelog {
+  const fixture = changelogFixture()
+  return changelogFixture({
+    DyingStar: {
+      ...fixture.components.DyingStar!,
+      releases: [
+        {
+          version: '0.1.0-dev.202610141000',
+          date: '2026-10-14',
+          yanked: false,
+          dev: true,
+          url: null,
+          entries: {
+            en: Array.from({ length: count }, (_, i) => item(`Entry ${i + 1}`, 'added')),
+            fr: []
+          }
+        }
+      ]
+    }
+  })
+}
+
 /**
  * A `global.json` (schema version 2, ADR 0040) with the DyingStar and launcher components; pass
  * `components` to replace their content.

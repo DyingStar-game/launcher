@@ -1,229 +1,110 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { ChangelogEntryRef, GlobalChangelog } from '@shared/types/changelog'
+import type { ChangelogNewMark, GlobalChangelog } from '@shared/types/changelog'
 import type { Env } from '@shared/types/env'
-import { buildChangelogEntryRefs, unreleasedFingerprint } from '@lib/changelogEntries'
-import { useEnvStore } from './env'
+import {
+  buildChangelogFeed,
+  initialLastSeen,
+  newestPublication,
+  publicationTimes
+} from '@lib/changelogEntries'
+
+const ENVS = ['universe', 'universe-testing'] as const
 
 type ChangelogState = {
-  loading: boolean
-  fetched: boolean
-  data: GlobalChangelog | null
-  /** Version shown per environment, for this launch only: the newest at start (ADR 0046). */
-  currentByEnv: Record<Env, string | null>
-  viewedIds: string[]
-  /**
-   * Last seen unreleased content fingerprint per env/component.
-   * Compared to the current component unreleased payload (not global `generated_at`).
-   */
-  unreleasedSeenFingerprint: Record<string, string>
-  fetch: () => Promise<void>
-  select: (id: string) => void
-  /** Marks an entry as read without changing selection (e.g. when it is displayed). */
-  markViewed: (id: string, env: Env) => void
-  /** Marks every version of an environment as read, its unreleased sections included (ADR 0046). */
-  markAllViewed: (env: Env) => void
-  syncSelectionForEnv: (env: Env) => void
-  getEntries: (env: Env) => ChangelogEntryRef[]
-  getCurrentId: (env: Env) => string | null
-  isUnread: (id: string) => boolean
-  /** Number of versions of the environment not viewed yet. */
-  unreadCount: (env: Env) => number
+  /** Everything published up to this time is seen, per universe; null before any data (ADR 0051). */
+  lastSeenByEnv: Record<Env, number | null>
+  /** Publications seen after that date, until they all are and the date moves (ADR 0051). */
+  seenTimesByEnv: Record<Env, number[]>
+  /** Where the feed's "new since the last visit" mark sits, for this launch only (ADR 0051). */
+  shownMarkByEnv: Partial<Record<Env, ChangelogNewMark>>
+  /** Gives a player with no reading state their starting point: only the newest counts as new. */
+  startReading: (data: GlobalChangelog) => void
+  /** The player opens a universe's feed: sets the mark, once per launch. */
+  openFeed: (env: Env, data: GlobalChangelog) => void
+  /** These publications are on screen; the date moves once every publication is seen. */
+  markSeen: (env: Env, times: number[], data: GlobalChangelog) => void
+  /** Everything published in the universe is seen, the mark staying on screen (ADR 0046). */
+  markAllSeen: (env: Env, data: GlobalChangelog) => void
 }
 
-/** What is kept between launches: the read state, not the version shown (ADR 0046). */
-type PersistedChangelog = {
-  viewedIds: string[]
-  unreleasedSeenFingerprint: Record<string, string>
-}
+/** What is kept between launches: what was seen, not the mark (ADR 0051). */
+type PersistedChangelog = Pick<ChangelogState, 'lastSeenByEnv' | 'seenTimesByEnv'>
 
-type PersistedChangelogV0 = {
-  viewedIds?: string[]
-  unreleasedSeenAt?: Record<string, string>
-  unreleasedSeenFingerprint?: Record<string, string>
-  currentByEnv?: Record<Env, string | null>
-}
-
-function normalizePersistedChangelog(raw: PersistedChangelogV0): PersistedChangelog {
-  return {
-    viewedIds: raw.viewedIds ?? [],
-    unreleasedSeenFingerprint: raw.unreleasedSeenFingerprint ?? {}
-  }
-}
-
-function entriesForEnv(data: GlobalChangelog | null, env: Env): ChangelogEntryRef[] {
-  if (!data) return []
-  return buildChangelogEntryRefs(data, env)
-}
-
-function fingerprintForUnreleased(
-  data: GlobalChangelog | null,
-  componentId: string
-): string | null {
-  const component = data?.components[componentId]
-  if (!component) return null
-  return unreleasedFingerprint(component.unreleased.entries)
-}
-
-function viewedPatchForEntry(
-  state: {
-    data: GlobalChangelog | null
-    viewedIds: string[]
-    unreleasedSeenFingerprint: Record<string, string>
-  },
-  entry: ChangelogEntryRef,
-  env: Env,
-  id: string
-): Pick<ChangelogState, 'viewedIds' | 'unreleasedSeenFingerprint'> {
-  const viewedIds = state.viewedIds.includes(id) ? state.viewedIds : [...state.viewedIds, id]
-  if (entry.kind !== 'unreleased') {
-    return { viewedIds, unreleasedSeenFingerprint: state.unreleasedSeenFingerprint }
-  }
-
-  const fingerprint = fingerprintForUnreleased(state.data, entry.componentId)
-  const unreleasedSeenFingerprint = fingerprint
-    ? { ...state.unreleasedSeenFingerprint, [`${env}:${entry.componentId}`]: fingerprint }
-    : state.unreleasedSeenFingerprint
-
-  return { viewedIds, unreleasedSeenFingerprint }
+const NOTHING_SEEN: PersistedChangelog = {
+  lastSeenByEnv: { universe: null, 'universe-testing': null },
+  seenTimesByEnv: { universe: [], 'universe-testing': [] }
 }
 
 /**
- * Remote changelog catalog, selection, and persisted read-state for notification badges.
+ * What the player has seen of the changelog (ADR 0051); the changelog itself is a query
+ * (`useChangelog`, ADR 0025).
  */
 export const useChangelogStore = create<ChangelogState>()(
   persist(
     (set, get) => ({
-      loading: false,
-      fetched: false,
-      data: null,
-      currentByEnv: {
-        universe: null,
-        'universe-testing': null
+      ...NOTHING_SEEN,
+      shownMarkByEnv: {},
+
+      startReading: (data) => {
+        const lastSeenByEnv = { ...get().lastSeenByEnv }
+        for (const env of ENVS) {
+          lastSeenByEnv[env] ??= initialLastSeen(buildChangelogFeed(data, env, 'en'))
+        }
+        set({ lastSeenByEnv })
       },
-      viewedIds: [],
-      unreleasedSeenFingerprint: {},
 
-      getEntries: (env) => entriesForEnv(get().data, env),
+      openFeed: (env, data) => {
+        const { lastSeenByEnv, seenTimesByEnv, shownMarkByEnv } = get()
+        if (shownMarkByEnv[env]) return
+        const feed = buildChangelogFeed(data, env, 'en')
+        // The page can open before the starting point is set
+        const since = lastSeenByEnv[env] ?? initialLastSeen(feed)
+        if (since === null) return
+        set({
+          lastSeenByEnv: { ...lastSeenByEnv, [env]: since },
+          shownMarkByEnv: { ...shownMarkByEnv, [env]: { since, seen: seenTimesByEnv[env] } }
+        })
+      },
 
-      getCurrentId: (env) => get().currentByEnv[env],
+      markSeen: (env, times, data) => {
+        const { lastSeenByEnv, seenTimesByEnv } = get()
+        const lastSeen = lastSeenByEnv[env]
+        if (lastSeen === null) return
+        const seen = new Set(seenTimesByEnv[env])
+        const fresh = times.filter((time) => time > lastSeen && !seen.has(time))
+        if (fresh.length === 0) return
 
-      fetch: async () => {
-        set({ loading: true })
-        try {
-          const data = await window.api.fetchChangelog()
-          set({ data, fetched: true, loading: false })
-
-          for (const env of ['universe', 'universe-testing'] as const) {
-            get().syncSelectionForEnv(env)
-          }
-        } catch (err) {
-          console.error('[ChangelogStore] Fetch failed:', err)
-          set({ loading: false, fetched: true })
+        for (const time of fresh) seen.add(time)
+        const published = publicationTimes(buildChangelogFeed(data, env, 'en'))
+        if (published.every((time) => time <= lastSeen || seen.has(time))) {
+          get().markAllSeen(env, data)
+        } else {
+          set({ seenTimesByEnv: { ...seenTimesByEnv, [env]: [...seen] } })
         }
       },
 
-      syncSelectionForEnv: (env) => {
-        const entries = entriesForEnv(get().data, env)
-        const currentId = get().currentByEnv[env]
-        const nextId = entries.some((e) => e.id === currentId)
-          ? currentId
-          : (entries[0]?.id ?? null)
-
-        if (nextId !== currentId) {
-          set((s) => ({
-            currentByEnv: { ...s.currentByEnv, [env]: nextId }
-          }))
-        }
-      },
-
-      select: (id) => {
-        const env = useEnvStore.getState().activeEnv
-        const entry = entriesForEnv(get().data, env).find((e) => e.id === id)
-        if (!entry) return
-
-        set((s) => ({
-          ...viewedPatchForEntry(s, entry, env, id),
-          currentByEnv: { ...s.currentByEnv, [env]: id }
-        }))
-      },
-
-      markViewed: (id, env) => {
-        const entry = entriesForEnv(get().data, env).find((e) => e.id === id)
-        if (!entry) return
-
-        set((s) => viewedPatchForEntry(s, entry, env, id))
-      },
-
-      markAllViewed: (env) => {
-        set((s) =>
-          entriesForEnv(s.data, env).reduce(
-            (state, entry) => ({ ...state, ...viewedPatchForEntry(state, entry, env, entry.id) }),
-            {
-              data: s.data,
-              viewedIds: s.viewedIds,
-              unreleasedSeenFingerprint: s.unreleasedSeenFingerprint
-            }
-          )
-        )
-      },
-
-      isUnread: (id) => {
-        const { data, viewedIds, unreleasedSeenFingerprint } = get()
-        if (!data) return false
-
-        const firstColon = id.indexOf(':')
-        const lastColon = id.lastIndexOf(':')
-        if (firstColon === -1 || lastColon === firstColon) return false
-
-        const env = id.slice(0, firstColon)
-        const componentId = id.slice(firstColon + 1, lastColon)
-        const suffix = id.slice(lastColon + 1)
-        if (!env || !componentId || !suffix) return false
-
-        if (suffix === 'unreleased') {
-          const fingerprint = fingerprintForUnreleased(data, componentId)
-          if (!fingerprint) return false
-          return unreleasedSeenFingerprint[`${env}:${componentId}`] !== fingerprint
-        }
-
-        // On Universe a dev release is a detail of its release: never unread (ADR 0042)
-        const release = data.components[componentId]?.releases.find((r) => r.version === suffix)
-        if (env === 'universe' && release?.dev) return false
-
-        return !viewedIds.includes(id)
-      },
-
-      unreadCount: (env) =>
-        entriesForEnv(get().data, env).filter((e) => get().isUnread(e.id)).length
+      markAllSeen: (env, data) => {
+        const newest = newestPublication(buildChangelogFeed(data, env, 'en'))
+        if (newest === null) return
+        const { lastSeenByEnv, seenTimesByEnv } = get()
+        set({
+          lastSeenByEnv: { ...lastSeenByEnv, [env]: newest },
+          seenTimesByEnv: { ...seenTimesByEnv, [env]: [] }
+        })
+      }
     }),
     {
       name: 'dyingstar-changelog',
-      // Version 2: the version shown is no longer kept, the changelog opens on the newest at each
-      // launch (ADR 0046)
-      version: 2,
+      // Version 3: one date per universe replaces the read state per version, which cannot be
+      // converted; the newest publication counts as new once (ADR 0051)
+      version: 3,
       partialize: (state): PersistedChangelog => ({
-        viewedIds: state.viewedIds,
-        unreleasedSeenFingerprint: state.unreleasedSeenFingerprint
+        lastSeenByEnv: state.lastSeenByEnv,
+        seenTimesByEnv: state.seenTimesByEnv
       }),
-      migrate: (persisted, version): PersistedChangelog => {
-        const state = (persisted ?? {}) as PersistedChangelogV0
-        if (version < 1) {
-          // Drop generated_at-based markers: they fired on every JSON regen.
-          // Users may see unreleased badges once until they re-open those entries.
-          return normalizePersistedChangelog({
-            viewedIds: state.viewedIds,
-            unreleasedSeenFingerprint: state.unreleasedSeenFingerprint ?? {}
-          })
-        }
-        return normalizePersistedChangelog(state)
-      }
+      migrate: (persisted, version): PersistedChangelog =>
+        version < 3 || !persisted ? NOTHING_SEEN : (persisted as PersistedChangelog)
     }
   )
 )
-
-useEnvStore.subscribe((state, prev) => {
-  if (state.activeEnv !== prev.activeEnv) {
-    useChangelogStore.getState().syncSelectionForEnv(state.activeEnv)
-  }
-})

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, render, screen } from '../../../test/render'
+import { act, render, screen, waitFor } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { useAccountStore } from '@stores/account'
 import { useAvailabilityStore } from '@stores/availability'
@@ -8,6 +8,7 @@ import { useFilesStore, type EnvFilesData, type InstallRunOutcome } from '@store
 import { useGameStore, type PlayOutcome } from '@stores/game'
 import type { ServerStatusValue } from '@shared/types/game'
 import { Toaster } from '@components/ui/sonner'
+import { useChangelog } from '@hooks/changelog/useChangelog'
 import GameActionBar from './GameActionBar'
 
 // The status queries have their own tests: here they answer what each test sets
@@ -138,6 +139,25 @@ describe('GameActionBar', () => {
     expect(screen.getByText('In /games')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Install' }))
     expect(install).toHaveBeenCalledOnce()
+  })
+
+  it('reads the changelog again once installed', async () => {
+    vi.mocked(window.api.fetchChangelog).mockResolvedValue(null)
+    install.mockResolvedValue('installed')
+    files({ installed: false, installPath: '/games', version: null })
+    const ChangelogReader = (): null => {
+      useChangelog()
+      return null
+    }
+    render(
+      <>
+        <ChangelogReader />
+        <GameActionBar />
+      </>
+    )
+    await waitFor(() => expect(window.api.fetchChangelog).toHaveBeenCalledOnce())
+    await userEvent.click(screen.getByRole('button', { name: 'Install' }))
+    await waitFor(() => expect(window.api.fetchChangelog).toHaveBeenCalledTimes(2))
   })
 
   it('shows the progress, speed and time left while downloading', () => {

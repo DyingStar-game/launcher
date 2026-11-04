@@ -21,6 +21,7 @@ import { secondsLeft } from '@lib/transferRate'
 import { formatReleaseDateDisplay } from '@lib/formatReleaseDate'
 import { statusPageUrlForEnv } from '@lib/env'
 import { versionKeys } from '@lib/versionQueries'
+import { changelogKeys } from '@lib/changelogQueries'
 import Button from '@components/atoms/Button'
 import DiscordIcon from '@components/atoms/icons/DiscordIcon'
 import LabelTooltip from '@components/molecules/LabelTooltip'
@@ -136,7 +137,10 @@ export default function GameActionBar(): React.JSX.Element {
       )
       return
     }
-    if (outcome === 'installed') void queryClient.invalidateQueries({ queryKey: versionKeys.game })
+    if (outcome === 'installed') {
+      void queryClient.invalidateQueries({ queryKey: versionKeys.game })
+      void queryClient.invalidateQueries({ queryKey: changelogKeys.all })
+    }
     if (outcome === 'interrupted') toast.error(t('universe.action.installing.interrupted'))
     if (outcome === 'failed') toast.error(t('universe.action.installing.failed'))
   }

@@ -63,6 +63,9 @@
   --color-ds-accent: rgb(255, 186, 8, 0.8);
   --color-ds-text: rgb(255, 186, 8);
   --color-ds-muted: #6b6b80;
+  /* Long reading text and its secondary text, on dark surfaces (ADR 0051) */
+  --color-ds-body: #dcdce6;
+  --color-ds-subtle: #a0a0b4;
   --color-ds-success: #22c55e;
   --color-ds-warning: #f59e0b;
   --color-ds-danger: #ef4444;
