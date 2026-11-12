@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { act, render, screen } from '../../../test/render'
 import i18n from '@i18n'
@@ -6,6 +6,7 @@ import { useAvailabilityStore } from '@stores/availability'
 import { useAccountStore } from '@stores/account'
 import { useChangelogStore } from '@stores/changelog'
 import { useEnvStore } from '@stores/env'
+import { changelogWithEntries } from '../../../test/changelogFixture'
 import UniverseBar from './UniverseBar'
 
 /** The testing notice on screen: in the bar, or in its strip below the wide breakpoint. */
@@ -33,9 +34,11 @@ describe('UniverseBar (rendering)', () => {
           'universe-testing': { status: 'connected', username: 'bobthebuilder061490' }
         }
       }))
-      useChangelogStore.setState({ unreadCount: () => 2 })
+      useChangelogStore.setState({ lastSeenByEnv: { universe: 0, 'universe-testing': 0 } })
     })
+    vi.mocked(window.api.fetchChangelog).mockResolvedValue(changelogWithEntries(2))
     render(<UniverseBar />)
+    await screen.findByText(/2 nouveaux changements/)
     const [sections, , notice, account] = [...screen.getByRole('navigation').children].map((el) =>
       el.getBoundingClientRect()
     )

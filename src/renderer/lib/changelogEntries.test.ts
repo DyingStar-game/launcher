@@ -1,225 +1,251 @@
 import { describe, expect, it } from 'vitest'
+import type { ChangelogFeedItem, ChangelogRelease, GlobalChangelog } from '@shared/types/changelog'
 import { changelogFixture, item } from '../test/changelogFixture'
-import type { ChangelogEntryRef } from '@shared/types/changelog'
-import type { ChangelogRelease } from '@shared/types/changelog'
 import {
-  buildChangelogEntryRefs,
-  formatDevBuild,
-  formatDevBuildShort,
-  groupDevReleases,
-  isReleased,
-  resolveChangelogGroups,
-  unreleasedFingerprint,
+  buildChangelogFeed,
+  changelogFeedModules,
+  countNewItems,
+  filterChangelogFeed,
+  formatFeedDay,
+  groupChangelogItems,
+  initialLastSeen,
+  newestPublication,
+  NOTHING_NEW,
+  topAreas,
   versionCore
 } from './changelogEntries'
 
-const fixture = changelogFixture()
-
-const data = changelogFixture({
-  DyingStar: {
-    ...fixture.components.DyingStar,
-    unreleased: {
-      url: null,
-      entries: {
-        en: [
-          item('Older entry'),
-          item('Hints moved', 'fixed', 'ui'),
-          item('New dashboard\nspeed', 'added', 'vehicles'),
-          item('Unknown area', 'added', 'retired-area')
-        ],
-        fr: [
-          item('Ancienne entrée'),
-          item('Bulles déplacées', 'fixed', 'ui'),
-          item('Nouveau tableau de bord\nvitesse', 'added', 'vehicles'),
-          item('Domaine inconnu', 'added', 'retired-area')
-        ]
-      }
-    }
-  },
-  launcher: {
-    ...fixture.components.launcher,
-    unreleased: { url: null, entries: { en: [item('Not shown in testing')], fr: [] } },
-    releases: [
-      {
-        version: '1.0.0',
-        date: '2026-10-13',
-        yanked: true,
-        url: null,
-        entries: { en: [item('Download resumes', 'fixed', 'download')], fr: [] }
-      }
-    ]
-  }
-})
-
-const unreleasedRef = buildChangelogEntryRefs(data, 'universe-testing')[0] as ChangelogEntryRef
-const releaseRef = buildChangelogEntryRefs(data, 'universe')[0] as ChangelogEntryRef
-
-describe('buildChangelogEntryRefs', () => {
-  it('lists the unreleased sections in testing, the launcher aside', () => {
-    expect(buildChangelogEntryRefs(data, 'universe-testing')).toEqual([
-      {
-        id: 'universe-testing:DyingStar:unreleased',
-        env: 'universe-testing',
-        componentId: 'DyingStar',
-        moduleKind: 'game',
-        kind: 'unreleased',
-        version: null,
-        date: null,
-        yanked: false,
-        devOf: null,
-        devCount: 0
-      }
-    ])
-  })
-
-  it('lists the releases in universe, withdrawn ones flagged', () => {
-    expect(buildChangelogEntryRefs(data, 'universe')).toEqual([
-      expect.objectContaining({ id: 'universe:launcher:1.0.0', version: '1.0.0', yanked: true })
-    ])
-  })
-})
-
-describe('resolveChangelogGroups', () => {
-  it('groups the entries by type in the JSON order, older entries last, areas labelled', () => {
-    expect(resolveChangelogGroups(data, unreleasedRef, 'fr')).toEqual([
-      {
-        type: 'added',
-        label: 'Ajouts',
-        entries: [
-          { area: 'Véhicules', text: 'Nouveau tableau de bord\nvitesse' },
-          // An area missing from the list shows as its key
-          { area: 'retired-area', text: 'Domaine inconnu' }
-        ]
-      },
-      {
-        type: 'fixed',
-        label: 'Corrections',
-        entries: [{ area: 'Interface', text: 'Bulles déplacées' }]
-      },
-      { type: null, label: null, entries: [{ area: null, text: 'Ancienne entrée' }] }
-    ])
-  })
-
-  it('falls back to the English entries when there are none in the language', () => {
-    expect(resolveChangelogGroups(data, releaseRef, 'fr-FR')).toEqual([
-      {
-        type: 'fixed',
-        label: 'Corrections',
-        entries: [{ area: 'Téléchargement et installation', text: 'Download resumes' }]
-      }
-    ])
-  })
-
-  it('returns nothing for a version or component missing from the JSON', () => {
-    expect(resolveChangelogGroups(data, { ...releaseRef, version: '9.9.9' }, 'en')).toEqual([])
-    expect(resolveChangelogGroups(data, { ...releaseRef, componentId: 'gone' }, 'en')).toEqual([])
-  })
-})
-
-/** A release of the fixture, a dev release when its version says so (ADR 0042). */
-function release(version: string, date: string, en: string[]): ChangelogRelease {
-  return {
+const release = (
+  version: string,
+  text: string,
+  over: Partial<ChangelogRelease> = {}
+): ChangelogRelease =>
+  ({
     version,
-    date,
+    date: '2026-10-14',
     yanked: false,
     dev: version.includes('-dev.'),
     url: null,
-    entries: { en: en.map((text) => item(text, 'added', 'ui')), fr: [] }
-  }
-}
+    entries: { en: [item(text, 'added', 'vehicles')], fr: [] },
+    ...over
+  }) as ChangelogRelease
 
-const withDev = changelogFixture({
+const base = changelogFixture()
+const data: GlobalChangelog = changelogFixture({
   DyingStar: {
-    ...fixture.components.DyingStar,
-    unreleased: { url: null, entries: { en: [item('Next build')], fr: [] } },
+    ...base.components.DyingStar!,
+    unreleased: { url: null, entries: { en: [item('Next')], fr: [item('Prochain')] } },
     releases: [
-      release('0.2.0-dev.202611021200', '2026-11-02', ['Build B']),
-      release('0.2.0-dev.202611011200', '2026-11-01', ['Build A']),
-      // Nothing merged since the previous build: not listed
-      release('0.2.0-dev.202611011100', '2026-11-01', []),
-      release('0.1.0', '2026-10-31', []),
-      release('0.1.0-dev.202610201530', '2026-10-20', ['Second']),
-      release('0.1.0-dev.202610101530', '2026-10-10', ['First']),
-      release('0.0.1-test5', '2025-12-16', ['Old'])
+      release('0.1.0-dev.202610141000', 'Morning build'),
+      release('0.1.0-dev.202610141800', 'Evening build'),
+      release('0.1.0-dev.202610101000', 'Older build'),
+      release('0.1.0', 'Stable', { date: '2026-10-20' })
     ]
+  },
+  horizonserver: {
+    repo: 'DyingStar-game/horizonserver',
+    areas: {},
+    unreleased: { url: null, entries: { en: [], fr: [] } },
+    releases: [release('0.1.0-dev.202610141200', 'Mesh build')]
+  },
+  launcher: {
+    ...base.components.launcher!,
+    unreleased: { url: null, entries: { en: [item('Launcher next')], fr: [] } },
+    releases: [release('1.1.0', 'Launcher stable', { date: '2026-10-25' })]
   }
 })
 
-describe('dev releases (ADR 0042)', () => {
-  const ids = (env: 'universe' | 'universe-testing'): (string | null)[][] =>
-    buildChangelogEntryRefs(withDev, env).map((r) => [r.version, r.devOf])
-
-  it('lists the unreleased section then the dev releases by version in testing', () => {
-    expect(ids('universe-testing')).toEqual([
-      [null, null],
-      ['0.2.0-dev.202611021200', '0.2.0'],
-      ['0.2.0-dev.202611011200', '0.2.0'],
-      ['0.1.0-dev.202610201530', '0.1.0'],
-      ['0.1.0-dev.202610101530', '0.1.0']
-    ])
-  })
-
-  it('lists each stable release followed by its dev releases in universe, unreleased ones aside', () => {
-    expect(ids('universe')).toEqual([
-      ['0.1.0', null],
-      ['0.1.0-dev.202610201530', '0.1.0'],
-      ['0.1.0-dev.202610101530', '0.1.0'],
-      ['0.0.1-test5', null]
-    ])
-    expect(buildChangelogEntryRefs(withDev, 'universe')[0]).toMatchObject({ devCount: 2 })
-  })
-
-  it('gathers the entries of its dev releases in a stable release', () => {
-    const [stable, newest] = buildChangelogEntryRefs(withDev, 'universe')
-    const texts = (ref: ChangelogEntryRef | undefined): string[] =>
-      resolveChangelogGroups(withDev, ref!, 'en').flatMap((g) => g.entries.map((e) => e.text))
-    expect(texts(stable)).toEqual(['Second', 'First'])
-    expect(texts(newest)).toEqual(['Second'])
-  })
-
-  it('folds the consecutive dev releases of a version', () => {
-    const blocks = groupDevReleases(buildChangelogEntryRefs(withDev, 'universe-testing'))
-    expect(
-      blocks.map((b) => (b.kind === 'dev' ? `${b.version}×${b.entries.length}` : b.kind))
-    ).toEqual(['entry', '0.2.0×2', '0.1.0×2'])
-  })
-
-  it('knows the released versions and the core of a version', () => {
-    expect(isReleased(withDev, 'DyingStar', '0.1.0')).toBe(true)
-    expect(isReleased(withDev, 'DyingStar', '0.2.0')).toBe(false)
+describe('versionCore', () => {
+  it('drops the pre-release part', () => {
     expect(versionCore('0.1.0-dev.202610141530')).toBe('0.1.0')
-    expect(versionCore('1.2.3+build.4')).toBe('1.2.3')
+    expect(versionCore('1.1.0')).toBe('1.1.0')
+  })
+})
+
+describe('buildChangelogFeed on Universe Testing (ADR 0051)', () => {
+  const feed = buildChangelogFeed(data, 'universe-testing', 'en')
+
+  it('gathers the builds of a day across modules, newest day first', () => {
+    expect(feed.sections.map((s) => s.items.map((i) => i.text))).toEqual([
+      ['Evening build', 'Morning build', 'Mesh build'],
+      ['Older build']
+    ])
   })
 
-  it('reads the build time of a dev release, in UTC, shown in the locale', () => {
-    const shown = new Date(Date.UTC(2026, 9, 14, 15, 30)).toLocaleString('en', {
-      dateStyle: 'short',
-      timeStyle: 'short'
+  it('lists the builds of a day', () => {
+    const [day] = feed.sections
+    expect(day?.kind === 'day' && day.builds.map((b) => b.version)).toEqual([
+      '0.1.0-dev.202610141800',
+      '0.1.0-dev.202610141000',
+      '0.1.0-dev.202610141200'
+    ])
+  })
+
+  it('keeps the launcher and stable releases out', () => {
+    const texts = feed.sections.flatMap((s) => s.items.map((i) => i.text))
+    expect(texts).not.toContain('Stable')
+    expect(texts).not.toContain('Launcher stable')
+    expect(feed.upcoming.map((i) => i.text)).toEqual(['Next'])
+  })
+
+  it('reads a build time as UTC, an entry knowing its build', () => {
+    const [day] = feed.sections
+    expect(day?.items[0]?.publishedAt).toBe(Date.UTC(2026, 9, 14, 18, 0))
+    expect(day?.items[0]?.build).toBe('0.1.0-dev.202610141800')
+  })
+
+  it('resolves the area label and the reader language, English when missing', () => {
+    expect(feed.sections[0]?.items[0]?.area).toBe('Vehicles')
+    const fr = buildChangelogFeed(data, 'universe-testing', 'fr-FR')
+    expect(fr.sections[0]?.items[0]).toMatchObject({ area: 'Véhicules', text: 'Evening build' })
+    expect(fr.upcoming[0]?.text).toBe('Prochain')
+  })
+
+  it('leaves out a build without text', () => {
+    const empty = changelogFixture({
+      DyingStar: {
+        ...base.components.DyingStar!,
+        releases: [
+          release('0.1.0-dev.202610141000', 'x', { entries: { en: [item('  ')], fr: [] } })
+        ]
+      }
     })
-    expect(formatDevBuild('0.1.0-dev.202610141530', 'en')).toBe(shown)
-    expect(formatDevBuild('0.1.0', 'en')).toBeNull()
+    expect(buildChangelogFeed(empty, 'universe-testing', 'en').sections).toEqual([])
   })
 })
 
-describe('formatDevBuildShort', () => {
-  const time = new Date(Date.UTC(2026, 9, 14, 15, 30))
-  const clock = time.toLocaleTimeString('fr', { hour: 'numeric', minute: '2-digit' })
+describe('buildChangelogFeed on Universe (ADR 0051)', () => {
+  const feed = buildChangelogFeed(data, 'universe', 'en')
 
-  it('gives the date and time of a build, without "Build"', () => {
-    expect(formatDevBuildShort('0.1.0-dev.202610141530', 'fr')).toBe(`14/10/2026 · ${clock}`)
+  it('lists the stable releases of every module, newest first, nothing upcoming', () => {
+    expect(feed.upcoming).toEqual([])
+    expect(feed.sections.map((s) => s.id)).toEqual(['launcher:1.1.0', 'DyingStar:0.1.0'])
   })
 
-  it('is null for a version without build time', () => {
-    expect(formatDevBuildShort('0.1.0', 'fr')).toBeNull()
+  it('gathers the dev releases under their stable release', () => {
+    const stable = feed.sections[1]
+    expect(stable?.items.map((i) => i.text)).toEqual([
+      'Stable',
+      'Evening build',
+      'Morning build',
+      'Older build'
+    ])
+    expect(stable?.items[1]?.build).toBe('0.1.0-dev.202610141800')
+  })
+
+  it('does not list a version not released yet', () => {
+    const notYet = changelogFixture({
+      DyingStar: {
+        ...base.components.DyingStar!,
+        releases: [release('0.2.0-dev.202610141000', 'Dev only')]
+      }
+    })
+    expect(buildChangelogFeed(notYet, 'universe', 'en').sections).toEqual([])
   })
 })
 
-describe('unreleasedFingerprint', () => {
-  it('changes with the content only', () => {
-    const entries = data.components.DyingStar!.unreleased.entries
-    expect(unreleasedFingerprint(entries)).toBe(unreleasedFingerprint({ ...entries }))
-    expect(unreleasedFingerprint(entries)).not.toBe(
-      unreleasedFingerprint({ ...entries, en: entries.en.slice(1) })
+describe('filterChangelogFeed', () => {
+  const feed = buildChangelogFeed(data, 'universe-testing', 'en')
+
+  it('returns the feed as is without a module', () => {
+    expect(filterChangelogFeed(feed, null)).toBe(feed)
+  })
+
+  it('keeps one module, its builds, and drops the emptied sections', () => {
+    const { sections, upcoming } = filterChangelogFeed(feed, 'horizonserver')
+    expect(upcoming).toEqual([])
+    expect(sections).toHaveLength(1)
+    expect(sections[0]?.items.map((i) => i.text)).toEqual(['Mesh build'])
+    expect(sections[0]?.kind === 'day' && sections[0].builds).toHaveLength(1)
+  })
+})
+
+describe('changelogFeedModules', () => {
+  it('lists the modules with something to show, the game first', () => {
+    expect(changelogFeedModules(buildChangelogFeed(data, 'universe-testing', 'en'))).toEqual([
+      'DyingStar',
+      'horizonserver'
+    ])
+  })
+})
+
+describe('reading state helpers', () => {
+  const feed = buildChangelogFeed(data, 'universe-testing', 'en')
+
+  it('counts what came out after a date, never what comes next', () => {
+    const since = Date.UTC(2026, 9, 14, 11, 0)
+    expect(countNewItems(feed.sections, { since, seen: [] })).toBe(2)
+    expect(countNewItems(feed.sections, NOTHING_NEW)).toBe(0)
+  })
+
+  it('leaves out the publications already seen', () => {
+    const since = Date.UTC(2026, 9, 14, 11, 0)
+    const seen = [Date.UTC(2026, 9, 14, 18, 0)]
+    expect(countNewItems(feed.sections, { since, seen })).toBe(1)
+  })
+
+  it('gives the newest publication', () => {
+    expect(newestPublication(feed)).toBe(Date.UTC(2026, 9, 14, 18, 0))
+    expect(newestPublication({ upcoming: [], sections: [] })).toBeNull()
+  })
+
+  it('starts a new player just before the newest publication', () => {
+    const start = initialLastSeen(feed)
+    expect(start).toBe(Date.UTC(2026, 9, 14, 12, 0))
+    expect(countNewItems(feed.sections, { since: start!, seen: [] })).toBe(1)
+    expect(initialLastSeen({ upcoming: [], sections: [] })).toBeNull()
+  })
+
+  it('counts the only publication as new', () => {
+    const one = changelogFixture({
+      DyingStar: {
+        ...base.components.DyingStar!,
+        releases: [release('0.1.0-dev.202610141000', 'Only')]
+      }
+    })
+    const only = buildChangelogFeed(one, 'universe-testing', 'en')
+    expect(countNewItems(only.sections, { since: initialLastSeen(only)!, seen: [] })).toBe(1)
+  })
+})
+
+describe('topAreas', () => {
+  const entry = (area: string | null): ChangelogFeedItem => ({
+    componentId: 'DyingStar',
+    type: null,
+    area,
+    text: 'x',
+    publishedAt: 1,
+    build: null
+  })
+
+  it('gives the most frequent areas and how many others, skipping entries without one', () => {
+    const items = ['A', 'B', 'B', 'C', 'C', 'C', 'D', null].map(entry)
+    expect(topAreas(items)).toEqual({ names: ['C', 'B', 'A'], others: 1 })
+  })
+})
+
+describe('groupChangelogItems', () => {
+  it('follows the order of the types, the entries without a type last', () => {
+    const entry = (type: string | null): ChangelogFeedItem => ({
+      componentId: 'DyingStar',
+      type,
+      area: null,
+      text: 'x',
+      publishedAt: 1,
+      build: null
+    })
+    const groups = groupChangelogItems(data, ['fixed', null, 'added'].map(entry), 'fr')
+    expect(groups.map((g) => g.label)).toEqual(['Ajouts', 'Corrections', null])
+  })
+})
+
+describe('formatFeedDay', () => {
+  const time = new Date(2026, 10, 3, 12).getTime()
+
+  it('capitalises the day, the year only when not the current one', () => {
+    expect(formatFeedDay(time, 'fr-FR', new Date(2026, 11, 1).getTime())).toBe('Mardi 3 novembre')
+    expect(formatFeedDay(time, 'fr-FR', new Date(2027, 0, 1).getTime())).toBe(
+      'Mardi 3 novembre 2026'
     )
   })
 })

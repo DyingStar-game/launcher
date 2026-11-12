@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { useEnvStore } from '@stores/env'
 import { useNavigationStore } from '@stores/navigation'
 import { useChangelogStore } from '@stores/changelog'
+import { changelogWithEntries } from '../../../test/changelogFixture'
 import { seedSocial } from '../../../test/seedSocial'
 import UniverseBar from './UniverseBar'
 
@@ -15,12 +16,18 @@ beforeEach(() => {
 })
 
 describe('UniverseBar', () => {
-  it('counts the unread versions on the Changelog button', () => {
-    const { unreadCount } = useChangelogStore.getState()
-    act(() => useChangelogStore.setState({ unreadCount: () => 3 }))
+  it('counts the new entries on the Changelog button', async () => {
+    const saved = useChangelogStore.getState()
+    vi.mocked(window.api.fetchChangelog).mockResolvedValue(changelogWithEntries(3))
+    act(() => {
+      useEnvStore.setState({ activeEnv: 'universe-testing' })
+      useChangelogStore.setState({ lastSeenByEnv: { universe: 0, 'universe-testing': 0 } })
+    })
     render(<UniverseBar />)
-    expect(screen.getByRole('button', { name: /Changelog.*3 new versions/ })).toBeInTheDocument()
-    act(() => useChangelogStore.setState({ unreadCount }))
+    expect(
+      await screen.findByRole('button', { name: /Changelog.*3 new changes/ })
+    ).toBeInTheDocument()
+    act(() => useChangelogStore.setState(saved, true))
   })
 
   it('keeps Social highlighted on a player page', () => {

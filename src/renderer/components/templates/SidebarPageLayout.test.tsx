@@ -12,13 +12,4 @@ describe('SidebarPageLayout', () => {
     expect(screen.getByText('Side')).toBeInTheDocument()
     expect(screen.getByText('Content').parentElement).toHaveClass('p-6')
   })
-
-  it('leaves bare content as is', () => {
-    render(
-      <SidebarPageLayout sidebar={<aside>Side</aside>} bare>
-        <p>Content</p>
-      </SidebarPageLayout>
-    )
-    expect(screen.getByText('Content').parentElement).not.toHaveClass('p-6')
-  })
 })

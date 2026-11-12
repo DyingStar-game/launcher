@@ -13,10 +13,10 @@ import OrganisationManagePage from '@pages/OrganisationManagePage'
 import { useNavigationStore, type View } from '@stores/navigation'
 import { useEffect } from 'react'
 import { useVersionStore } from '@stores/version'
-import { useChangelogStore } from '@stores/changelog'
 import { useBackgroundMusic } from '@hooks/useBackgroundMusic'
 import { useSocialAccountSync } from '@hooks/social/useSocialSnapshot'
 import { useRefreshAfterGame } from '@hooks/useRefreshAfterGame'
+import { useChangelogReadingStart } from '@hooks/changelog/useChangelog'
 import { useEnvAvailability } from '@hooks/status/useEnvAvailability'
 
 /**
@@ -24,16 +24,13 @@ import { useEnvAvailability } from '@hooks/status/useEnvAvailability'
  */
 function useAppStartup(): void {
   const { checkVersions, checked: versionChecked } = useVersionStore()
-  const { fetch: fetchChangelog } = useChangelogStore()
   useEnvAvailability()
 
   useEffect(() => {
     if (!versionChecked) void checkVersions()
   }, [versionChecked, checkVersions])
 
-  useEffect(() => {
-    void fetchChangelog()
-  }, [fetchChangelog])
+  useChangelogReadingStart()
 
   // Social data follows sign-in and sign-out in each environment (ADR 0025)
   useRefreshAfterGame()
