@@ -3,12 +3,13 @@ import * as fs from 'fs'
 import * as path from 'path'
 import log from 'electron-log'
 import { loadFreshGameToken } from '../auth'
+import { gameArgs } from './gameArgs'
 import { openGameLog } from './gameLog'
 import { getExecutablePath, getGameRoot } from './paths'
 import { isGameRunning, watchGameProcess } from './processWatch'
 import { gameSpawnEnv } from './spawnEnv'
 
-/** Spawns the game executable with a fresh JWT (`--token=<jwt>`). */
+/** Spawns the game executable with a fresh JWT (`--token=<jwt>`) and its other arguments. */
 export async function launchGame(
   installPath: string,
   env: Parameters<typeof loadFreshGameToken>[0]
@@ -33,7 +34,7 @@ export async function launchGame(
 
   const logFd = openGameLogOrNull(exePath)
   try {
-    const child = spawn(exePath, [`--token=${token}`], {
+    const child = spawn(exePath, gameArgs(token), {
       detached: true,
       stdio: logFd === null ? 'ignore' : ['ignore', logFd, logFd],
       cwd,
